@@ -1,0 +1,203 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    // ============================================
+    // ANDROID BUILD TASKS
+    // ============================================
+    {
+      "label": "🤖 Android: Build Debug APK",
+      "type": "shell",
+      "command": "cd android && ./gradlew build",
+      "isBackground": false,
+      "problemMatcher": [],
+      "group": {
+        "kind": "build",
+        "isDefault": false
+      },
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "🤖 Android: Install & Run on Device",
+      "type": "shell",
+      "command": "cd android && ./gradlew installDebug && adb shell am start -n com.folo/.MainActivity",
+      "isBackground": false,
+      "problemMatcher": [],
+      "group": "build"
+    },
+    {
+      "label": "🤖 Android: Clean Build",
+      "type": "shell",
+      "command": "cd android && ./gradlew clean && ./gradlew build",
+      "isBackground": false,
+      "group": "build"
+    },
+    {
+      "label": "🤖 Android: Run Tests",
+      "type": "shell",
+      "command": "cd android && ./gradlew test",
+      "isBackground": false,
+      "group": "test"
+    },
+
+    // ============================================
+    // WEB BUILD TASKS
+    // ============================================
+    {
+      "label": "🌐 Web: Install Dependencies",
+      "type": "shell",
+      "command": "cd web && npm install",
+      "isBackground": false,
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "🌐 Web: Dev Server (localhost:3000)",
+      "type": "shell",
+      "command": "cd web && npm run dev",
+      "isBackground": true,
+      "problemMatcher": [],
+      "group": "build",
+      "presentation": {
+        "echo": true,
+        "reveal": "always",
+        "focus": false,
+        "panel": "shared"
+      }
+    },
+    {
+      "label": "🌐 Web: Build Production",
+      "type": "shell",
+      "command": "cd web && npm run build",
+      "isBackground": false,
+      "group": "build"
+    },
+    {
+      "label": "🌐 Web: Lint & Type Check",
+      "type": "shell",
+      "command": "cd web && npm run lint && npm run type-check 2>/dev/null || true",
+      "isBackground": false,
+      "group": "test"
+    },
+    {
+      "label": "🌐 Web: Run Tests",
+      "type": "shell",
+      "command": "cd web && npm test 2>/dev/null || echo 'Tests not configured yet'",
+      "isBackground": false,
+      "group": "test"
+    },
+
+    // ============================================
+    // SUPABASE TASKS
+    // ============================================
+    {
+      "label": "🔗 Supabase: Check Connection",
+      "type": "shell",
+      "command": "echo 'Verify Supabase credentials in local.properties and .env.local'",
+      "isBackground": false,
+      "group": "build"
+    },
+
+    // ============================================
+    // COMBINED FEATURE TASKS (Both Platforms)
+    // ============================================
+    {
+      "label": "✨ Feature: Setup Authentication (Both)",
+      "type": "shell",
+      "command": "echo 'Phase 1: Build LoginScreen (Android) & LoginPage (Web)' && echo 'Update PROGRESS.md when complete'",
+      "isBackground": false,
+      "group": "build"
+    },
+    {
+      "label": "✨ Feature: Setup Dashboard (Both)",
+      "type": "shell",
+      "command": "echo 'Phase 2: Build DashboardScreen (Android) & Dashboard page (Web)' && echo 'Update PROGRESS.md when complete'",
+      "isBackground": false,
+      "group": "build"
+    },
+    {
+      "label": "✨ Feature: Setup Transactions (Both)",
+      "type": "shell",
+      "command": "echo 'Phase 3: Build TransactionScreen (Android) & Transactions page (Web)' && echo 'Update PROGRESS.md when complete'",
+      "isBackground": false,
+      "group": "build"
+    },
+
+    // ============================================
+    // PROGRESS TRACKING
+    // ============================================
+    {
+      "label": "📊 Show Progress Report",
+      "type": "shell",
+      "command": "cat PROGRESS.md",
+      "isBackground": false,
+      "group": "build"
+    },
+    {
+      "label": "📊 Update Progress (Edit File)",
+      "type": "shell",
+      "command": "code PROGRESS.md",
+      "isBackground": false,
+      "group": "build"
+    },
+
+    // ============================================
+    // GIT COMMANDS
+    // ============================================
+    {
+      "label": "📝 Git: Stage All Changes",
+      "type": "shell",
+      "command": "git add .",
+      "isBackground": false,
+      "group": "build"
+    },
+    {
+      "label": "📝 Git: Commit Progress",
+      "type": "shell",
+      "command": "git commit -m 'Progress update: Feature development' || echo 'No changes to commit'",
+      "isBackground": false,
+      "group": "build"
+    },
+    {
+      "label": "📝 Git: Push to Origin",
+      "type": "shell",
+      "command": "git push origin main",
+      "isBackground": false,
+      "group": "build"
+    },
+    {
+      "label": "📝 Git: View Status",
+      "type": "shell",
+      "command": "git status",
+      "isBackground": false,
+      "group": "build"
+    },
+
+    // ============================================
+    // INITIALIZATION TASKS
+    // ============================================
+    {
+      "label": "🚀 INIT: Create Android Project Structure",
+      "type": "shell",
+      "command": "mkdir -p android/app/src/main/java/com/folo/{data,domain,ui,di,util} && mkdir -p android/app/src/main/java/com/folo/data/{local,remote,repository} && echo '✅ Android structure created'",
+      "isBackground": false,
+      "group": "build"
+    },
+    {
+      "label": "🚀 INIT: Create Web Project Structure",
+      "type": "shell",
+      "command": "mkdir -p web/{app,components,lib,public,styles,types} && echo '✅ Web structure created'",
+      "isBackground": false,
+      "group": "build"
+    }
+  ]
+}
