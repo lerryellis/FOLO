@@ -11,6 +11,18 @@ export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState('home');
   const [amount, setAmount] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('Expenses');
+  const [selectedGroup, setSelectedGroup] = useState('Expenses');
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedNote, setSelectedNote] = useState('');
+  const [currency, setCurrency] = useState('GH₵');
+
+  const currencies = [
+    { symbol: 'GH₵', code: 'GHS', label: 'Ghanaian Cedis' },
+    { symbol: '$', code: 'USD', label: 'US Dollar' },
+    { symbol: '€', code: 'EUR', label: 'Euro' },
+    { symbol: '£', code: 'GBP', label: 'British Pound' },
+    { symbol: '₦', code: 'NGN', label: 'Nigerian Naira' },
+  ];
 
   useEffect(() => {
     if (!loading && !user) {
@@ -50,7 +62,7 @@ export default function DashboardPage() {
 
         {/* Big Number */}
         <div className="flex items-baseline gap-1 mb-3">
-          <span className="text-sm font-medium" style={{ color: '#475569' }}>GH₵</span>
+          <span className="text-sm font-medium" style={{ color: '#475569' }}>{currency}</span>
           <span className="text-5xl font-bold tracking-tight" style={{ color: '#0B0F17', letterSpacing: '-0.03em' }}>1,315</span>
           <span className="text-sm font-medium" style={{ color: '#475569' }}>.00</span>
         </div>
@@ -60,7 +72,7 @@ export default function DashboardPage() {
         {/* Planned vs Actual */}
         <div className="flex items-center justify-between">
           <span className="text-xs" style={{ color: '#475569' }}>
-            Planned <span className="font-semibold" style={{ color: '#0B0F17' }}>GH₵1,800.00</span>
+            Planned <span className="font-semibold" style={{ color: '#0B0F17' }}>{currency}1,800.00</span>
           </span>
           <div className="flex items-center gap-1">
             <AlertCircle className="w-3.5 h-3.5" style={{ color: '#ef4444' }} />
@@ -181,10 +193,10 @@ export default function DashboardPage() {
       </div>
 
       {/* Amount Display */}
-      <div className="text-center mb-8">
-        <div className="text-sm" style={{ color: '#94a3b8' }}>{selectedCategory}</div>
+      <div className="text-center mb-6">
+        <div className="text-sm" style={{ color: '#94a3b8' }}>{selectedGroup}</div>
         <div className="flex items-baseline gap-1 justify-center mt-2">
-          <span className="text-xl font-medium" style={{ color: '#475569' }}>GH₵</span>
+          <span className="text-xl font-medium" style={{ color: '#475569' }}>{currency}</span>
           <span className="text-6xl font-bold" style={{ color: '#0B0F17', letterSpacing: '-0.035em' }}>
             {amount || '0'}
           </span>
@@ -192,23 +204,82 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Category Buttons */}
-      <div className="flex gap-2 mb-6 overflow-x-auto pb-2">
-        {['Income', 'Bills', 'Expenses', 'Savings', 'Debt'].map((cat) => (
-          <button
-            key={cat}
-            onClick={() => setSelectedCategory(cat)}
-            className="px-4 py-2 rounded-lg whitespace-nowrap font-medium text-sm transition-all flex-shrink-0"
+      {/* Group Buttons */}
+      <div className="mb-4">
+        <div className="text-xs font-semibold mb-2" style={{ color: '#94a3b8', letterSpacing: '0.07em' }}>GROUP</div>
+        <div className="flex gap-2 overflow-x-auto pb-2">
+          {['Income', 'Bills', 'Expenses', 'Savings', 'Debt'].map((cat) => (
+            <button
+              key={cat}
+              onClick={() => setSelectedGroup(cat)}
+              className="px-3 py-1.5 rounded-lg whitespace-nowrap font-medium text-xs transition-all flex-shrink-0 border"
+              style={{
+                backgroundColor: selectedGroup === cat ? '#0B0F17' : '#FFFFFF',
+                color: selectedGroup === cat ? '#FFFFFF' : '#475569',
+                borderColor: selectedGroup === cat ? '#0B0F17' : '#E8EAED',
+              }}
+            >
+              {cat}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Category, Date, Note Fields */}
+      <div className="space-y-3 mb-6">
+        {/* Category */}
+        <div>
+          <label className="text-xs font-semibold mb-1 block" style={{ color: '#94a3b8', letterSpacing: '0.07em' }}>CATEGORY</label>
+          <select
+            value={selectedCategory}
+            onChange={(e) => setSelectedCategory(e.target.value)}
+            className="w-full px-3 py-2 border rounded-lg text-sm"
             style={{
-              backgroundColor: selectedCategory === cat ? '#0B0F17' : '#FFFFFF',
-              color: selectedCategory === cat ? '#FFFFFF' : '#475569',
-              borderColor: selectedCategory === cat ? '#0B0F17' : '#E8EAED',
-              border: '1px solid',
+              borderColor: '#E8EAED',
+              color: '#0B0F17',
+              backgroundColor: '#FFFFFF',
             }}
           >
-            {cat}
-          </button>
-        ))}
+            <option>Food</option>
+            <option>Transport</option>
+            <option>Utilities</option>
+            <option>Health</option>
+            <option>Other</option>
+          </select>
+        </div>
+
+        {/* Date */}
+        <div>
+          <label className="text-xs font-semibold mb-1 block" style={{ color: '#94a3b8', letterSpacing: '0.07em' }}>DATE</label>
+          <input
+            type="date"
+            value={selectedDate}
+            onChange={(e) => setSelectedDate(e.target.value)}
+            className="w-full px-3 py-2 border rounded-lg text-sm"
+            style={{
+              borderColor: '#E8EAED',
+              color: '#0B0F17',
+              backgroundColor: '#FFFFFF',
+            }}
+          />
+        </div>
+
+        {/* Note */}
+        <div>
+          <label className="text-xs font-semibold mb-1 block" style={{ color: '#94a3b8', letterSpacing: '0.07em' }}>NOTE (OPTIONAL)</label>
+          <input
+            type="text"
+            placeholder="Add a note..."
+            value={selectedNote}
+            onChange={(e) => setSelectedNote(e.target.value)}
+            className="w-full px-3 py-2 border rounded-lg text-sm"
+            style={{
+              borderColor: '#E8EAED',
+              color: '#0B0F17',
+              backgroundColor: '#FFFFFF',
+            }}
+          />
+        </div>
       </div>
 
       {/* Numeric Keypad */}
@@ -342,17 +413,24 @@ export default function DashboardPage() {
       {/* Transactions grouped by date */}
       <div className="space-y-4">
         {[
-          { date: 'Today', transactions: [
+          { date: 'Today', dayTotal: '+8,299.20', transactions: [
             { name: 'Groceries', category: 'Food', amount: '−184.50', type: 'expense' },
             { name: 'Starbucks', category: 'Food', amount: '−15.30', type: 'expense' },
-          ]},
-          { date: 'Yesterday', transactions: [
             { name: 'Salary Deposit', category: 'Income', amount: '+8,500.00', type: 'income' },
+          ]},
+          { date: 'Yesterday', dayTotal: '−89.50', transactions: [
             { name: 'Electricity Bill', category: 'Bills', amount: '−89.50', type: 'expense' },
           ]},
-        ].map((group, gi) => (
+        ].map((group, gi) => {
+          const isDayPositive = group.dayTotal.startsWith('+');
+          return (
           <div key={gi}>
-            <div className="text-xs font-bold mb-2" style={{ color: '#94a3b8', letterSpacing: '0.08em' }}>{group.date.toUpperCase()}</div>
+            <div className="flex items-center justify-between mb-2">
+              <div className="text-xs font-bold" style={{ color: '#94a3b8', letterSpacing: '0.08em' }}>{group.date.toUpperCase()}</div>
+              <div className="text-xs font-semibold" style={{ color: isDayPositive ? '#059669' : '#ef4444' }}>
+                {group.dayTotal}
+              </div>
+            </div>
             <div className="bg-white border rounded-2xl overflow-hidden" style={{ borderColor: '#E8EAED' }}>
               {group.transactions.map((tx, ti) => (
                 <div
@@ -379,7 +457,8 @@ export default function DashboardPage() {
               ))}
             </div>
           </div>
-        ))}
+        );
+        })}
       </div>
     </div>
   );
@@ -414,18 +493,19 @@ export default function DashboardPage() {
       {/* Goal Cards */}
       <div className="space-y-3">
         {[
-          { name: 'Emergency Fund', saved: 15000, target: 20000, icon: '🛡️' },
-          { name: 'Vacation', saved: 8500, target: 12000, icon: '✈️' },
-          { name: 'New Laptop', saved: 5500, target: 2500, icon: '💻' },
-          { name: 'Car Down Payment', saved: 0, target: 30000, icon: '🚗' },
-          { name: 'Home Improvement', saved: 0, target: 12000, icon: '🏠' },
+          { name: 'Emergency Fund', saved: 15000, target: 20000, icon: '🛡️', type: 'SAVINGS' },
+          { name: 'Vacation', saved: 8500, target: 12000, icon: '✈️', type: 'SAVINGS' },
+          { name: 'School Fees', saved: 6000, target: 6000, icon: '📚', type: 'SAVINGS' },
+          { name: 'Credit Card', saved: 5150, target: 8000, icon: '💳', type: 'DEBT' },
+          { name: 'Family Loan', saved: 5000, target: 5000, icon: '👨‍👩‍👧', type: 'DEBT' },
         ].map((goal, i) => {
           const percent = (goal.saved / goal.target) * 100;
           const isComplete = goal.saved >= goal.target;
+          const statusLabel = goal.type === 'DEBT' ? 'Cleared' : 'Achieved';
           return (
             <div key={i} className="bg-white border rounded-2xl p-4" style={{ borderColor: '#E8EAED' }}>
               <div className="flex items-start justify-between mb-3">
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-3 flex-grow">
                   <span className="text-2xl">{goal.icon}</span>
                   <div>
                     <h3 className="font-semibold" style={{ color: '#0B0F17' }}>{goal.name}</h3>
@@ -434,7 +514,12 @@ export default function DashboardPage() {
                     </p>
                   </div>
                 </div>
-                {isComplete && <span className="text-sm font-semibold" style={{ color: '#059669' }}>✓ Done</span>}
+                {isComplete && (
+                  <div className="flex items-center gap-1 ml-2">
+                    <span style={{ color: '#059669' }}>✓</span>
+                    <span className="text-xs font-semibold whitespace-nowrap" style={{ color: '#059669' }}>{statusLabel}</span>
+                  </div>
+                )}
               </div>
               <div className="h-2 bg-gray-200 rounded-full overflow-hidden">
                 <div
@@ -470,8 +555,28 @@ export default function DashboardPage() {
                 <ChevronRight className="w-5 h-5" style={{ color: '#475569' }} />
               </button>
             </div>
-            <div className="w-9 h-9 rounded-full flex items-center justify-center font-semibold text-xs text-white" style={{ backgroundColor: '#0B0F17' }}>
-              {userInitial}
+            <div className="flex items-center gap-2">
+              {/* Currency Selector */}
+              <select
+                value={currency}
+                onChange={(e) => setCurrency(e.target.value)}
+                className="px-3 py-2 rounded-lg border text-sm font-medium bg-white hover:border-[#10B981] transition-colors"
+                style={{
+                  borderColor: '#E8EAED',
+                  color: '#0B0F17',
+                }}
+              >
+                {currencies.map((c) => (
+                  <option key={c.code} value={c.symbol}>
+                    {c.symbol} {c.code}
+                  </option>
+                ))}
+              </select>
+
+              {/* User Avatar */}
+              <div className="w-9 h-9 rounded-full flex items-center justify-center font-semibold text-xs text-white" style={{ backgroundColor: '#0B0F17' }}>
+                {userInitial}
+              </div>
             </div>
           </div>
         </div>
