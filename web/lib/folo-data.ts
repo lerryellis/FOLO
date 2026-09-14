@@ -73,6 +73,17 @@ export const INSURANCE_TYPES = [
   'Other',
 ];
 
+export const UTILITY_TYPES = [
+  'Electric',
+  'Gas',
+  'Water',
+  'Internet',
+  'Waste Management',
+  'Other',
+];
+
+
+
 
 
 export const SPENDING_BY_CATEGORY = [

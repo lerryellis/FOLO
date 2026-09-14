@@ -37,6 +37,7 @@ import {
   BUDGET_GROUPS,
   CATEGORY_MAP,
   INSURANCE_TYPES,
+  UTILITY_TYPES,
   CURRENCIES,
   EXPENSE_ITEMS,
   GOALS,
@@ -788,6 +789,7 @@ function AddScreen({
   const [selectedGroup, setSelectedGroup] = useState<CategoryType>('EXPENSES');
   const [selectedCategory, setSelectedCategory] = useState(CATEGORY_MAP['EXPENSES'][0]);
   const [selectedInsuranceType, setSelectedInsuranceType] = useState(INSURANCE_TYPES[0]);
+  const [selectedUtilityType, setSelectedUtilityType] = useState(UTILITY_TYPES[0]);
   const [selectedDate, setSelectedDate] = useState(localDateValue);
   const [note, setNote] = useState('');
 
@@ -827,7 +829,7 @@ function AddScreen({
 
     onSave({
       id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `transaction-${Date.now()}`,
-      name: (selectedCategory === 'Insurance' ? `${selectedInsuranceType} - ${note.trim()}` : note.trim()) || selectedCategory,
+      name: (selectedCategory === 'Insurance' ? `${selectedInsuranceType} - ${note.trim()}` : selectedCategory === 'Utilities' ? `${selectedUtilityType} - ${note.trim()}` : note.trim()) || selectedCategory,
       category: selectedCategory,
       categoryType: selectedGroup,
       amountMinor: selectedGroup === 'INCOME' ? amountMinor : -amountMinor,
@@ -898,6 +900,17 @@ function AddScreen({
               className="min-h-12 w-full rounded-xl border border-[#E8EAED] bg-white px-3 text-sm font-medium text-[#0B0F17] outline-none transition-colors focus:border-[#10B981]"
             >
               {INSURANCE_TYPES.map((type) => <option key={type}>{type}</option>)}
+            </select>
+          </label>
+        ) : selectedCategory === 'Utilities' ? (
+          <label className="block">
+            <span className="mb-1.5 block text-[10px] font-semibold uppercase tracking-[0.08em] text-[#64748b]">Utility Type</span>
+            <select
+              value={selectedUtilityType}
+              onChange={(event) => setSelectedUtilityType(event.target.value)}
+              className="min-h-12 w-full rounded-xl border border-[#E8EAED] bg-white px-3 text-sm font-medium text-[#0B0F17] outline-none transition-colors focus:border-[#10B981]"
+            >
+              {UTILITY_TYPES.map((type) => <option key={type}>{type}</option>)}
             </select>
           </label>
         ) : (
