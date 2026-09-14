@@ -39,6 +39,7 @@ import {
   CREDIT_CARD_TYPES,
   INSURANCE_TYPES,
   UTILITY_TYPES,
+  detectCurrencyFromLocale,
   CURRENCIES,
   EXPENSE_ITEMS,
   GOALS,
@@ -1047,7 +1048,13 @@ export default function DashboardPage() {
   const router = useRouter();
   const { user, loading, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState<DashboardTab>('home');
-  const [currency, setCurrency] = useState<CurrencyCode>('GHS');
+  const [currency, setCurrency] = useState<CurrencyCode>(() => {
+    try {
+      return detectCurrencyFromLocale();
+    } catch {
+      return 'USD';
+    }
+  });
   const [period, setPeriod] = useState(() => new Date(SAMPLE_YEAR, SAMPLE_MONTH, 1));
   const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isOnline, setIsOnline] = useState(true);

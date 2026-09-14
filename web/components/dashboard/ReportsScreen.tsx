@@ -21,9 +21,25 @@ import {
   formatMoney,
   getCurrency,
 } from '@/lib/folo-data';
+import { FileBarChart } from 'lucide-react';
 
 interface ReportsScreenProps {
   currency: CurrencyCode;
+  showSampleData?: boolean;
+}
+
+function EmptyState({ icon: Icon, title, description }: { icon: any; title: string; description: string }) {
+  return (
+    <section className="mx-auto flex min-h-96 w-full max-w-4xl items-center justify-center px-4">
+      <div className="text-center">
+        <div className="mx-auto mb-4 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-[#F0FDF9]">
+          <Icon className="h-8 w-8 text-[#10B981]" />
+        </div>
+        <h2 className="text-lg font-semibold text-[#0B0F17]">{title}</h2>
+        <p className="mt-2 text-sm text-[#64748b]">{description}</p>
+      </div>
+    </section>
+  );
 }
 
 interface NetDotProps {
@@ -59,8 +75,18 @@ function PanelHeading({ title, subtitle, trailing }: { title: string; subtitle: 
   );
 }
 
-export function ReportsScreen({ currency }: ReportsScreenProps) {
+export function ReportsScreen({ currency, showSampleData = false }: ReportsScreenProps) {
   const currencySymbol = getCurrency(currency).symbol;
+
+  if (!showSampleData) {
+    return (
+      <EmptyState
+        icon={FileBarChart}
+        title="No reports yet"
+        description="Add transactions to see spending insights and detailed reports. Or load sample data to explore."
+      />
+    );
+  }
 
   return (
     <section className="mx-auto w-full max-w-[1200px] px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
