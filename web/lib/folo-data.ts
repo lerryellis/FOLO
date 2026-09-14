@@ -82,6 +82,21 @@ export const UTILITY_TYPES = [
   'Other',
 ];
 
+export const CREDIT_CARD_TYPES = [
+  'Apple Card',
+  'Capital One',
+  'American Express',
+  'Chase',
+  'Bank of America',
+  'Citi',
+  'Visa',
+  'Mastercard',
+  'Discover',
+  'Other',
+];
+
+
+
 
 
 

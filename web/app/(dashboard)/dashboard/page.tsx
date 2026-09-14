@@ -36,6 +36,7 @@ import { useAuth } from '@/lib/hooks/useAuth';
 import {
   BUDGET_GROUPS,
   CATEGORY_MAP,
+  CREDIT_CARD_TYPES,
   INSURANCE_TYPES,
   UTILITY_TYPES,
   CURRENCIES,
@@ -790,6 +791,7 @@ function AddScreen({
   const [selectedCategory, setSelectedCategory] = useState(CATEGORY_MAP['EXPENSES'][0]);
   const [selectedInsuranceType, setSelectedInsuranceType] = useState(INSURANCE_TYPES[0]);
   const [selectedUtilityType, setSelectedUtilityType] = useState(UTILITY_TYPES[0]);
+  const [selectedCreditCardType, setSelectedCreditCardType] = useState(CREDIT_CARD_TYPES[0]);
   const [selectedDate, setSelectedDate] = useState(localDateValue);
   const [note, setNote] = useState('');
 
@@ -829,7 +831,7 @@ function AddScreen({
 
     onSave({
       id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `transaction-${Date.now()}`,
-      name: (selectedCategory === 'Insurance' ? `${selectedInsuranceType} - ${note.trim()}` : selectedCategory === 'Utilities' ? `${selectedUtilityType} - ${note.trim()}` : note.trim()) || selectedCategory,
+      name: (selectedCategory === 'Insurance' ? `${selectedInsuranceType} - ${note.trim()}` : selectedCategory === 'Utilities' ? `${selectedUtilityType} - ${note.trim()}` : selectedCategory === 'Credit Card' ? `${selectedCreditCardType} - ${note.trim()}` : note.trim()) || selectedCategory,
       category: selectedCategory,
       categoryType: selectedGroup,
       amountMinor: selectedGroup === 'INCOME' ? amountMinor : -amountMinor,
@@ -911,6 +913,17 @@ function AddScreen({
               className="min-h-12 w-full rounded-xl border border-[#E8EAED] bg-white px-3 text-sm font-medium text-[#0B0F17] outline-none transition-colors focus:border-[#10B981]"
             >
               {UTILITY_TYPES.map((type) => <option key={type}>{type}</option>)}
+            </select>
+          </label>
+        ) : selectedCategory === 'Credit Card' ? (
+          <label className="block">
+            <span className="mb-1.5 block text-[10px] font-semibold uppercase tracking-[0.08em] text-[#64748b]">Card Issuer</span>
+            <select
+              value={selectedCreditCardType}
+              onChange={(event) => setSelectedCreditCardType(event.target.value)}
+              className="min-h-12 w-full rounded-xl border border-[#E8EAED] bg-white px-3 text-sm font-medium text-[#0B0F17] outline-none transition-colors focus:border-[#10B981]"
+            >
+              {CREDIT_CARD_TYPES.map((type) => <option key={type}>{type}</option>)}
             </select>
           </label>
         ) : (
