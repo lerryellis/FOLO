@@ -51,6 +51,6 @@ button:disabled {
 }
 
 .money {
-  font-family: var(--font-mono), ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-family: var(--font-poppins), system-ui, -apple-system, sans-serif;
   font-variant-numeric: tabular-nums;
 }
