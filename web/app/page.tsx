@@ -4,6 +4,17 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { useAuth } from '@/lib/hooks/useAuth';
+import {
+  TrendingUp,
+  BarChart3,
+  Target,
+  Smartphone,
+  Lock,
+  Zap,
+  CreditCard,
+  PieChart,
+  Heart,
+} from 'lucide-react';
 
 export default function Home() {
   const router = useRouter();
@@ -24,7 +35,12 @@ export default function Home() {
       {/* Navigation */}
       <nav className="border-b border-slate-700 bg-slate-800/50 backdrop-blur">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-white">🎯 FOLO</h1>
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-gradient-to-r from-cyan-500 to-blue-500 rounded-lg flex items-center justify-center">
+              <Target className="w-5 h-5 text-white" />
+            </div>
+            <h1 className="text-2xl font-bold text-white">FOLO</h1>
+          </div>
           <div className="flex gap-3">
             <Link
               href="/login"
@@ -75,7 +91,7 @@ export default function Home() {
               <div className="flex items-start gap-4">
                 <div className="flex-shrink-0">
                   <div className="flex items-center justify-center h-12 w-12 rounded-lg bg-gradient-to-br from-cyan-500 to-blue-500">
-                    <span className="text-white text-xl">💰</span>
+                    <CreditCard className="w-6 h-6 text-white" />
                   </div>
                 </div>
                 <div>
@@ -87,7 +103,7 @@ export default function Home() {
               <div className="flex items-start gap-4">
                 <div className="flex-shrink-0">
                   <div className="flex items-center justify-center h-12 w-12 rounded-lg bg-gradient-to-br from-pink-500 to-orange-500">
-                    <span className="text-white text-xl">📊</span>
+                    <BarChart3 className="w-6 h-6 text-white" />
                   </div>
                 </div>
                 <div>
@@ -99,7 +115,7 @@ export default function Home() {
               <div className="flex items-start gap-4">
                 <div className="flex-shrink-0">
                   <div className="flex items-center justify-center h-12 w-12 rounded-lg bg-gradient-to-br from-purple-500 to-pink-500">
-                    <span className="text-white text-xl">🎯</span>
+                    <Target className="w-6 h-6 text-white" />
                   </div>
                 </div>
                 <div>
@@ -111,7 +127,7 @@ export default function Home() {
               <div className="flex items-start gap-4">
                 <div className="flex-shrink-0">
                   <div className="flex items-center justify-center h-12 w-12 rounded-lg bg-gradient-to-br from-green-500 to-emerald-500">
-                    <span className="text-white text-xl">🔄</span>
+                    <TrendingUp className="w-6 h-6 text-white" />
                   </div>
                 </div>
                 <div>
@@ -129,42 +145,54 @@ export default function Home() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {/* Card 1 */}
             <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl p-6 border border-slate-700 hover:border-cyan-500 transition-all">
-              <div className="text-4xl mb-4">💳</div>
+              <div className="mb-4 p-3 bg-gradient-to-br from-cyan-500/20 to-blue-500/20 rounded-lg w-fit">
+                <CreditCard className="w-6 h-6 text-cyan-400" />
+              </div>
               <h4 className="text-white font-bold mb-2">Budget Categories</h4>
               <p className="text-gray-400 text-sm">Organize spending across income, bills, expenses, savings & debt</p>
             </div>
 
             {/* Card 2 */}
             <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl p-6 border border-slate-700 hover:border-pink-500 transition-all">
-              <div className="text-4xl mb-4">📈</div>
+              <div className="mb-4 p-3 bg-gradient-to-br from-pink-500/20 to-orange-500/20 rounded-lg w-fit">
+                <TrendingUp className="w-6 h-6 text-pink-400" />
+              </div>
               <h4 className="text-white font-bold mb-2">Smart Insights</h4>
               <p className="text-gray-400 text-sm">Visualize cashflow trends and spending patterns with interactive charts</p>
             </div>
 
             {/* Card 3 */}
             <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl p-6 border border-slate-700 hover:border-purple-500 transition-all">
-              <div className="text-4xl mb-4">🏦</div>
+              <div className="mb-4 p-3 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-lg w-fit">
+                <Target className="w-6 h-6 text-purple-400" />
+              </div>
               <h4 className="text-white font-bold mb-2">Goal Progress</h4>
               <p className="text-gray-400 text-sm">Track your journey to financial freedom with visual progress indicators</p>
             </div>
 
             {/* Card 4 */}
             <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl p-6 border border-slate-700 hover:border-green-500 transition-all">
-              <div className="text-4xl mb-4">📱</div>
+              <div className="mb-4 p-3 bg-gradient-to-br from-green-500/20 to-emerald-500/20 rounded-lg w-fit">
+                <Smartphone className="w-6 h-6 text-green-400" />
+              </div>
               <h4 className="text-white font-bold mb-2">Mobile First</h4>
               <p className="text-gray-400 text-sm">Beautiful, responsive design works perfectly on any device</p>
             </div>
 
             {/* Card 5 */}
             <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl p-6 border border-slate-700 hover:border-orange-500 transition-all">
-              <div className="text-4xl mb-4">🔐</div>
+              <div className="mb-4 p-3 bg-gradient-to-br from-orange-500/20 to-red-500/20 rounded-lg w-fit">
+                <Lock className="w-6 h-6 text-orange-400" />
+              </div>
               <h4 className="text-white font-bold mb-2">Security First</h4>
               <p className="text-gray-400 text-sm">Bank-level encryption keeps your financial data safe and secure</p>
             </div>
 
             {/* Card 6 */}
             <div className="bg-gradient-to-br from-slate-800 to-slate-900 rounded-xl p-6 border border-slate-700 hover:border-yellow-500 transition-all">
-              <div className="text-4xl mb-4">⚡</div>
+              <div className="mb-4 p-3 bg-gradient-to-br from-yellow-500/20 to-amber-500/20 rounded-lg w-fit">
+                <Zap className="w-6 h-6 text-yellow-400" />
+              </div>
               <h4 className="text-white font-bold mb-2">Lightning Fast</h4>
               <p className="text-gray-400 text-sm">Real-time sync and instant updates across all your devices</p>
             </div>
@@ -189,7 +217,11 @@ export default function Home() {
       {/* Footer */}
       <footer className="border-t border-slate-700 bg-slate-800/50 backdrop-blur mt-20">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-center text-gray-400 text-sm">
-          <p>© 2026 FOLO. All rights reserved. Made with ❤️ for your financial freedom.</p>
+          <div className="flex items-center justify-center gap-2 mb-3">
+            <Heart className="w-4 h-4 text-red-500" />
+            <p>Made for your financial freedom</p>
+          </div>
+          <p>© 2026 FOLO. All rights reserved.</p>
         </div>
       </footer>
     </div>
