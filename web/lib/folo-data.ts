@@ -252,11 +252,14 @@ export function parseAmountToMinor(value: string) {
     return 0;
   }
 
+  return whole * 100 + fraction;
+}
+
 export function detectCurrencyFromLocale(): CurrencyCode {
   if (typeof window === 'undefined') return 'USD';
-  
+
   const locale = navigator.language || navigator.languages?.[0] || 'en-US';
-  
+
   // Map common locales to their currencies
   const localeMap: Record<string, CurrencyCode> = {
     'en-GH': 'GHS', 'ha-GH': 'GHS', 'ak-GH': 'GHS',
@@ -266,7 +269,30 @@ export function detectCurrencyFromLocale(): CurrencyCode {
     'fr-BE': 'EUR', 'nl-BE': 'EUR', 'de-AT': 'EUR', 'fr-CH': 'EUR',
     'en-NG': 'NGN', 'ha-NG': 'NGN', 'yo-NG': 'NGN',
     'pt-BR': 'USD', // Brazil typically uses USD in international contexts
+  };
+
+  // Try exact locale match first
+  if (localeMap[locale]) {
+    return localeMap[locale];
   }
+
+  // Try language code only (e.g., 'en' from 'en-US')
+  const lang = locale.split('-')[0];
+  const langMap: Record<string, CurrencyCode> = {
+    'en': 'USD',
+    'fr': 'EUR',
+    'de': 'EUR',
+    'es': 'EUR',
+    'it': 'EUR',
+    'nl': 'EUR',
+    'pt': 'USD',
+    'ha': 'GHS',
+    'ak': 'GHS',
+    'yo': 'NGN',
+  };
+
+  return langMap[lang] || 'USD';
+}
 
 export const BUDGET_EDUCATION = {
   whyBudget: {
@@ -308,33 +334,3 @@ export const BUDGET_EDUCATION = {
     ]
   }
 };
-
-;
-  
-  // Try exact locale match first
-  if (localeMap[locale]) {
-    return localeMap[locale];
-  }
-  
-  // Try language code only (e.g., 'en' from 'en-US')
-  const lang = locale.split('-')[0];
-  const langMap: Record<string, CurrencyCode> = {
-    'en': 'USD',
-    'fr': 'EUR',
-    'de': 'EUR',
-    'es': 'EUR',
-    'it': 'EUR',
-    'nl': 'EUR',
-    'pt': 'USD',
-    'ha': 'GHS',
-    'ak': 'GHS',
-    'yo': 'NGN',
-  };
-  
-  return langMap[lang] || 'USD';
-}
-
-
-
-  return whole * 100 + fraction;
-}

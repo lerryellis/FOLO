@@ -176,11 +176,27 @@ function EmptyState({
   );
 }
 
-function TransactionRow({ transaction, currency, isLast = false }: { transaction: Transaction; currency: CurrencyCode; isLast?: boolean }) {
+function TransactionRow({
+  transaction,
+  currency,
+  isLast = false,
+  onTouchStart = () => {},
+  onTouchEnd = () => {}
+}: {
+  transaction: Transaction;
+  currency: CurrencyCode;
+  isLast?: boolean;
+  onTouchStart?: (id: string) => void;
+  onTouchEnd?: (transaction: Transaction) => void;
+}) {
   const isIncome = transaction.amountMinor > 0;
 
   return (
-    <div className={`flex items-center gap-3 px-4 py-3.5 ${isLast ? '' : 'border-b border-[#F0F2F4]'}`}>
+    <div
+      className={`flex items-center gap-3 px-4 py-3.5 cursor-pointer transition-colors hover:bg-[#F9FAFB] ${isLast ? '' : 'border-b border-[#F0F2F4]'}`}
+      onTouchStart={() => onTouchStart(transaction.id)}
+      onTouchEnd={() => onTouchEnd(transaction)}
+    >
       <div
         className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
           isIncome ? 'bg-[#E7F7F0] text-[#047857]' : 'bg-[#F1F5F3] text-[#475569]'
@@ -232,6 +248,8 @@ function OverviewScreen({
   period,
   onReturnToSample,
   showSampleData = false,
+  onTransactionTouchStart = () => {},
+  onTransactionTouchEnd = () => {},
 }: {
   currency: CurrencyCode;
   transactions: Transaction[];
@@ -240,6 +258,8 @@ function OverviewScreen({
   period: Date;
   onReturnToSample: () => void;
   showSampleData?: boolean;
+  onTransactionTouchStart?: (id: string) => void;
+  onTransactionTouchEnd?: (transaction: Transaction) => void;
 }) {
   if (!isBudgeted || transactions.length === 0) {
     return (
@@ -350,6 +370,8 @@ function OverviewScreen({
                   transaction={transaction}
                   currency={currency}
                   isLast={index === recent.length - 1}
+                  onTouchStart={onTransactionTouchStart}
+                  onTouchEnd={onTransactionTouchEnd}
                 />
               ))
             ) : (
@@ -506,12 +528,16 @@ function ActivityScreen({
   isBudgeted,
   period,
   onReturnToSample,
+  onTransactionTouchStart = () => {},
+  onTransactionTouchEnd = () => {},
 }: {
   currency: CurrencyCode;
   transactions: Transaction[];
   isBudgeted: boolean;
   period: Date;
   onReturnToSample: () => void;
+  onTransactionTouchStart?: (id: string) => void;
+  onTransactionTouchEnd?: (transaction: Transaction) => void;
 }) {
   const [filter, setFilter] = useState<'ALL' | CategoryType>('ALL');
   const filteredTransactions = useMemo(
@@ -598,6 +624,8 @@ function ActivityScreen({
                     transaction={transaction}
                     currency={currency}
                     isLast={index === group.items.length - 1}
+                    onTouchStart={onTransactionTouchStart}
+                    onTouchEnd={onTransactionTouchEnd}
                   />
                 ))}
               </div>
@@ -696,12 +724,14 @@ function GoalsScreen({
   currency, 
   showSampleData = false,
   selectedGoalId = null, 
-  onSelectGoal = () => {} 
+  onSelectGoal = () => {},
+  onCreateGoalClick = () => {}
 }: { 
   currency: CurrencyCode;
   showSampleData?: boolean;
   selectedGoalId?: string | null;
   onSelectGoal?: (goalId: string) => void;
+  onCreateGoalClick?: () => void;
 }) {
   if (!showSampleData) {
     return (
@@ -710,7 +740,7 @@ function GoalsScreen({
         title="No goals yet"
         description="Create a savings target or debt payoff goal to start achieving your financial plans. Or load sample data to explore."
         action="Create Goal"
-        onAction={() => {}}
+        onAction={onCreateGoalClick}
       />
     );
   }
@@ -1134,6 +1164,25 @@ export default function DashboardPage() {
 
   if (!user) return null;
 
+  
+  // Long-press detection for transaction editing
+  const [touchStart, setTouchStart] = useState<{ id: string; time: number } | null>(null);
+
+  const handleTransactionTouchStart = (transactionId: string) => {
+    setTouchStart({ id: transactionId, time: Date.now() });
+  };
+
+  const handleTransactionTouchEnd = (transaction: Transaction) => {
+    if (!touchStart) return;
+    const duration = Date.now() - touchStart.time;
+    
+    // Long-press: > 500ms
+    if (duration > 500) {
+      setEditingTransaction(transaction);
+    }
+    setTouchStart(null);
+  };
+
   const isBudgeted = period.getFullYear() === SAMPLE_YEAR && period.getMonth() === SAMPLE_MONTH;
   const userInitial = user.email?.charAt(0).toUpperCase() || 'F';
   const activeTitle = NAV_ITEMS.find((item) => item.id === activeTab)?.label ?? 'Add transaction';
@@ -1247,6 +1296,8 @@ export default function DashboardPage() {
               isBudgeted={isBudgeted}
               period={period}
               onReturnToSample={returnToSamplePeriod}
+              onTransactionTouchStart={handleTransactionTouchStart}
+              onTransactionTouchEnd={handleTransactionTouchEnd}
             />
           ) : null}
           {activeTab === 'budget' ? (
@@ -1259,11 +1310,13 @@ export default function DashboardPage() {
               isBudgeted={isBudgeted}
               period={period}
               onReturnToSample={returnToSamplePeriod}
+              onTransactionTouchStart={handleTransactionTouchStart}
+              onTransactionTouchEnd={handleTransactionTouchEnd}
             />
           ) : null}
-          {activeTab === 'goals' ? <GoalsScreen currency={currency} showSampleData={showSampleData} selectedGoalId={selectedGoalId} onSelectGoal={setSelectedGoalId} /> : null}
+          {activeTab === 'goals' ? <GoalsScreen currency={currency} showSampleData={showSampleData} selectedGoalId={selectedGoalId} onSelectGoal={setSelectedGoalId} onCreateGoalClick={() => setIsGoalCreationOpen(true)} /> : null}
           {activeTab === 'reports' ? (
-            isBudgeted ? <ReportsScreen currency={currency} /> : <PeriodEmpty period={period} onReturn={returnToSamplePeriod} />
+            showSampleData ? <ReportsScreen currency={currency} showSampleData={showSampleData} /> : <PeriodEmpty period={period} onReturn={returnToSamplePeriod} />
           ) : null}
           {activeTab === 'add' ? (
             <AddScreen
