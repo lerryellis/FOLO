@@ -32,6 +32,11 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       lang="en"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
+      <head>
+        <link rel="icon" href="/folo_icon_obsidian.png" type="image/png" />
+        <link rel="apple-touch-icon" href="/folo_icon_obsidian.png" />
+        <meta name="theme-color" content="#0B0F17" />
+      </head>
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );
