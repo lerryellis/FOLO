@@ -19,10 +19,13 @@ export async function getCurrentUser() {
       error,
     } = await supabase.auth.getUser();
 
-    if (error) throw error;
-    return user;
+    if (error) {
+      console.warn('Auth error:', error.message);
+      return null;
+    }
+    return user || null;
   } catch (error) {
-    console.error('Error getting current user:', error);
+    console.warn('Error getting current user:', error);
     return null;
   }
 }

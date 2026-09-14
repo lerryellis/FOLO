@@ -16,6 +16,11 @@ export default function Home() {
     }
   }, [user, loading, router]);
 
+  // Show loading screen while checking auth
+  if (loading) {
+    return null;
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-600 to-blue-800">
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 lg:px-8 h-screen flex flex-col justify-center">
