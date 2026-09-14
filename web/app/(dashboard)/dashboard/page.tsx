@@ -395,16 +395,22 @@ function OverviewScreen({
 
 function BudgetScreen({
   currency,
-  isBudgeted,
-  period,
-  onReturnToSample,
+  showSampleData = false,
 }: {
   currency: CurrencyCode;
-  isBudgeted: boolean;
-  period: Date;
-  onReturnToSample: () => void;
+  showSampleData?: boolean;
 }) {
-  if (!isBudgeted) return <PeriodEmpty period={period} onReturn={onReturnToSample} />;
+  if (!showSampleData) {
+    return (
+      <EmptyState
+        icon={WalletCards}
+        title="No budgets yet"
+        description="Create your first budget to start tracking spending across categories. Or load sample data to explore."
+        action="Create Budget"
+        onAction={() => {}}
+      />
+    );
+  }
 
   return (
     <section className="mx-auto w-full max-w-4xl px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
@@ -415,9 +421,9 @@ function BudgetScreen({
 
       <div className="grid grid-cols-3 rounded-2xl border border-[#E8EAED] bg-white p-4 sm:p-5">
         {[
-          { label: 'Budgeted', value: 820_000 },
-          { label: 'Actual', value: 838_500 },
-          { label: 'Variance', value: 18_500, critical: true },
+          { label: 'Budgeted', value: 820000 },
+          { label: 'Actual', value: 838500 },
+          { label: 'Variance', value: 18500, critical: true },
         ].map((item, index) => (
           <div key={item.label} className={index === 0 ? '' : 'border-l border-[#F0F2F4] pl-3 sm:pl-5'}>
             <p className="text-[9px] font-semibold uppercase tracking-[0.07em] text-[#64748b] sm:text-[10px]">{item.label}</p>
@@ -1232,7 +1238,7 @@ export default function DashboardPage() {
             />
           ) : null}
           {activeTab === 'budget' ? (
-            <BudgetScreen currency={currency} isBudgeted={isBudgeted} period={period} onReturnToSample={returnToSamplePeriod} />
+            <BudgetScreen currency={currency} showSampleData={showSampleData} />
           ) : null}
           {activeTab === 'activity' ? (
             <ActivityScreen
