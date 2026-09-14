@@ -33,6 +33,8 @@ import {
 import { ReportsScreen } from '@/components/dashboard/ReportsScreen';
 import { BudgetChart } from '@/components/dashboard/BudgetChart';
 import { BudgetTips } from '@/components/dashboard/BudgetTips';
+import { GoalCreationSheet } from '@/components/dashboard/GoalCreationSheet';
+import { TransactionEditSheet } from '@/components/dashboard/TransactionEditSheet';
 import { useAuth } from '@/lib/hooks/useAuth';
 import {
   BUDGET_GROUPS,
@@ -1063,6 +1065,8 @@ export default function DashboardPage() {
   const [notice, setNotice] = useState('');
   const [selectedGoalId, setSelectedGoalId] = useState<string | null>(null);
   const [showSampleData, setShowSampleData] = useState(false);
+  const [isGoalCreationOpen, setIsGoalCreationOpen] = useState(false);
+  const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
 
   useEffect(() => {
     if (!loading && !user) router.push('/login');
