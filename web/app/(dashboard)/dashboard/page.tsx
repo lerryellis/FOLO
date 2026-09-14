@@ -24,6 +24,7 @@ import {
   X,
 } from 'lucide-react';
 import { ReportsScreen } from '@/components/dashboard/ReportsScreen';
+import { BudgetChart } from '@/components/dashboard/BudgetChart';
 import { useAuth } from '@/lib/hooks/useAuth';
 import {
   BUDGET_GROUPS,
@@ -394,6 +395,9 @@ function BudgetScreen({
           </div>
         ))}
       </div>
+
+
+      <BudgetChart currency={currency} />
 
       <div className="mt-5 space-y-3">
         {BUDGET_GROUPS.map((group) => {
