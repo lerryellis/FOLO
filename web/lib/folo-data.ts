@@ -63,6 +63,18 @@ export const CATEGORY_MAP: Record<CategoryType, string[]> = {
   DEBT: ['Credit Card', 'Personal Loan', 'Student Loan', 'Mortgage', 'Other'],
 };
 
+export const INSURANCE_TYPES = [
+  'Car Insurance',
+  'Home Insurance',
+  'Health Insurance',
+  'Life Insurance',
+  'Travel Insurance',
+  'Pet Insurance',
+  'Other',
+];
+
+
+
 export const SPENDING_BY_CATEGORY = [
   { name: 'Rent', amountMinor: 180000, fill: '#047857' },
   { name: 'Food', amountMinor: 141000, fill: '#059669' },
