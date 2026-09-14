@@ -41,15 +41,15 @@ export default function Home() {
           <div className="flex flex-col sm:flex-row gap-4 justify-center mb-12">
             <Link
               href="/signup"
-              className="px-8 py-3 bg-white text-blue-600 font-semibold rounded-lg hover:bg-blue-50 transition-colors shadow-lg"
+              className="px-8 py-3 bg-white text-blue-700 font-bold rounded-lg hover:bg-gray-100 transition-colors shadow-lg inline-block"
             >
-              Get Started
+              🚀 Get Started
             </Link>
             <Link
               href="/login"
-              className="px-8 py-3 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-400 transition-colors shadow-lg"
+              className="px-8 py-3 bg-blue-500 text-white font-bold rounded-lg hover:bg-blue-600 transition-colors shadow-lg inline-block"
             >
-              Sign In
+              🔐 Sign In
             </Link>
           </div>
 
