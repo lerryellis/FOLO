@@ -6,19 +6,26 @@ import {
   ArrowDownLeft,
   ArrowUpRight,
   BarChart3,
+  BookOpen,
   CalendarDays,
   Check,
   CheckCircle2,
   ChevronLeft,
   ChevronRight,
+  CreditCard,
+  Edit2,
   FileBarChart,
+  Handshake,
   Home,
   Inbox,
   LogOut,
   Plus,
   ReceiptText,
   RefreshCw,
+  Shield,
   Target,
+  Trash2,
+  TreePine,
   WalletCards,
   WifiOff,
   X,
@@ -53,6 +60,19 @@ const NAV_ITEMS = [
   { id: 'goals' as const, label: 'Goals', icon: Target },
   { id: 'reports' as const, label: 'Reports', icon: FileBarChart },
 ];
+
+const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
+  Shield,
+  TreePine,
+  BookOpen,
+  CreditCard,
+  Handshake,
+};
+
+function getGoalIcon(iconName: string) {
+  const IconComponent = ICON_MAP[iconName];
+  return IconComponent ? <IconComponent className="h-5 w-5" /> : null;
+}
 
 function localDateValue(date = new Date()) {
   const year = date.getFullYear();
@@ -569,24 +589,60 @@ function ActivityScreen({
   );
 }
 
-function GoalCard({ goal, currency }: { goal: Goal; currency: CurrencyCode }) {
+function GoalCard({ 
+  goal, 
+  currency, 
+  isSelected = false, 
+  onSelect = () => {} 
+}: { 
+  goal: Goal; 
+  currency: CurrencyCode;
+  isSelected?: boolean;
+  onSelect?: () => void;
+}) {
   const isComplete = goal.percent >= 100;
   const status = goal.type === 'DEBT' ? 'Cleared' : 'Achieved';
   const remaining = Math.max(goal.targetMinor - goal.progressMinor, 0);
 
   return (
-    <article className="rounded-2xl border border-[#E8EAED] bg-white p-4 sm:p-5">
+    <article 
+      className={`rounded-2xl border p-4 sm:p-5 transition-all cursor-pointer ${
+        isSelected 
+          ? 'border-[#10B981] bg-[#F0FDF9] shadow-lg' 
+          : 'border-[#E8EAED] bg-white hover:border-[#10B981] hover:shadow-md'
+      }`}
+      onClick={onSelect}
+    >
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#F1F5F3] text-xl" aria-hidden="true">
-            {goal.icon}
+          <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${
+            isSelected ? 'bg-[#10B981] text-white' : 'bg-[#F1F5F3] text-[#10B981]'
+          }`} aria-hidden="true">
+            {getGoalIcon(goal.icon)}
           </div>
           <div className="min-w-0">
             <h3 className="truncate text-sm font-semibold text-[#0B0F17]">{goal.name}</h3>
             <p className="mt-1 text-xs text-[#64748b]">{goal.detail}</p>
           </div>
         </div>
-        {isComplete ? (
+        {isSelected ? (
+          <div className="flex shrink-0 gap-1.5">
+            <button 
+              onClick={(e) => { e.stopPropagation(); alert('Edit coming soon'); }}
+              className="flex items-center gap-1.5 rounded-lg bg-[#10B981] px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-[#059669] transition-colors"
+            >
+              <Edit2 className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Edit</span>
+            </button>
+            <button 
+              onClick={(e) => { e.stopPropagation(); alert('Delete coming soon'); }}
+              className="flex items-center gap-1.5 rounded-lg bg-[#ef4444] px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-[#dc2626] transition-colors"
+            >
+              <Trash2 className="h-3.5 w-3.5" />
+              <span className="hidden sm:inline">Delete</span>
+            </button>
+          </div>
+        ) : isComplete ? (
           <span className="flex shrink-0 items-center gap-1.5 rounded-full bg-[#E7F7F0] px-2.5 py-1 text-[11px] font-semibold text-[#065F46]">
             <CheckCircle2 className="h-3.5 w-3.5" />
             {status}
@@ -610,7 +666,15 @@ function GoalCard({ goal, currency }: { goal: Goal; currency: CurrencyCode }) {
   );
 }
 
-function GoalsScreen({ currency }: { currency: CurrencyCode }) {
+function GoalsScreen({ 
+  currency, 
+  selectedGoalId = null, 
+  onSelectGoal = () => {} 
+}: { 
+  currency: CurrencyCode;
+  selectedGoalId?: string | null;
+  onSelectGoal?: (goalId: string) => void;
+}) {
   const savingsGoals = GOALS.filter((goal) => goal.type === 'SAVINGS');
   const debtGoals = GOALS.filter((goal) => goal.type === 'DEBT');
 
@@ -633,9 +697,9 @@ function GoalsScreen({ currency }: { currency: CurrencyCode }) {
 
       <div className="grid grid-cols-3 rounded-2xl border border-[#E8EAED] bg-white p-4 sm:p-5">
         {[
-          { label: 'Target', value: 8_900_000 },
-          { label: 'Saved / paid', value: 3_915_000, accent: true },
-          { label: 'To go', value: 4_985_000 },
+          { label: 'Target', value: 8900000 },
+          { label: 'Saved / paid', value: 3915000, accent: true },
+          { label: 'To go', value: 4985000 },
         ].map((item, index) => (
           <div key={item.label} className={index === 0 ? '' : 'border-l border-[#F0F2F4] pl-3 sm:pl-5'}>
             <p className="text-[9px] font-semibold uppercase tracking-[0.07em] text-[#64748b] sm:text-[10px]">{item.label}</p>
@@ -651,14 +715,30 @@ function GoalsScreen({ currency }: { currency: CurrencyCode }) {
       <div className="mt-6">
         <p className="mb-3 px-1 text-[10px] font-semibold uppercase tracking-[0.09em] text-[#64748b]">Savings</p>
         <div className="grid gap-3 md:grid-cols-2">
-          {savingsGoals.map((goal) => <GoalCard key={goal.id} goal={goal} currency={currency} />)}
+          {savingsGoals.map((goal) => (
+            <GoalCard 
+              key={goal.id} 
+              goal={goal} 
+              currency={currency}
+              isSelected={selectedGoalId === goal.id}
+              onSelect={() => onSelectGoal(goal.id)}
+            />
+          ))}
         </div>
       </div>
 
       <div className="mt-6">
         <p className="mb-3 px-1 text-[10px] font-semibold uppercase tracking-[0.09em] text-[#64748b]">Debt payoff</p>
         <div className="grid gap-3 md:grid-cols-2">
-          {debtGoals.map((goal) => <GoalCard key={goal.id} goal={goal} currency={currency} />)}
+          {debtGoals.map((goal) => (
+            <GoalCard 
+              key={goal.id} 
+              goal={goal} 
+              currency={currency}
+              isSelected={selectedGoalId === goal.id}
+              onSelect={() => onSelectGoal(goal.id)}
+            />
+          ))}
         </div>
       </div>
     </section>
@@ -870,6 +950,7 @@ export default function DashboardPage() {
   const [isOnline, setIsOnline] = useState(true);
   const [unsyncedCount, setUnsyncedCount] = useState(0);
   const [notice, setNotice] = useState('');
+  const [selectedGoalId, setSelectedGoalId] = useState<string | null>(null);
 
   useEffect(() => {
     if (!loading && !user) router.push('/login');
@@ -1063,7 +1144,7 @@ export default function DashboardPage() {
               onReturnToSample={returnToSamplePeriod}
             />
           ) : null}
-          {activeTab === 'goals' ? <GoalsScreen currency={currency} /> : null}
+          {activeTab === 'goals' ? <GoalsScreen currency={currency} selectedGoalId={selectedGoalId} onSelectGoal={setSelectedGoalId} /> : null}
           {activeTab === 'reports' ? (
             isBudgeted ? <ReportsScreen currency={currency} /> : <PeriodEmpty period={period} onReturn={returnToSamplePeriod} />
           ) : null}
