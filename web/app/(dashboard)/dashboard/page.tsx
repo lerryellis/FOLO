@@ -37,6 +37,13 @@ import { GoalCreationSheet } from '@/components/dashboard/GoalCreationSheet';
 import { TransactionEditSheet } from '@/components/dashboard/TransactionEditSheet';
 import { useAuth } from '@/lib/hooks/useAuth';
 import {
+  saveTransaction as saveTransactionToSupabase,
+  fetchTransactions,
+  updateTransaction as updateTransactionInSupabase,
+  deleteTransaction as deleteTransactionFromSupabase,
+  upsertUserProfile,
+} from '@/lib/transaction-operations';
+import {
   BUDGET_GROUPS,
   CATEGORY_MAP,
   CREDIT_CARD_TYPES,
@@ -1097,6 +1104,7 @@ export default function DashboardPage() {
   const [showSampleData, setShowSampleData] = useState(false);
   const [isGoalCreationOpen, setIsGoalCreationOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
+  const [touchStart, setTouchStart] = useState<{ id: string; time: number } | null>(null);
 
   useEffect(() => {
     if (!loading && !user) router.push('/login');
@@ -1126,6 +1134,28 @@ export default function DashboardPage() {
     return () => window.clearTimeout(timer);
   }, [notice]);
 
+  // Load transactions from Supabase when period changes
+  useEffect(() => {
+    if (!user) return;
+
+    const loadTransactions = async () => {
+      try {
+        // Ensure user profile exists
+        await upsertUserProfile(user.id, user.email || '', user.email?.split('@')[0] || 'FOLO user', currency);
+
+        // Load transactions from database
+        const dbTransactions = await fetchTransactions(user.id, period);
+        setTransactions(dbTransactions);
+      } catch (error) {
+        console.error('Failed to load transactions:', error);
+        // Show sample data on error
+        setShowSampleData(false);
+      }
+    };
+
+    loadTransactions();
+  }, [user, period, currency]);
+
   function updateCurrency(nextCurrency: CurrencyCode) {
     setCurrency(nextCurrency);
     window.localStorage.setItem('folo-currency', nextCurrency);
@@ -1139,11 +1169,45 @@ export default function DashboardPage() {
     setPeriod(new Date(SAMPLE_YEAR, SAMPLE_MONTH, 1));
   }
 
-  function saveTransaction(transaction: Transaction) {
-    setTransactions((current) => [transaction, ...current]);
-    if (transaction.pending) setUnsyncedCount((current) => current + 1);
-    setNotice(transaction.pending ? 'Saved on this device. It will need to sync when you reconnect.' : 'Transaction added to activity.');
-    setActiveTab('activity');
+  async function saveTransaction(transaction: Transaction) {
+    try {
+      // Save to Supabase first
+      await saveTransactionToSupabase(user!.id, transaction);
+
+      // Update local state
+      setTransactions((current) => [transaction, ...current]);
+      setNotice('Transaction saved successfully.');
+      setActiveTab('activity');
+    } catch (error) {
+      console.error('Failed to save transaction:', error);
+      setNotice('Failed to save transaction. Please try again.');
+    }
+  }
+
+  async function handleUpdateTransaction(updatedTransaction: Transaction) {
+    try {
+      await updateTransactionInSupabase(user!.id, updatedTransaction.id, updatedTransaction);
+      setTransactions((current) =>
+        current.map((t) => (t.id === updatedTransaction.id ? updatedTransaction : t))
+      );
+      setEditingTransaction(null);
+      setNotice('Transaction updated successfully.');
+    } catch (error) {
+      console.error('Failed to update transaction:', error);
+      setNotice('Failed to update transaction. Please try again.');
+    }
+  }
+
+  async function handleDeleteTransaction(transactionId: string) {
+    try {
+      await deleteTransactionFromSupabase(user!.id, transactionId);
+      setTransactions((current) => current.filter((t) => t.id !== transactionId));
+      setEditingTransaction(null);
+      setNotice('Transaction deleted successfully.');
+    } catch (error) {
+      console.error('Failed to delete transaction:', error);
+      setNotice('Failed to delete transaction. Please try again.');
+    }
   }
 
   async function handleSignOut() {
@@ -1164,10 +1228,6 @@ export default function DashboardPage() {
 
   if (!user) return null;
 
-  
-  // Long-press detection for transaction editing
-  const [touchStart, setTouchStart] = useState<{ id: string; time: number } | null>(null);
-
   const handleTransactionTouchStart = (transactionId: string) => {
     setTouchStart({ id: transactionId, time: Date.now() });
   };
@@ -1175,7 +1235,7 @@ export default function DashboardPage() {
   const handleTransactionTouchEnd = (transaction: Transaction) => {
     if (!touchStart) return;
     const duration = Date.now() - touchStart.time;
-    
+
     // Long-press: > 500ms
     if (duration > 500) {
       setEditingTransaction(transaction);
@@ -1369,6 +1429,25 @@ export default function DashboardPage() {
           <span>{notice}</span>
         </div>
       ) : null}
+
+      <TransactionEditSheet
+        transaction={editingTransaction}
+        isOpen={!!editingTransaction}
+        onClose={() => setEditingTransaction(null)}
+        onUpdate={handleUpdateTransaction}
+        onDelete={handleDeleteTransaction}
+        currency={currency}
+      />
+
+      <GoalCreationSheet
+        isOpen={isGoalCreationOpen}
+        onClose={() => setIsGoalCreationOpen(false)}
+        onCreateGoal={(goal) => {
+          console.log('Goal created:', goal);
+          setIsGoalCreationOpen(false);
+        }}
+        currency={currency}
+      />
     </div>
   );
 }
