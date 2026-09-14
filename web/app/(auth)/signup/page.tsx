@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/hooks/useAuth';
-import { Target } from 'lucide-react';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -79,11 +78,8 @@ export default function SignupPage() {
       <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8" style={{ backgroundColor: '#0B0F17' }}>
         <div className="w-full max-w-md space-y-8 text-center">
           <div>
-            <div className="flex items-center justify-center gap-2 mb-4">
-              <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#10B981' }}>
-                <Target className="w-6 h-6" style={{ color: '#FFFFFF' }} />
-              </div>
-              <h1 className="text-3xl font-bold" style={{ color: '#FFFFFF' }}>FOLO</h1>
+            <div className="flex items-center justify-center mb-4">
+              <img src="/folo_logo.png" alt="FOLO" className="h-12" />
             </div>
             <h2 className="mt-4 text-xl font-semibold" style={{ color: '#FFFFFF' }}>Check Your Email</h2>
           </div>
@@ -110,11 +106,8 @@ export default function SignupPage() {
       <div className="w-full max-w-md space-y-8">
         {/* Header */}
         <div className="text-center">
-          <div className="flex items-center justify-center gap-2 mb-4">
-            <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#10B981' }}>
-              <Target className="w-6 h-6" style={{ color: '#FFFFFF' }} />
-            </div>
-            <h1 className="text-3xl font-bold" style={{ color: '#FFFFFF' }}>FOLO</h1>
+          <div className="flex items-center justify-center mb-4">
+            <img src="/folo_logo.png" alt="FOLO" className="h-14" />
           </div>
           <h2 className="mt-4 text-xl font-semibold" style={{ color: '#FFFFFF' }}>Create Account</h2>
           <p className="mt-2 text-sm" style={{ color: '#FFFFFF', opacity: 0.6 }}>

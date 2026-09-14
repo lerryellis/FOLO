@@ -7,12 +7,10 @@ import { useAuth } from '@/lib/hooks/useAuth';
 import {
   TrendingUp,
   BarChart3,
-  Target,
   Smartphone,
   Lock,
   Zap,
   CreditCard,
-  PieChart,
   Heart,
 } from 'lucide-react';
 
@@ -35,11 +33,8 @@ export default function Home() {
       {/* Navigation */}
       <nav className="border-b" style={{ borderColor: '#10B981' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#10B981' }}>
-              <Target className="w-5 h-5" style={{ color: '#FFFFFF' }} />
-            </div>
-            <h1 className="text-2xl font-bold" style={{ color: '#FFFFFF' }}>FOLO</h1>
+          <div className="flex items-center gap-3">
+            <img src="/folo_logo.png" alt="FOLO" className="h-10" />
           </div>
           <div className="flex gap-3">
             <Link

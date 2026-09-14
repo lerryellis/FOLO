@@ -146,10 +146,12 @@ export default function DashboardPage() {
     <div className="min-h-screen" style={{ backgroundColor: '#0B0F17' }}>
       {/* Header */}
       <header className="border-b backdrop-blur" style={{ borderColor: '#10B981', borderOpacity: 0.3, backgroundColor: '#0B0F17', backgroundOpacity: 0.5 }}>
-        <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 flex justify-between items-center">
-          <div>
-            <h1 className="text-3xl font-bold" style={{ color: '#FFFFFF' }}>FOLO Dashboard</h1>
-            <p className="text-sm mt-1" style={{ color: '#FFFFFF', opacity: 0.6 }}>Welcome back, {user.email}</p>
+        <div className="mx-auto max-w-7xl px-4 py-4 sm:px-6 lg:px-8 flex justify-between items-center">
+          <div className="flex items-center gap-4">
+            <img src="/folo_logo.png" alt="FOLO" className="h-10" />
+            <div>
+              <p className="text-sm" style={{ color: '#FFFFFF', opacity: 0.6 }}>Welcome back, {user.email}</p>
+            </div>
           </div>
           <button
             onClick={handleSignOut}
