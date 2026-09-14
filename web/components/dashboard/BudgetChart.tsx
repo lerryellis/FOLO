@@ -75,7 +75,6 @@ export function BudgetChart({ currency }: BudgetChartProps) {
           <Legend
             wrapperStyle={{ paddingTop: '20px' }}
             iconType="square"
-            wrapperClassName="text-xs"
           />
           <Bar
             dataKey="Budgeted"

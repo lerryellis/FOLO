@@ -224,6 +224,7 @@ function OverviewScreen({
   isBudgeted,
   period,
   onReturnToSample,
+  showSampleData = false,
 }: {
   currency: CurrencyCode;
   transactions: Transaction[];
@@ -231,6 +232,7 @@ function OverviewScreen({
   isBudgeted: boolean;
   period: Date;
   onReturnToSample: () => void;
+  showSampleData?: boolean;
 }) {
   if (!isBudgeted || transactions.length === 0) {
     return (
