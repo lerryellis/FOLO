@@ -232,7 +232,17 @@ function OverviewScreen({
   period: Date;
   onReturnToSample: () => void;
 }) {
-  if (!isBudgeted) return <PeriodEmpty period={period} onReturn={onReturnToSample} />;
+  if (!isBudgeted || transactions.length === 0) {
+    return (
+      <EmptyState
+        icon={Home}
+        title="Welcome to FOLO"
+        description="Start by adding a transaction or creating your first budget to begin tracking your finances."
+        action="Add Transaction"
+        onAction={() => setActiveTab('activity')}
+      />
+    );
+  }
 
   const recent = transactions.slice(0, 3);
   const previewGoals = GOALS.filter((goal) => goal.percent < 100).slice(0, 3);
@@ -246,7 +256,7 @@ function OverviewScreen({
             <span className="text-xs font-medium text-[#64748b] lg:text-[#94a3b8]">16 days left</span>
           </div>
           <Money
-            amountMinor={131_500}
+            amountMinor={transactions.reduce((sum, t) => sum + (t.categoryType === 'INCOME' ? t.amountMinor : -t.amountMinor), 0)}
             currency={currency}
             className="mt-3 block text-[34px] font-semibold leading-none tracking-[-0.04em] text-[#0B0F17] lg:text-white"
           />
@@ -675,10 +685,20 @@ function GoalsScreen({
   selectedGoalId?: string | null;
   onSelectGoal?: (goalId: string) => void;
 }) {
-  const savingsGoals = GOALS.filter((goal) => goal.type === 'SAVINGS');
-  const debtGoals = GOALS.filter((goal) => goal.type === 'DEBT');
+  return (
+    <EmptyState
+      icon={Target}
+      title="No goals yet"
+      description="Create a savings target or debt payoff goal to start achieving your financial plans."
+      action="Create Goal"
+      onAction={() => {}}
+    />
+  );
+  
+  const savingsGoals: Goal[] = [];
+  const debtGoals: Goal[] = [];
 
-  if (GOALS.length === 0) {
+  if (false) {  // Placeholder for when goals exist
     return (
       <EmptyState
         icon={Target}
