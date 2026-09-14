@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/hooks/useAuth';
@@ -59,7 +60,7 @@ export default function LoginPage() {
         {/* Header */}
         <div className="text-center">
           <div className="flex items-center justify-center mb-4">
-            <img src="/folo_logo.png" alt="FOLO" className="h-14" />
+            <Image src="/folo_logo.png" alt="FOLO" width={168} height={56} className="h-14 w-auto" priority />
           </div>
           <h2 className="mt-4 text-xl font-semibold" style={{ color: '#0B0F17' }}>Sign In</h2>
           <p className="mt-2 text-sm" style={{ color: '#0B0F17', opacity: 0.6 }}>
@@ -71,7 +72,7 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Error Alert */}
           {error && (
-            <div className="rounded-lg p-4 border" style={{ backgroundColor: '#FFFFFF', borderColor: '#10B981', borderOpacity: 0.3 }}>
+            <div className="rounded-lg p-4 border" style={{ backgroundColor: '#FFFFFF', borderColor: 'rgba(16, 185, 129, 0.3)' }}>
               <p className="text-sm" style={{ color: '#0B0F17' }}>{error}</p>
             </div>
           )}
@@ -91,14 +92,13 @@ export default function LoginPage() {
               className="mt-1 block w-full px-3 py-2 rounded-lg shadow-sm focus:outline-none transition-all"
               style={{
                 backgroundColor: '#FFFFFF',
-                border: '2px solid #10B981',
-                borderOpacity: 0.3,
+                border: '2px solid rgba(16, 185, 129, 0.3)',
                 color: '#0B0F17',
               }}
               placeholder="you@example.com"
               disabled={isSubmitting}
-              onFocus={(e) => (e.currentTarget.style.borderOpacity = '1')}
-              onBlur={(e) => (e.currentTarget.style.borderOpacity = '0.3')}
+              onFocus={(e) => (e.currentTarget.style.borderColor = '#10B981')}
+              onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(16, 185, 129, 0.3)')}
             />
           </div>
 
@@ -117,14 +117,13 @@ export default function LoginPage() {
               className="mt-1 block w-full px-3 py-2 rounded-lg shadow-sm focus:outline-none transition-all"
               style={{
                 backgroundColor: '#FFFFFF',
-                border: '2px solid #10B981',
-                borderOpacity: 0.3,
+                border: '2px solid rgba(16, 185, 129, 0.3)',
                 color: '#0B0F17',
               }}
               placeholder="••••••••"
               disabled={isSubmitting}
-              onFocus={(e) => (e.currentTarget.style.borderOpacity = '1')}
-              onBlur={(e) => (e.currentTarget.style.borderOpacity = '0.3')}
+              onFocus={(e) => (e.currentTarget.style.borderColor = '#10B981')}
+              onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(16, 185, 129, 0.3)')}
             />
           </div>
 
@@ -142,7 +141,7 @@ export default function LoginPage() {
         {/* Divider */}
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full" style={{ borderTop: `1px solid #10B981`, borderOpacity: 0.3 }}></div>
+            <div className="w-full" style={{ borderTop: '1px solid rgba(16, 185, 129, 0.3)' }}></div>
           </div>
           <div className="relative flex justify-center text-sm">
             <span className="px-2 bg-white" style={{ color: '#0B0F17', opacity: 0.4 }}>or</span>
@@ -151,7 +150,7 @@ export default function LoginPage() {
 
         {/* Sign Up Link */}
         <p className="text-center text-sm" style={{ color: '#0B0F17', opacity: 0.6 }}>
-          Don't have an account?{' '}
+          Don&apos;t have an account?{' '}
           <Link
             href="/signup"
             style={{ color: '#10B981' }}

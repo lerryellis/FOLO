@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/hooks/useAuth';
@@ -79,14 +80,14 @@ export default function SignupPage() {
         <div className="w-full max-w-md space-y-8 text-center">
           <div>
             <div className="flex items-center justify-center mb-4">
-              <img src="/folo_logo.png" alt="FOLO" className="h-12" />
+              <Image src="/folo_logo.png" alt="FOLO" width={144} height={48} className="h-12 w-auto" priority />
             </div>
             <h2 className="mt-4 text-xl font-semibold" style={{ color: '#0B0F17' }}>Check Your Email</h2>
           </div>
 
           <div className="rounded-lg p-4 border" style={{ backgroundColor: '#FFFFFF', borderColor: '#10B981' }}>
             <p className="text-sm" style={{ color: '#0B0F17' }}>
-              We've sent a verification email to <strong>{email}</strong>. Click the link in the email to verify your account and start using FOLO.
+              We&apos;ve sent a verification email to <strong>{email}</strong>. Click the link in the email to verify your account and start using FOLO.
             </p>
           </div>
 
@@ -107,7 +108,7 @@ export default function SignupPage() {
         {/* Header */}
         <div className="text-center">
           <div className="flex items-center justify-center mb-4">
-            <img src="/folo_logo.png" alt="FOLO" className="h-14" />
+            <Image src="/folo_logo.png" alt="FOLO" width={168} height={56} className="h-14 w-auto" priority />
           </div>
           <h2 className="mt-4 text-xl font-semibold" style={{ color: '#0B0F17' }}>Create Account</h2>
           <p className="mt-2 text-sm" style={{ color: '#0B0F17', opacity: 0.6 }}>
@@ -119,7 +120,7 @@ export default function SignupPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Error Alert */}
           {error && (
-            <div className="rounded-lg p-4 border" style={{ backgroundColor: '#FFFFFF', borderColor: '#10B981', borderOpacity: 0.3 }}>
+            <div className="rounded-lg p-4 border" style={{ backgroundColor: '#FFFFFF', borderColor: 'rgba(16, 185, 129, 0.3)' }}>
               <p className="text-sm" style={{ color: '#0B0F17' }}>{error}</p>
             </div>
           )}
@@ -139,14 +140,13 @@ export default function SignupPage() {
               className="mt-1 block w-full px-3 py-2 rounded-lg shadow-sm focus:outline-none transition-all"
               style={{
                 backgroundColor: '#FFFFFF',
-                border: '2px solid #10B981',
-                borderOpacity: 0.3,
+                border: '2px solid rgba(16, 185, 129, 0.3)',
                 color: '#0B0F17',
               }}
               placeholder="you@example.com"
               disabled={isSubmitting}
-              onFocus={(e) => (e.currentTarget.style.borderOpacity = '1')}
-              onBlur={(e) => (e.currentTarget.style.borderOpacity = '0.3')}
+              onFocus={(e) => (e.currentTarget.style.borderColor = '#10B981')}
+              onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(16, 185, 129, 0.3)')}
             />
           </div>
 
@@ -165,14 +165,13 @@ export default function SignupPage() {
               className="mt-1 block w-full px-3 py-2 rounded-lg shadow-sm focus:outline-none transition-all"
               style={{
                 backgroundColor: '#FFFFFF',
-                border: '2px solid #10B981',
-                borderOpacity: 0.3,
+                border: '2px solid rgba(16, 185, 129, 0.3)',
                 color: '#0B0F17',
               }}
               placeholder="••••••••"
               disabled={isSubmitting}
-              onFocus={(e) => (e.currentTarget.style.borderOpacity = '1')}
-              onBlur={(e) => (e.currentTarget.style.borderOpacity = '0.3')}
+              onFocus={(e) => (e.currentTarget.style.borderColor = '#10B981')}
+              onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(16, 185, 129, 0.3)')}
             />
             <p className="mt-1 text-xs" style={{ color: '#0B0F17', opacity: 0.4 }}>At least 6 characters</p>
           </div>
@@ -192,14 +191,13 @@ export default function SignupPage() {
               className="mt-1 block w-full px-3 py-2 rounded-lg shadow-sm focus:outline-none transition-all"
               style={{
                 backgroundColor: '#FFFFFF',
-                border: '2px solid #10B981',
-                borderOpacity: 0.3,
+                border: '2px solid rgba(16, 185, 129, 0.3)',
                 color: '#0B0F17',
               }}
               placeholder="••••••••"
               disabled={isSubmitting}
-              onFocus={(e) => (e.currentTarget.style.borderOpacity = '1')}
-              onBlur={(e) => (e.currentTarget.style.borderOpacity = '0.3')}
+              onFocus={(e) => (e.currentTarget.style.borderColor = '#10B981')}
+              onBlur={(e) => (e.currentTarget.style.borderColor = 'rgba(16, 185, 129, 0.3)')}
             />
           </div>
 
@@ -217,7 +215,7 @@ export default function SignupPage() {
         {/* Divider */}
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full" style={{ borderTop: `1px solid #10B981`, borderOpacity: 0.3 }}></div>
+            <div className="w-full" style={{ borderTop: '1px solid rgba(16, 185, 129, 0.3)' }}></div>
           </div>
           <div className="relative flex justify-center text-sm">
             <span className="px-2 bg-white" style={{ color: '#0B0F17', opacity: 0.4 }}>or</span>

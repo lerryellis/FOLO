@@ -1,17 +1,15 @@
-import type { Metadata } from "next";
-import { Poppins, Source_Code_Pro } from "next/font/google";
+import type { Metadata, Viewport } from "next";
+import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 
-const poppins = Poppins({
-  variable: "--font-poppins",
+const geist = Geist({
+  variable: "--font-geist-sans",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
 });
 
-const sourceCodePro = Source_Code_Pro({
-  variable: "--font-mono",
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
 });
 
 export const metadata: Metadata = {
@@ -22,18 +20,21 @@ export const metadata: Metadata = {
     apple: "/favicon.svg",
     shortcut: "/favicon.svg",
   },
-  themeColor: "#10B981",
   appleWebApp: {
     capable: true,
     statusBarStyle: "black-translucent",
   },
 };
 
+export const viewport: Viewport = {
+  themeColor: "#10B981",
+};
+
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
       lang="en"
-      className={`${poppins.variable} ${sourceCodePro.variable} h-full antialiased`}
+      className={`${geist.variable} ${geistMono.variable} h-full antialiased`}
     >
       <head>
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />

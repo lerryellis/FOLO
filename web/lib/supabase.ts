@@ -1,4 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
+import type { User } from '@supabase/supabase-js';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -120,7 +121,7 @@ export async function updatePassword(newPassword: string) {
 /**
  * Subscribe to auth state changes
  */
-export function onAuthStateChange(callback: (user: any) => void) {
+export function onAuthStateChange(callback: (user: User | null) => void) {
   const {
     data: { subscription },
   } = supabase.auth.onAuthStateChange(async (event, session) => {

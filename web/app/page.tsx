@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { useAuth } from '@/lib/hooks/useAuth';
@@ -35,7 +36,7 @@ export default function Home() {
       <nav className="border-b bg-white" style={{ borderColor: '#10B981' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <img src="/folo_logo.png" alt="FOLO" className="h-10" />
+            <Image src="/folo_logo.png" alt="FOLO" width={120} height={40} className="h-10 w-auto" priority />
           </div>
           <div className="flex gap-3">
             <Link
@@ -88,7 +89,7 @@ export default function Home() {
           </div>
 
           {/* Right: Feature Card */}
-          <div className="rounded-2xl p-8 border shadow-2xl bg-white" style={{ borderColor: '#10B981', borderOpacity: 0.3 }}>
+          <div className="rounded-2xl p-8 border shadow-2xl bg-white" style={{ borderColor: 'rgba(16, 185, 129, 0.3)' }}>
             <div className="space-y-6">
               <div className="flex items-start gap-4">
                 <div className="flex-shrink-0">
@@ -158,9 +159,9 @@ export default function Home() {
                 <div
                   key={idx}
                   className="rounded-xl p-6 border transition-all hover:shadow-lg bg-white"
-                  style={{ borderColor: '#10B981', borderOpacity: 0.3 }}
+                  style={{ borderColor: 'rgba(16, 185, 129, 0.3)' }}
                 >
-                  <div className="mb-4 p-3 rounded-lg w-fit" style={{ backgroundColor: '#10B981', backgroundOpacity: 0.1 }}>
+                  <div className="mb-4 p-3 rounded-lg w-fit" style={{ backgroundColor: 'rgba(16, 185, 129, 0.1)' }}>
                     <Icon className="w-6 h-6" style={{ color: '#10B981' }} />
                   </div>
                   <h4 className="font-bold mb-2" style={{ color: '#0B0F17' }}>{feature.title}</h4>
@@ -172,7 +173,7 @@ export default function Home() {
         </div>
 
         {/* CTA Section */}
-        <div className="rounded-2xl p-12 text-center border bg-white" style={{ borderColor: '#10B981', borderOpacity: 0.3 }}>
+        <div className="rounded-2xl p-12 text-center border bg-white" style={{ borderColor: 'rgba(16, 185, 129, 0.3)' }}>
           <h3 className="text-3xl font-bold mb-4" style={{ color: '#0B0F17' }}>Ready to Master Your Finances?</h3>
           <p className="mb-8 max-w-2xl mx-auto" style={{ color: '#0B0F17', opacity: 0.7 }}>
             Join thousands of users who are taking control of their financial future with FOLO.
@@ -188,7 +189,7 @@ export default function Home() {
       </div>
 
       {/* Footer */}
-      <footer className="border-t mt-20 bg-white" style={{ borderColor: '#10B981', borderOpacity: 0.2 }}>
+      <footer className="border-t mt-20 bg-white" style={{ borderColor: 'rgba(16, 185, 129, 0.2)' }}>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 text-center text-sm">
           <div className="flex items-center justify-center gap-2 mb-3">
             <Heart className="w-4 h-4" style={{ color: '#10B981' }} />
