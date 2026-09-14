@@ -7,6 +7,7 @@ import { useAuth } from '@/lib/hooks/useAuth';
 import {
   TrendingUp,
   BarChart3,
+  Target,
   Smartphone,
   Lock,
   Zap,
