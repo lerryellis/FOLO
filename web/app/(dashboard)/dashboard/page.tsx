@@ -143,18 +143,21 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
+    <div className="min-h-screen" style={{ backgroundColor: '#0B0F17' }}>
       {/* Header */}
-      <header className="border-b border-slate-700 bg-slate-800/50 backdrop-blur">
+      <header className="border-b backdrop-blur" style={{ borderColor: '#10B981', borderOpacity: 0.3, backgroundColor: '#0B0F17', backgroundOpacity: 0.5 }}>
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-white">🎯 FOLO Dashboard</h1>
-            <p className="text-sm text-gray-400 mt-1">Welcome back, {user.email}</p>
+            <h1 className="text-3xl font-bold" style={{ color: '#FFFFFF' }}>FOLO Dashboard</h1>
+            <p className="text-sm mt-1" style={{ color: '#FFFFFF', opacity: 0.6 }}>Welcome back, {user.email}</p>
           </div>
           <button
             onClick={handleSignOut}
             disabled={isSigningOut}
-            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors"
+            className="px-4 py-2 rounded-lg disabled:cursor-not-allowed transition-colors"
+            style={{ backgroundColor: '#10B981', color: '#FFFFFF' }}
+            onMouseEnter={(e) => (e.currentTarget.style.opacity = '0.9')}
+            onMouseLeave={(e) => (e.currentTarget.style.opacity = '1')}
           >
             {isSigningOut ? 'Signing out...' : 'Sign Out'}
           </button>
