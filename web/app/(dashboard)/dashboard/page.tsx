@@ -3,7 +3,7 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/hooks/useAuth';
-import { Home, BarChart3, Settings, TrendingUp, User, Bell } from 'lucide-react';
+import { Home, BarChart3, Settings, TrendingUp, User, ChevronLeft, ChevronRight, Clock, AlertCircle } from 'lucide-react';
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -29,10 +29,10 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#F6F7F9' }}>
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: '#10B981' }}></div>
-          <p className="mt-2" style={{ color: '#0B0F17', opacity: 0.6 }}>Loading...</p>
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-[#10B981]"></div>
+          <p className="mt-2 text-sm" style={{ color: '#0B0F17', opacity: 0.6 }}>Loading...</p>
         </div>
       </div>
     );
@@ -42,150 +42,160 @@ export default function DashboardPage() {
     return null;
   }
 
-  const userName = user.email?.split('@')[0] || 'User';
+  const userInitial = user.email?.[0].toUpperCase() || 'E';
+  const leftToSpend = 1315; // GH₵ (from design)
+  const planned = 1800;
+  const underPlan = 485;
 
   return (
-    <div className="min-h-screen bg-white pb-24">
-      {/* Top Section with Greeting */}
-      <div className="sticky top-0 bg-white border-b" style={{ borderColor: '#10B981', borderOpacity: 0.2 }}>
-        <div className="max-w-2xl mx-auto px-4 py-4 flex justify-between items-start">
-          <div>
-            <p className="text-sm" style={{ color: '#0B0F17', opacity: 0.6 }}>Good Morning</p>
-            <h1 className="text-2xl font-bold" style={{ color: '#0B0F17' }}>Welcome Back</h1>
-            <p className="text-xs" style={{ color: '#0B0F17', opacity: 0.5 }}>{user.email}</p>
+    <div className="min-h-screen pb-24" style={{ backgroundColor: '#F6F7F9' }}>
+      {/* Period Header */}
+      <div className="sticky top-0 border-b" style={{ backgroundColor: '#F6F7F9', borderColor: '#E8EAED' }}>
+        <div className="max-w-2xl mx-auto px-4 py-3 flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <button className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-white/50">
+              <ChevronLeft className="w-5 h-5" style={{ color: '#475569' }} />
+            </button>
+            <div className="flex flex-col gap-0.5">
+              <div className="text-sm font-semibold" style={{ color: '#0B0F17' }}>September 2026</div>
+              <div className="text-xs" style={{ color: '#94a3b8', fontWeight: 500 }}>1 Sep – 30 Sep</div>
+            </div>
+            <button className="w-10 h-10 flex items-center justify-center rounded-lg hover:bg-white/50">
+              <ChevronRight className="w-5 h-5" style={{ color: '#475569' }} />
+            </button>
           </div>
-          <button className="p-2 rounded-full" style={{ backgroundColor: '#10B981', backgroundOpacity: 0.1 }}>
-            <Bell className="w-5 h-5" style={{ color: '#10B981' }} />
-          </button>
+          <div className="w-9 h-9 rounded-full flex items-center justify-center font-semibold text-xs text-white" style={{ backgroundColor: '#0B0F17' }}>
+            {userInitial}
+          </div>
         </div>
       </div>
 
       {/* Main Content */}
-      <div className="max-w-2xl mx-auto px-4 py-6 space-y-6">
-        {/* Available Funds Card */}
-        <div
-          className="rounded-3xl p-6 text-white shadow-lg"
-          style={{
-            background: 'linear-gradient(135deg, #10B981 0%, #059669 100%)',
-          }}
-        >
-          <div className="flex justify-between items-start mb-12">
-            <div>
-              <p className="text-sm opacity-80">Available Funds</p>
-              <p className="text-3xl font-bold mt-1">USD $24,000</p>
+      <div className="max-w-2xl mx-auto px-4 py-4">
+        {/* Hero: LEFT TO SPEND */}
+        <div className="bg-white border rounded-2xl p-5 mb-3" style={{ borderColor: '#E8EAED' }}>
+          <div className="flex items-baseline justify-between mb-3">
+            <div className="text-xs font-semibold tracking-widest" style={{ color: '#94a3b8' }}>LEFT TO SPEND</div>
+            <div className="flex items-center gap-1">
+              <Clock className="w-3.5 h-3.5" style={{ color: '#94a3b8' }} />
+              <span className="text-xs" style={{ color: '#94a3b8', fontWeight: 500 }}>16 days left</span>
             </div>
-            <div className="w-10 h-10 rounded-full bg-white opacity-20"></div>
           </div>
-          <div className="flex justify-between items-end">
-            <div>
-              <p className="text-xs opacity-80">Current Balance</p>
-              <p className="text-lg font-semibold mt-1">FOLO Card</p>
-            </div>
-            <div className="text-right">
-              <p className="text-xs opacity-80">Card Number</p>
-              <p className="text-sm font-mono mt-1">•••• 4242</p>
+
+          {/* Big Number */}
+          <div className="flex items-baseline gap-1 mb-3">
+            <span className="text-sm font-medium" style={{ color: '#475569' }}>GH₵</span>
+            <span className="text-5xl font-bold tracking-tight" style={{ color: '#0B0F17', letterSpacing: '-0.03em' }}>1,315</span>
+            <span className="text-sm font-medium" style={{ color: '#475569' }}>.00</span>
+          </div>
+
+          <div className="h-px mb-3" style={{ backgroundColor: '#E8EAED' }}></div>
+
+          {/* Planned vs Actual */}
+          <div className="flex items-center justify-between">
+            <span className="text-xs" style={{ color: '#475569' }}>
+              Planned{' '}
+              <span className="font-semibold" style={{ color: '#0B0F17' }}>GH₵1,800.00</span>
+            </span>
+            <div className="flex items-center gap-1">
+              <AlertCircle className="w-3.5 h-3.5" style={{ color: '#ef4444' }} />
+              <span className="text-xs font-semibold" style={{ color: '#ef4444' }}>GH₵{underPlan} under plan</span>
             </div>
           </div>
         </div>
 
-        {/* Quick Actions */}
-        <div>
-          <h2 className="text-lg font-bold mb-4" style={{ color: '#0B0F17' }}>Quick Actions</h2>
-          <div className="grid grid-cols-4 gap-3">
-            {['Send', 'Request', 'Top Up', 'More'].map((action) => (
-              <button
-                key={action}
-                className="py-3 rounded-2xl font-medium transition-all transform hover:scale-105"
-                style={{
-                  backgroundColor: action === 'More' ? '#10B981' : '#10B981',
-                  backgroundOpacity: action === 'More' ? 1 : 0.1,
-                  color: action === 'More' ? '#FFFFFF' : '#10B981',
-                }}
-              >
-                {action}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Financial Insights */}
-        <div>
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-bold" style={{ color: '#0B0F17' }}>Financial Insights</h2>
-            <button className="text-xs font-medium" style={{ color: '#10B981' }}>View Report</button>
-          </div>
-
-          {/* Tabs */}
-          <div className="flex gap-2 mb-6">
-            {['Weekly', 'Monthly'].map((tab) => (
-              <button
-                key={tab}
-                className="px-6 py-2 rounded-full font-medium transition-all"
-                style={{
-                  backgroundColor: tab === 'Weekly' ? '#10B981' : '#10B981',
-                  backgroundOpacity: tab === 'Weekly' ? 1 : 0.1,
-                  color: tab === 'Weekly' ? '#FFFFFF' : '#0B0F17',
-                }}
-              >
-                {tab}
-              </button>
-            ))}
-          </div>
-
-          {/* Chart */}
-          <div className="flex items-end justify-around h-48 p-6 rounded-2xl bg-gray-50">
-            {[65, 30, 75, 45, 60, 85, 70].map((height, idx) => (
-              <div key={idx} className="flex flex-col items-center gap-2">
-                <div
-                  className="rounded-full transition-all"
-                  style={{
-                    width: '32px',
-                    height: `${height * 1.5}px`,
-                    backgroundColor: '#10B981',
-                  }}
-                ></div>
-                <span className="text-xs" style={{ color: '#0B0F17', opacity: 0.5 }}>
-                  {17 + idx}
-                </span>
+        {/* KPI Stats */}
+        <div className="grid grid-cols-3 gap-2 mb-4">
+          {[
+            { label: 'INCOME', value: '9,200', sub: 'of 9,500', color: '#0B0F17' },
+            { label: 'SPENT', value: '5,935', sub: '+185 over', color: '#ef4444' },
+            { label: 'SAVED', value: '1,500', sub: 'of 1,500', color: '#0B0F17' },
+          ].map((stat, i) => (
+            <div key={i} className="bg-white border rounded-xl p-3" style={{ borderColor: '#E8EAED' }}>
+              <div className="text-xs font-semibold mb-1" style={{ color: '#94a3b8', letterSpacing: '0.07em' }}>
+                {stat.label}
               </div>
-            ))}
-          </div>
-
-          {/* Total */}
-          <div className="mt-6 p-4 rounded-2xl bg-gray-50">
-            <p className="text-sm" style={{ color: '#0B0F17', opacity: 0.6 }}>Total Income & Expense</p>
-            <p className="text-3xl font-bold mt-2" style={{ color: '#0B0F17' }}>USD $24,000.00</p>
-          </div>
+              <div className="text-base font-semibold mb-0.5" style={{ color: stat.color, letterSpacing: '-0.02em' }}>
+                {stat.value}
+              </div>
+              <div className="text-xs" style={{ color: stat.label === 'SPENT' ? '#ef4444' : '#94a3b8', fontWeight: stat.label === 'SPENT' ? 500 : 400 }}>
+                {stat.sub}
+              </div>
+            </div>
+          ))}
         </div>
 
-        {/* Transaction Summary */}
-        <div>
-          <div className="flex justify-between items-center mb-4">
-            <h2 className="text-lg font-bold" style={{ color: '#0B0F17' }}>Transaction Summary</h2>
-            <button className="text-xs font-medium" style={{ color: '#10B981' }}>View All</button>
+        {/* Group Meters */}
+        <div className="mb-4">
+          <div className="flex items-center justify-between mb-3 px-1">
+            <div className="text-xs font-bold tracking-widest" style={{ color: '#94a3b8' }}>BY GROUP</div>
+            <button className="text-xs font-medium" style={{ color: '#059669' }}>See all</button>
           </div>
 
           <div className="space-y-3">
             {[
-              { name: 'Salary Deposit', amount: '+USD 5,000.00', type: 'income' },
-              { name: 'Grocery Store', amount: '-USD 125.50', type: 'expense' },
-              { name: 'Utility Bill', amount: '-USD 89.99', type: 'expense' },
-            ].map((transaction, idx) => (
-              <div key={idx} className="flex justify-between items-center p-4 rounded-2xl bg-gray-50">
-                <div>
-                  <p className="font-medium" style={{ color: '#0B0F17' }}>{transaction.name}</p>
-                  <p className="text-xs" style={{ color: '#0B0F17', opacity: 0.5 }}>Today</p>
-                </div>
-                <div className="flex items-center gap-2">
-                  <p className="font-semibold" style={{ color: transaction.type === 'income' ? '#10B981' : '#0B0F17' }}>
-                    {transaction.amount}
-                  </p>
-                  <div
-                    className="w-6 h-6 rounded-full flex items-center justify-center text-xs"
-                    style={{ backgroundColor: '#10B981', backgroundOpacity: 0.2, color: '#10B981' }}
-                  >
-                    ✓
+              { name: 'Bills', spent: 3090, budget: 3150, color: '#10B981' },
+              { name: 'Expenses', spent: 2845, budget: 2600, color: '#ef4444' },
+              { name: 'Savings', spent: 1500, budget: 1500, color: '#10B981' },
+              { name: 'Debt', spent: 950, budget: 950, color: '#10B981' },
+            ].map((group, i) => {
+              const percent = (group.spent / group.budget) * 100;
+              const textColor = group.spent > group.budget ? '#ef4444' : '#0B0F17';
+              return (
+                <div key={i} className="bg-white border rounded-xl p-3" style={{ borderColor: '#E8EAED' }}>
+                  <div className="flex items-baseline justify-between mb-2">
+                    <span className="text-sm font-medium" style={{ color: '#0B0F17' }}>{group.name}</span>
+                    <span className="text-xs font-medium" style={{ color: textColor }}>
+                      {group.spent.toLocaleString()}{' '}
+                      <span style={{ color: '#94a3b8' }}>/ {group.budget.toLocaleString()}</span>
+                    </span>
                   </div>
+                  <div className="h-1.5 bg-gray-200 rounded-full overflow-hidden">
+                    <div
+                      className="h-full rounded-full transition-all"
+                      style={{
+                        width: `${Math.min(percent, 100)}%`,
+                        backgroundColor: group.color,
+                      }}
+                    ></div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Recent Transactions */}
+        <div className="mb-4">
+          <div className="flex items-center justify-between mb-3 px-1">
+            <div className="text-xs font-bold tracking-widest" style={{ color: '#94a3b8' }}>RECENT</div>
+          </div>
+
+          <div className="bg-white border rounded-xl overflow-hidden" style={{ borderColor: '#E8EAED' }}>
+            {[
+              { name: 'Groceries', category: 'Food · 13 Sep', amount: '−184.50', type: 'expense', icon: '🛒' },
+              { name: 'Uber to Osu', category: 'Transport · 13 Sep', amount: '−42.00', type: 'expense', icon: '🚗' },
+              { name: 'September salary', category: 'Salary · 11 Sep', amount: '+8,500.00', type: 'income', icon: '⬆' },
+            ].map((tx, i) => (
+              <div
+                key={i}
+                className={`flex items-center gap-3 p-3 ${i < 2 ? 'border-b' : ''}`}
+                style={{ borderColor: '#F0F2F4' }}
+              >
+                <div
+                  className="w-8 h-8 rounded-2xl flex items-center justify-center flex-shrink-0 text-sm"
+                  style={{
+                    backgroundColor: tx.type === 'income' ? '#E7F7F0' : '#F1F5F3',
+                  }}
+                >
+                  {tx.icon}
+                </div>
+                <div className="flex-grow min-w-0">
+                  <div className="text-sm font-medium" style={{ color: '#0B0F17' }}>{tx.name}</div>
+                  <div className="text-xs" style={{ color: '#94a3b8' }}>{tx.category}</div>
+                </div>
+                <div className="text-sm font-semibold text-right" style={{ color: tx.type === 'income' ? '#059669' : '#0B0F17' }}>
+                  {tx.amount}
                 </div>
               </div>
             ))}
@@ -195,38 +205,32 @@ export default function DashboardPage() {
 
       {/* Bottom Navigation */}
       <div
-        className="fixed bottom-0 left-0 right-0 flex justify-around items-center py-4 border-t"
+        className="fixed bottom-0 left-0 right-0 border-t grid grid-cols-5 gap-1 py-2 px-1"
         style={{
-          backgroundColor: '#0B0F17',
-          borderColor: '#10B981',
-          borderOpacity: 0.3,
+          backgroundColor: '#FFFFFF',
+          borderColor: '#E8EAED',
         }}
       >
         {[
           { icon: Home, label: 'Home', id: 'home' },
-          { icon: BarChart3, label: 'Analytics', id: 'analytics' },
-          { icon: Settings, label: 'Settings', id: 'settings' },
-          { icon: TrendingUp, label: 'Trends', id: 'trends' },
-          { icon: User, label: 'Profile', id: 'profile' },
+          { icon: BarChart3, label: 'Budget', id: 'budget' },
+          { icon: () => <div className="w-6 h-6 rounded-3xl bg-[#10B981] flex items-center justify-center"><span className="text-white font-bold text-lg">+</span></div>, label: 'Add', id: 'add' },
+          { icon: TrendingUp, label: 'Activity', id: 'activity' },
+          { icon: User, label: 'Goals', id: 'goals' },
         ].map(({ icon: Icon, label, id }) => (
           <button
             key={id}
             onClick={() => {
-              if (id === 'profile') handleSignOut();
-              else setActiveTab(id);
+              if (id !== 'add') setActiveTab(id);
             }}
-            className="flex flex-col items-center gap-1 py-2 px-4 rounded-2xl transition-all"
+            className="flex flex-col items-center justify-center gap-1 py-2 rounded-lg transition-all"
             style={{
-              backgroundColor: activeTab === id ? '#10B981' : 'transparent',
-              backgroundOpacity: activeTab === id ? 1 : 0.5,
+              backgroundColor: activeTab === id ? 'rgba(16, 185, 129, 0.1)' : 'transparent',
             }}
           >
-            <Icon
-              className="w-6 h-6"
-              style={{ color: activeTab === id ? '#FFFFFF' : '#FFFFFF', opacity: activeTab === id ? 1 : 0.6 }}
-            />
-            <span className="text-xs" style={{ color: activeTab === id ? '#FFFFFF' : '#FFFFFF', opacity: activeTab === id ? 1 : 0.6 }}>
-              {id === 'profile' ? (isSigningOut ? 'Signing out...' : 'Logout') : label}
+            <Icon className="w-5 h-5" style={{ color: activeTab === id ? '#0B0F17' : '#94a3b8' }} />
+            <span className="text-xs font-medium" style={{ color: activeTab === id ? '#0B0F17' : '#94a3b8' }}>
+              {label}
             </span>
           </button>
         ))}
