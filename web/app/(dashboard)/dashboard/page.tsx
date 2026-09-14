@@ -35,6 +35,7 @@ import { BudgetChart } from '@/components/dashboard/BudgetChart';
 import { useAuth } from '@/lib/hooks/useAuth';
 import {
   BUDGET_GROUPS,
+  CATEGORY_MAP,
   CURRENCIES,
   EXPENSE_ITEMS,
   GOALS,
@@ -51,7 +52,6 @@ import {
 
 const SAMPLE_YEAR = 2026;
 const SAMPLE_MONTH = 8;
-const CATEGORY_OPTIONS = ['Food', 'Transport', 'Utilities', 'Health', 'Other'];
 
 const NAV_ITEMS = [
   { id: 'home' as const, label: 'Overview', icon: Home },
@@ -758,9 +758,15 @@ function AddScreen({
 }) {
   const [amount, setAmount] = useState('');
   const [selectedGroup, setSelectedGroup] = useState<CategoryType>('EXPENSES');
-  const [selectedCategory, setSelectedCategory] = useState('Food');
+  const [selectedCategory, setSelectedCategory] = useState(CATEGORY_MAP['EXPENSES'][0]);
   const [selectedDate, setSelectedDate] = useState(localDateValue);
   const [note, setNote] = useState('');
+
+  // Update category when group changes
+  useEffect(() => {
+    const firstCategory = CATEGORY_MAP[selectedGroup][0];
+    setSelectedCategory(firstCategory);
+  }, [selectedGroup]);
 
   const amountMinor = parseAmountToMinor(amount);
   const formattedInput = amount
@@ -851,7 +857,7 @@ function AddScreen({
             onChange={(event) => setSelectedCategory(event.target.value)}
             className="min-h-12 w-full rounded-xl border border-[#E8EAED] bg-white px-3 text-sm font-medium text-[#0B0F17] outline-none transition-colors focus:border-[#10B981]"
           >
-            {CATEGORY_OPTIONS.map((category) => <option key={category}>{category}</option>)}
+            {CATEGORY_MAP[selectedGroup].map((category) => <option key={category}>{category}</option>)}
           </select>
         </label>
         <label className="block">

@@ -55,6 +55,14 @@ export const EXPENSE_ITEMS = [
   { name: 'Tithe', actualMinor: 61500, budgetMinor: 50000, percent: 123 },
 ];
 
+export const CATEGORY_MAP: Record<CategoryType, string[]> = {
+  INCOME: ['Salary', 'Bonus', 'Interest', 'Freelance', 'Other'],
+  BILLS: ['Rent', 'Utilities', 'Insurance', 'Internet', 'Phone', 'Subscriptions', 'Other'],
+  EXPENSES: ['Food', 'Transport', 'Health', 'Tithe', 'Entertainment', 'Shopping', 'Other'],
+  SAVINGS: ['Emergency Fund', 'Investment', 'Savings Account', 'Retirement', 'Other'],
+  DEBT: ['Credit Card', 'Personal Loan', 'Student Loan', 'Mortgage', 'Other'],
+};
+
 export const SPENDING_BY_CATEGORY = [
   { name: 'Rent', amountMinor: 180000, fill: '#047857' },
   { name: 'Food', amountMinor: 141000, fill: '#059669' },
