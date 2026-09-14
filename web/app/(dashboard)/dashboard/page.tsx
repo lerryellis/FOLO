@@ -244,7 +244,8 @@ function OverviewScreen({
     );
   }
 
-  const recent = transactions.slice(0, 3);
+  const displayTransactions = showSampleData ? INITIAL_TRANSACTIONS : transactions;
+  const recent = displayTransactions.slice(0, 3);
   const previewGoals = GOALS.filter((goal) => goal.percent < 100).slice(0, 3);
 
   return (
@@ -678,27 +679,31 @@ function GoalCard({
 
 function GoalsScreen({ 
   currency, 
+  showSampleData = false,
   selectedGoalId = null, 
   onSelectGoal = () => {} 
 }: { 
   currency: CurrencyCode;
+  showSampleData?: boolean;
   selectedGoalId?: string | null;
   onSelectGoal?: (goalId: string) => void;
 }) {
-  return (
-    <EmptyState
-      icon={Target}
-      title="No goals yet"
-      description="Create a savings target or debt payoff goal to start achieving your financial plans."
-      action="Create Goal"
-      onAction={() => {}}
-    />
-  );
+  if (!showSampleData) {
+    return (
+      <EmptyState
+        icon={Target}
+        title="No goals yet"
+        description="Create a savings target or debt payoff goal to start achieving your financial plans. Or load sample data to explore."
+        action="Create Goal"
+        onAction={() => {}}
+      />
+    );
+  }
   
-  const savingsGoals: Goal[] = [];
-  const debtGoals: Goal[] = [];
+  const savingsGoals = GOALS.filter((goal) => goal.type === 'SAVINGS');
+  const debtGoals = GOALS.filter((goal) => goal.type === 'DEBT');
 
-  if (false) {  // Placeholder for when goals exist
+  if (true) {  // Show sample goals
     return (
       <EmptyState
         icon={Target}
@@ -929,6 +934,29 @@ function AddScreen({
   );
 }
 
+
+function SampleDataToggle({ enabled, onChange }: { enabled: boolean; onChange: (enabled: boolean) => void }) {
+  return (
+    <button
+      onClick={() => onChange(!enabled)}
+      className="flex items-center gap-2 rounded-xl border border-[#E8EAED] bg-white px-3 py-2 text-xs font-semibold text-[#0B0F17] transition-colors hover:bg-[#F6F7F9] active:scale-[0.98]"
+      title={enabled ? "Clear sample data" : "Load sample data for testing"}
+    >
+      {enabled ? (
+        <>
+          <span>✓ Sample Data</span>
+          <X className="h-3.5 w-3.5" />
+        </>
+      ) : (
+        <>
+          <span>Load Sample</span>
+          <Plus className="h-3.5 w-3.5" />
+        </>
+      )}
+    </button>
+  );
+}
+
 function CurrencySelector({ currency, onChange }: { currency: CurrencyCode; onChange: (currency: CurrencyCode) => void }) {
   return (
     <label className="relative">
@@ -972,11 +1000,12 @@ export default function DashboardPage() {
   const [activeTab, setActiveTab] = useState<DashboardTab>('home');
   const [currency, setCurrency] = useState<CurrencyCode>('GHS');
   const [period, setPeriod] = useState(() => new Date(SAMPLE_YEAR, SAMPLE_MONTH, 1));
-  const [transactions, setTransactions] = useState<Transaction[]>(INITIAL_TRANSACTIONS);
+  const [transactions, setTransactions] = useState<Transaction[]>([]);
   const [isOnline, setIsOnline] = useState(true);
   const [unsyncedCount, setUnsyncedCount] = useState(0);
   const [notice, setNotice] = useState('');
   const [selectedGoalId, setSelectedGoalId] = useState<string | null>(null);
+  const [showSampleData, setShowSampleData] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) router.push('/login');
@@ -1130,6 +1159,7 @@ export default function DashboardPage() {
 
               <div className="flex shrink-0 items-center gap-2">
                 <SyncStatus isOnline={isOnline} unsyncedCount={unsyncedCount} />
+                <SampleDataToggle enabled={showSampleData} onChange={setShowSampleData} />
                 <CurrencySelector currency={currency} onChange={updateCurrency} />
                 <button
                   type="button"
@@ -1170,7 +1200,7 @@ export default function DashboardPage() {
               onReturnToSample={returnToSamplePeriod}
             />
           ) : null}
-          {activeTab === 'goals' ? <GoalsScreen currency={currency} selectedGoalId={selectedGoalId} onSelectGoal={setSelectedGoalId} /> : null}
+          {activeTab === 'goals' ? <GoalsScreen currency={currency} showSampleData={showSampleData} selectedGoalId={selectedGoalId} onSelectGoal={setSelectedGoalId} /> : null}
           {activeTab === 'reports' ? (
             isBudgeted ? <ReportsScreen currency={currency} /> : <PeriodEmpty period={period} onReturn={returnToSamplePeriod} />
           ) : null}
