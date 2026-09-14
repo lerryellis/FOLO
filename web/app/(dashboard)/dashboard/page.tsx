@@ -3,11 +3,61 @@
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/hooks/useAuth';
+import { MonthSelector } from '@/components/dashboard/MonthSelector';
+import { QuickStats } from '@/components/dashboard/QuickStats';
+import { BudgetOverview } from '@/components/dashboard/BudgetOverview';
+import { CashflowCard } from '@/components/dashboard/CashflowCard';
+import { FinancialGoalsCard } from '@/components/dashboard/FinancialGoalsCard';
+
+// Mock data - Replace with real Supabase queries
+const MOCK_BUDGET_DATA = [
+  { name: 'Income', value: 3000, percentage: 0 },
+  { name: 'Groceries', value: 450, percentage: 15 },
+  { name: 'Utilities', value: 200, percentage: 6.7 },
+  { name: 'Entertainment', value: 300, percentage: 10 },
+  { name: 'Transport', value: 150, percentage: 5 },
+];
+
+const MOCK_CASHFLOW_DATA = [
+  { month: 'Jan', earnings: 3000, spent: 2100 },
+  { month: 'Feb', earnings: 3000, spent: 2300 },
+  { month: 'Mar', earnings: 3500, spent: 2400 },
+  { month: 'Apr', earnings: 3500, spent: 2200 },
+  { month: 'May', earnings: 3000, spent: 2500 },
+  { month: 'Jun', earnings: 3000, spent: 1900 },
+];
+
+const MOCK_GOALS = [
+  {
+    id: '1',
+    name: 'Emergency Fund',
+    type: 'SAVINGS' as const,
+    targetAmount: 10000,
+    currentProgress: 3500,
+    deadline: '2026-12-31',
+  },
+  {
+    id: '2',
+    name: 'Credit Card Debt',
+    type: 'DEBT' as const,
+    targetAmount: 5000,
+    currentProgress: 1200,
+    deadline: '2026-12-31',
+  },
+  {
+    id: '3',
+    name: 'Vacation Fund',
+    type: 'SAVINGS' as const,
+    targetAmount: 3000,
+    currentProgress: 1800,
+  },
+];
 
 export default function DashboardPage() {
   const router = useRouter();
   const { user, loading, signOut } = useAuth();
   const [isSigningOut, setIsSigningOut] = useState(false);
+  const [currentDate, setCurrentDate] = useState(new Date());
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -25,12 +75,64 @@ export default function DashboardPage() {
     setIsSigningOut(false);
   };
 
+  const handlePreviousMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1));
+  };
+
+  const handleNextMonth = () => {
+    const today = new Date();
+    if (
+      currentDate.getFullYear() < today.getFullYear() ||
+      (currentDate.getFullYear() === today.getFullYear() && currentDate.getMonth() < today.getMonth())
+    ) {
+      setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1));
+    }
+  };
+
+  // Calculate totals from mock data
+  const totalBudget = 3000;
+  const totalSpent = MOCK_BUDGET_DATA.reduce((sum, item) => sum + (item.name === 'Income' ? 0 : item.value), 0);
+  const totalEarnings = MOCK_CASHFLOW_DATA[MOCK_CASHFLOW_DATA.length - 1].earnings;
+  const totalExpenses = MOCK_CASHFLOW_DATA[MOCK_CASHFLOW_DATA.length - 1].spent;
+  const netCashflow = totalEarnings - totalExpenses;
+
+  const quickStats = [
+    {
+      title: 'Total Income',
+      value: `$${totalEarnings.toFixed(2)}`,
+      icon: '💰',
+      color: 'text-green-400',
+      subtitle: 'This month',
+    },
+    {
+      title: 'Total Expenses',
+      value: `$${totalExpenses.toFixed(2)}`,
+      icon: '💸',
+      color: 'text-red-400',
+      subtitle: 'This month',
+    },
+    {
+      title: 'Remaining Budget',
+      value: `$${(totalBudget - totalSpent).toFixed(2)}`,
+      icon: '📊',
+      color: 'text-blue-400',
+      subtitle: 'This period',
+    },
+    {
+      title: 'Net Cashflow',
+      value: `$${netCashflow.toFixed(2)}`,
+      icon: '📈',
+      color: netCashflow >= 0 ? 'text-emerald-400' : 'text-orange-400',
+      subtitle: netCashflow >= 0 ? 'Positive' : 'Negative',
+    },
+  ];
+
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-slate-900 to-slate-800">
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <p className="mt-2 text-gray-600">Loading...</p>
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-cyan-400"></div>
+          <p className="mt-2 text-gray-400">Loading dashboard...</p>
         </div>
       </div>
     );
@@ -41,18 +143,18 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       {/* Header */}
-      <header className="bg-white shadow">
+      <header className="border-b border-slate-700 bg-slate-800/50 backdrop-blur">
         <div className="mx-auto max-w-7xl px-4 py-6 sm:px-6 lg:px-8 flex justify-between items-center">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">🎯 FOLO Dashboard</h1>
-            <p className="text-sm text-gray-600 mt-1">Welcome, {user.email}</p>
+            <h1 className="text-3xl font-bold text-white">🎯 FOLO Dashboard</h1>
+            <p className="text-sm text-gray-400 mt-1">Welcome back, {user.email}</p>
           </div>
           <button
             onClick={handleSignOut}
             disabled={isSigningOut}
-            className="px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+            className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg disabled:bg-gray-600 disabled:cursor-not-allowed transition-colors"
           >
             {isSigningOut ? 'Signing out...' : 'Sign Out'}
           </button>
@@ -61,62 +163,65 @@ export default function DashboardPage() {
 
       {/* Main Content */}
       <main className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
-        {/* Coming Soon */}
-        <div className="rounded-lg bg-white p-8 text-center shadow">
-          <h2 className="text-2xl font-bold text-gray-900 mb-4">Coming Soon! 🚀</h2>
-          <p className="text-gray-600 mb-8">
-            The dashboard is being built. Features coming:
-          </p>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="p-4 bg-blue-50 rounded-lg border border-blue-200">
-              <h3 className="font-semibold text-blue-900 mb-2">📊 Budget Overview</h3>
-              <p className="text-sm text-blue-700">
-                See your income, expenses, and budget summary at a glance
-              </p>
-            </div>
-
-            <div className="p-4 bg-green-50 rounded-lg border border-green-200">
-              <h3 className="font-semibold text-green-900 mb-2">💰 Transactions</h3>
-              <p className="text-sm text-green-700">
-                Log and track all your financial transactions
-              </p>
-            </div>
-
-            <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
-              <h3 className="font-semibold text-purple-900 mb-2">🎯 Financial Goals</h3>
-              <p className="text-sm text-purple-700">
-                Set and track your savings and debt payoff goals
-              </p>
-            </div>
-
-            <div className="p-4 bg-orange-50 rounded-lg border border-orange-200">
-              <h3 className="font-semibold text-orange-900 mb-2">📈 Analytics</h3>
-              <p className="text-sm text-orange-700">
-                Visualize your financial trends and patterns
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-8 text-sm text-gray-600">
-            <p>✅ Authentication is working!</p>
-            <p>Next: Build Budget, Transactions, Goals, and Analytics</p>
-          </div>
+        {/* Month Selector */}
+        <div className="mb-8">
+          <MonthSelector
+            currentDate={currentDate}
+            onPreviousMonth={handlePreviousMonth}
+            onNextMonth={handleNextMonth}
+          />
         </div>
 
-        {/* User Info */}
-        <div className="mt-8 rounded-lg bg-white p-6 shadow">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">User Information</h3>
-          <div className="space-y-2 text-sm">
-            <p>
-              <strong>Email:</strong> {user.email}
-            </p>
-            <p>
-              <strong>User ID:</strong> <code className="text-xs bg-gray-100 px-2 py-1 rounded">{user.id}</code>
-            </p>
-            <p>
-              <strong>Created:</strong> {new Date(user.created_at || '').toLocaleDateString()}
-            </p>
+        {/* Quick Stats */}
+        <div className="mb-8">
+          <QuickStats stats={quickStats} />
+        </div>
+
+        {/* Main Grid */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
+          {/* Budget Overview */}
+          <BudgetOverview
+            data={MOCK_BUDGET_DATA.filter((item) => item.name !== 'Income')}
+            totalBudget={totalBudget}
+            totalSpent={totalSpent}
+          />
+
+          {/* Cashflow Card */}
+          <CashflowCard
+            data={MOCK_CASHFLOW_DATA}
+            totalEarnings={totalEarnings}
+            totalSpent={totalExpenses}
+            netCashflow={netCashflow}
+          />
+        </div>
+
+        {/* Financial Goals */}
+        <div className="mb-8">
+          <FinancialGoalsCard goals={MOCK_GOALS} />
+        </div>
+
+        {/* Coming Soon Info */}
+        <div className="rounded-lg bg-slate-800/50 border border-slate-700 p-6">
+          <h3 className="text-lg font-semibold text-white mb-4">🚀 Coming Soon</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
+            <div>
+              <p className="text-cyan-400 font-medium mb-1">✅ Completed</p>
+              <ul className="text-gray-400 space-y-1">
+                <li>• Authentication System</li>
+                <li>• Dashboard Layout</li>
+                <li>• Budget Overview Charts</li>
+                <li>• Financial Goals Tracking</li>
+              </ul>
+            </div>
+            <div>
+              <p className="text-orange-400 font-medium mb-1">🔨 In Progress</p>
+              <ul className="text-gray-400 space-y-1">
+                <li>• Real Supabase Data Integration</li>
+                <li>• Add Transactions Feature</li>
+                <li>• Android Feature Parity</li>
+                <li>• Real-time Sync Testing</li>
+              </ul>
+            </div>
           </div>
         </div>
       </main>
