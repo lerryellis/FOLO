@@ -266,7 +266,50 @@ export function detectCurrencyFromLocale(): CurrencyCode {
     'fr-BE': 'EUR', 'nl-BE': 'EUR', 'de-AT': 'EUR', 'fr-CH': 'EUR',
     'en-NG': 'NGN', 'ha-NG': 'NGN', 'yo-NG': 'NGN',
     'pt-BR': 'USD', // Brazil typically uses USD in international contexts
-  };
+  }
+
+export const BUDGET_EDUCATION = {
+  whyBudget: {
+    title: "Why Budget?",
+    tips: [
+      "A budget is your income's game plan. Without one, you're flying blind.",
+      "Budgets prevent overspending by giving money a specific purpose BEFORE you spend it.",
+      "They reveal spending patterns - you can't optimize what you don't measure.",
+      "Budgets create accountability. Comparing actual vs budgeted shows where discipline is needed."
+    ]
+  },
+  allocationStrategy: {
+    title: "Smart Budget Allocation",
+    method: "50/30/20 Rule (adjust for your situation)",
+    breakdown: [
+      { category: "BILLS (Essentials)", percent: 50, description: "Rent, utilities, insurance - fixed costs you must pay" },
+      { category: "EXPENSES (Discretionary)", percent: 30, description: "Food, transport, entertainment - wants and lifestyle" },
+      { category: "SAVINGS (Future)", percent: 20, description: "Emergency fund, investments, goals - your financial security" }
+    ]
+  },
+  actualVsBudget: {
+    title: "Actual vs Budgeted",
+    explanation: "Your budgeted amount is your TARGET. Your actual amount is what you SPENT.",
+    tips: [
+      "If Actual < Budgeted: You were disciplined! You have money left to save or reallocate.",
+      "If Actual > Budgeted: You overspent. Identify why and adjust next month.",
+      "Variance shows the difference. Negative variance = you're under control. Positive = you're spending more than planned."
+    ]
+  },
+  bestPractices: {
+    title: "Maximize Your Budgets",
+    tips: [
+      "Start with last month's actual spending as your baseline",
+      "Adjust budgets to be realistic, not punitive - a budget you can't stick to is useless",
+      "Review weekly, not just monthly - catch overspends early",
+      "Leave 5-10% buffer in each category for unexpected costs",
+      "Pay yourself first - prioritize savings and goals BEFORE discretionary spending",
+      "Use categories as conversations starters: 'Why did food cost 20% more?'"
+    ]
+  }
+};
+
+;
   
   // Try exact locale match first
   if (localeMap[locale]) {
