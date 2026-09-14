@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/lib/hooks/useAuth';
+import { Target } from 'lucide-react';
 
 export default function SignupPage() {
   const router = useRouter();
@@ -63,10 +64,10 @@ export default function SignupPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#0B0F17' }}>
         <div className="text-center">
-          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-          <p className="mt-2 text-gray-600">Loading...</p>
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: '#10B981' }}></div>
+          <p className="mt-2" style={{ color: '#FFFFFF', opacity: 0.6 }}>Loading...</p>
         </div>
       </div>
     );
@@ -75,23 +76,27 @@ export default function SignupPage() {
   // Show verification message after signup
   if (showVerificationMessage) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8" style={{ backgroundColor: '#0B0F17' }}>
         <div className="w-full max-w-md space-y-8 text-center">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">🎯 FOLO</h1>
-            <h2 className="mt-4 text-xl font-semibold text-gray-900">Check Your Email</h2>
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#10B981' }}>
+                <Target className="w-6 h-6" style={{ color: '#FFFFFF' }} />
+              </div>
+              <h1 className="text-3xl font-bold" style={{ color: '#FFFFFF' }}>FOLO</h1>
+            </div>
+            <h2 className="mt-4 text-xl font-semibold" style={{ color: '#FFFFFF' }}>Check Your Email</h2>
           </div>
 
-          <div className="rounded-md bg-blue-50 p-4 border border-blue-200">
-            <p className="text-sm text-blue-800">
-              We've sent a verification email to <strong>{email}</strong>. Click the link in the
-              email to verify your account and start using FOLO.
+          <div className="rounded-lg p-4 border" style={{ backgroundColor: '#10B981', backgroundOpacity: 0.1, borderColor: '#10B981' }}>
+            <p className="text-sm" style={{ color: '#FFFFFF' }}>
+              We've sent a verification email to <strong>{email}</strong>. Click the link in the email to verify your account and start using FOLO.
             </p>
           </div>
 
-          <p className="text-sm text-gray-600">
+          <p className="text-sm" style={{ color: '#FFFFFF', opacity: 0.6 }}>
             Already verified?{' '}
-            <Link href="/login" className="font-medium text-blue-600 hover:text-blue-500">
+            <Link href="/login" style={{ color: '#10B981' }} className="font-medium hover:opacity-80">
               Sign In
             </Link>
           </p>
@@ -101,13 +106,18 @@ export default function SignupPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
+    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8" style={{ backgroundColor: '#0B0F17' }}>
       <div className="w-full max-w-md space-y-8">
         {/* Header */}
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-gray-900">🎯 FOLO</h1>
-          <h2 className="mt-2 text-xl font-semibold text-gray-900">Create Account</h2>
-          <p className="mt-2 text-sm text-gray-600">
+          <div className="flex items-center justify-center gap-2 mb-4">
+            <div className="w-10 h-10 rounded-lg flex items-center justify-center" style={{ backgroundColor: '#10B981' }}>
+              <Target className="w-6 h-6" style={{ color: '#FFFFFF' }} />
+            </div>
+            <h1 className="text-3xl font-bold" style={{ color: '#FFFFFF' }}>FOLO</h1>
+          </div>
+          <h2 className="mt-4 text-xl font-semibold" style={{ color: '#FFFFFF' }}>Create Account</h2>
+          <p className="mt-2 text-sm" style={{ color: '#FFFFFF', opacity: 0.6 }}>
             Start managing your budget and financial goals
           </p>
         </div>
@@ -116,14 +126,14 @@ export default function SignupPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Error Alert */}
           {error && (
-            <div className="rounded-md bg-red-50 p-4 border border-red-200">
-              <p className="text-sm text-red-800">{error}</p>
+            <div className="rounded-lg p-4 border" style={{ backgroundColor: '#0B0F17', borderColor: '#10B981', borderOpacity: 0.3 }}>
+              <p className="text-sm" style={{ color: '#FFFFFF' }}>{error}</p>
             </div>
           )}
 
           {/* Email Field */}
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="email" className="block text-sm font-medium" style={{ color: '#FFFFFF' }}>
               Email Address
             </label>
             <input
@@ -133,15 +143,23 @@ export default function SignupPage() {
               required
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              className="mt-1 block w-full px-3 py-2 rounded-lg shadow-sm focus:outline-none transition-all"
+              style={{
+                backgroundColor: '#0B0F17',
+                border: '2px solid #10B981',
+                borderOpacity: 0.3,
+                color: '#FFFFFF',
+              }}
               placeholder="you@example.com"
               disabled={isSubmitting}
+              onFocus={(e) => (e.currentTarget.style.borderOpacity = '1')}
+              onBlur={(e) => (e.currentTarget.style.borderOpacity = '0.3')}
             />
           </div>
 
           {/* Password Field */}
           <div>
-            <label htmlFor="password" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="password" className="block text-sm font-medium" style={{ color: '#FFFFFF' }}>
               Password
             </label>
             <input
@@ -151,16 +169,24 @@ export default function SignupPage() {
               required
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              className="mt-1 block w-full px-3 py-2 rounded-lg shadow-sm focus:outline-none transition-all"
+              style={{
+                backgroundColor: '#0B0F17',
+                border: '2px solid #10B981',
+                borderOpacity: 0.3,
+                color: '#FFFFFF',
+              }}
               placeholder="••••••••"
               disabled={isSubmitting}
+              onFocus={(e) => (e.currentTarget.style.borderOpacity = '1')}
+              onBlur={(e) => (e.currentTarget.style.borderOpacity = '0.3')}
             />
-            <p className="mt-1 text-xs text-gray-500">At least 6 characters</p>
+            <p className="mt-1 text-xs" style={{ color: '#FFFFFF', opacity: 0.4 }}>At least 6 characters</p>
           </div>
 
           {/* Confirm Password Field */}
           <div>
-            <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+            <label htmlFor="confirmPassword" className="block text-sm font-medium" style={{ color: '#FFFFFF' }}>
               Confirm Password
             </label>
             <input
@@ -170,9 +196,17 @@ export default function SignupPage() {
               required
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"
+              className="mt-1 block w-full px-3 py-2 rounded-lg shadow-sm focus:outline-none transition-all"
+              style={{
+                backgroundColor: '#0B0F17',
+                border: '2px solid #10B981',
+                borderOpacity: 0.3,
+                color: '#FFFFFF',
+              }}
               placeholder="••••••••"
               disabled={isSubmitting}
+              onFocus={(e) => (e.currentTarget.style.borderOpacity = '1')}
+              onBlur={(e) => (e.currentTarget.style.borderOpacity = '0.3')}
             />
           </div>
 
@@ -180,7 +214,8 @@ export default function SignupPage() {
           <button
             type="submit"
             disabled={isSubmitting}
-            className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors"
+            className="w-full flex justify-center py-3 px-4 rounded-lg shadow-sm text-sm font-bold text-white transition-all transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed"
+            style={{ backgroundColor: '#10B981' }}
           >
             {isSubmitting ? 'Creating account...' : 'Create Account'}
           </button>
@@ -189,19 +224,20 @@ export default function SignupPage() {
         {/* Divider */}
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300"></div>
+            <div className="w-full" style={{ borderTop: `1px solid #10B981`, borderOpacity: 0.3 }}></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-gray-50 text-gray-500">or</span>
+            <span className="px-2" style={{ backgroundColor: '#0B0F17', color: '#FFFFFF', opacity: 0.4 }}>or</span>
           </div>
         </div>
 
         {/* Sign In Link */}
-        <p className="text-center text-sm text-gray-600">
+        <p className="text-center text-sm" style={{ color: '#FFFFFF', opacity: 0.6 }}>
           Already have an account?{' '}
           <Link
             href="/login"
-            className="font-medium text-blue-600 hover:text-blue-500 transition-colors"
+            style={{ color: '#10B981' }}
+            className="font-medium hover:opacity-80 transition-opacity"
           >
             Sign In
           </Link>
