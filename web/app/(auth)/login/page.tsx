@@ -44,25 +44,25 @@ export default function LoginPage() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#0B0F17' }}>
+      <div className="min-h-screen flex items-center justify-center bg-white">
         <div className="text-center">
           <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2" style={{ borderColor: '#10B981' }}></div>
-          <p className="mt-2" style={{ color: '#FFFFFF', opacity: 0.6 }}>Loading...</p>
+          <p className="mt-2" style={{ color: '#0B0F17', opacity: 0.6 }}>Loading...</p>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8" style={{ backgroundColor: '#0B0F17' }}>
+    <div className="min-h-screen flex items-center justify-center py-12 px-4 sm:px-6 lg:px-8 bg-white">
       <div className="w-full max-w-md space-y-8">
         {/* Header */}
         <div className="text-center">
           <div className="flex items-center justify-center mb-4">
             <img src="/folo_logo.png" alt="FOLO" className="h-14" />
           </div>
-          <h2 className="mt-4 text-xl font-semibold" style={{ color: '#FFFFFF' }}>Sign In</h2>
-          <p className="mt-2 text-sm" style={{ color: '#FFFFFF', opacity: 0.6 }}>
+          <h2 className="mt-4 text-xl font-semibold" style={{ color: '#0B0F17' }}>Sign In</h2>
+          <p className="mt-2 text-sm" style={{ color: '#0B0F17', opacity: 0.6 }}>
             Manage your budget and financial goals
           </p>
         </div>
@@ -71,14 +71,14 @@ export default function LoginPage() {
         <form onSubmit={handleSubmit} className="space-y-4">
           {/* Error Alert */}
           {error && (
-            <div className="rounded-lg p-4 border" style={{ backgroundColor: '#0B0F17', borderColor: '#10B981', borderOpacity: 0.3 }}>
-              <p className="text-sm" style={{ color: '#FFFFFF' }}>{error}</p>
+            <div className="rounded-lg p-4 border" style={{ backgroundColor: '#FFFFFF', borderColor: '#10B981', borderOpacity: 0.3 }}>
+              <p className="text-sm" style={{ color: '#0B0F17' }}>{error}</p>
             </div>
           )}
 
           {/* Email Field */}
           <div>
-            <label htmlFor="email" className="block text-sm font-medium" style={{ color: '#FFFFFF' }}>
+            <label htmlFor="email" className="block text-sm font-medium" style={{ color: '#0B0F17' }}>
               Email Address
             </label>
             <input
@@ -90,10 +90,10 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               className="mt-1 block w-full px-3 py-2 rounded-lg shadow-sm focus:outline-none transition-all"
               style={{
-                backgroundColor: '#0B0F17',
+                backgroundColor: '#FFFFFF',
                 border: '2px solid #10B981',
                 borderOpacity: 0.3,
-                color: '#FFFFFF',
+                color: '#0B0F17',
               }}
               placeholder="you@example.com"
               disabled={isSubmitting}
@@ -104,7 +104,7 @@ export default function LoginPage() {
 
           {/* Password Field */}
           <div>
-            <label htmlFor="password" className="block text-sm font-medium" style={{ color: '#FFFFFF' }}>
+            <label htmlFor="password" className="block text-sm font-medium" style={{ color: '#0B0F17' }}>
               Password
             </label>
             <input
@@ -116,10 +116,10 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               className="mt-1 block w-full px-3 py-2 rounded-lg shadow-sm focus:outline-none transition-all"
               style={{
-                backgroundColor: '#0B0F17',
+                backgroundColor: '#FFFFFF',
                 border: '2px solid #10B981',
                 borderOpacity: 0.3,
-                color: '#FFFFFF',
+                color: '#0B0F17',
               }}
               placeholder="••••••••"
               disabled={isSubmitting}
@@ -145,12 +145,12 @@ export default function LoginPage() {
             <div className="w-full" style={{ borderTop: `1px solid #10B981`, borderOpacity: 0.3 }}></div>
           </div>
           <div className="relative flex justify-center text-sm">
-            <span className="px-2" style={{ backgroundColor: '#0B0F17', color: '#FFFFFF', opacity: 0.4 }}>or</span>
+            <span className="px-2 bg-white" style={{ color: '#0B0F17', opacity: 0.4 }}>or</span>
           </div>
         </div>
 
         {/* Sign Up Link */}
-        <p className="text-center text-sm" style={{ color: '#FFFFFF', opacity: 0.6 }}>
+        <p className="text-center text-sm" style={{ color: '#0B0F17', opacity: 0.6 }}>
           Don't have an account?{' '}
           <Link
             href="/signup"
