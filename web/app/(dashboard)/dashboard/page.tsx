@@ -415,7 +415,7 @@ function BudgetScreen({
   return (
     <section className="mx-auto w-full max-w-4xl px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
       <div className="mb-5">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.09em] text-[#64748b]">September 2026</p>
+        <p className="text-[10px] font-semibold uppercase tracking-[0.09em] text-[#64748b]">{formatPeriod(new Date())}</p>
         <h2 className="mt-1 text-xl font-semibold tracking-[-0.025em] text-[#0B0F17]">Budget</h2>
       </div>
 
@@ -1100,7 +1100,7 @@ export default function DashboardPage() {
   function saveTransaction(transaction: Transaction) {
     setTransactions((current) => [transaction, ...current]);
     if (transaction.pending) setUnsyncedCount((current) => current + 1);
-    setNotice(transaction.pending ? 'Saved on this device. It will need to sync when you reconnect.' : 'Transaction added to September activity.');
+    setNotice(transaction.pending ? 'Saved on this device. It will need to sync when you reconnect.' : 'Transaction added to activity.');
     setActiveTab('activity');
   }
 

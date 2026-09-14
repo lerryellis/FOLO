@@ -33,7 +33,7 @@ export interface Goal {
 }
 
 export const CURRENCIES: CurrencyOption[] = [
-  { code: 'GHS', symbol: '₵', label: 'Ghanaian cedi' },
+  { code: 'GHS', symbol: '₵', label: 'Ghanaian Cedi' },
   { code: 'USD', symbol: '$', label: 'US dollar' },
   { code: 'EUR', symbol: '€', label: 'Euro' },
   { code: 'GBP', symbol: '£', label: 'British pound' },
@@ -106,7 +106,7 @@ export const SPENDING_BY_CATEGORY = [
   { name: 'Food', amountMinor: 141000, fill: '#059669' },
   { name: 'Transport', amountMinor: 64000, fill: '#10B981' },
   { name: 'Tithe', amountMinor: 61500, fill: '#10B981' },
-  { name: 'Electricity · ECG', amountMinor: 38500, fill: '#34D399' },
+  { name: 'Electricity', amountMinor: 38500, fill: '#34D399' },
   { name: 'Internet', amountMinor: 35000, fill: '#34D399' },
   { name: 'Car insurance', amountMinor: 30000, fill: '#6EE7B7' },
 ];
@@ -130,7 +130,7 @@ export const NET_POSITION = [
 export const INITIAL_TRANSACTIONS: Transaction[] = [
   {
     id: 'salary-september',
-    name: 'September salary',
+    name: 'Salary',
     category: 'Salary',
     categoryType: 'INCOME',
     amountMinor: 850000,
@@ -162,7 +162,7 @@ export const INITIAL_TRANSACTIONS: Transaction[] = [
   },
   {
     id: 'uber-september-11',
-    name: 'Uber to Osu',
+    name: 'Ride share',
     category: 'Transport',
     categoryType: 'EXPENSES',
     amountMinor: -4200,
