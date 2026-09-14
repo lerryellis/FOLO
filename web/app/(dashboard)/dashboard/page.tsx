@@ -44,6 +44,10 @@ import {
   upsertUserProfile,
 } from '@/lib/transaction-operations';
 import {
+  createGoal as createGoalInSupabase,
+  fetchGoals,
+} from '@/lib/goal-operations';
+import {
   BUDGET_GROUPS,
   CATEGORY_MAP,
   CREDIT_CARD_TYPES,
@@ -257,6 +261,7 @@ function OverviewScreen({
   showSampleData = false,
   onTransactionTouchStart = () => {},
   onTransactionTouchEnd = () => {},
+  goals = [],
 }: {
   currency: CurrencyCode;
   transactions: Transaction[];
@@ -267,6 +272,7 @@ function OverviewScreen({
   showSampleData?: boolean;
   onTransactionTouchStart?: (id: string) => void;
   onTransactionTouchEnd?: (transaction: Transaction) => void;
+  goals?: typeof GOALS;
 }) {
   if (!isBudgeted || transactions.length === 0) {
     return (
@@ -282,7 +288,7 @@ function OverviewScreen({
 
   const displayTransactions = showSampleData ? INITIAL_TRANSACTIONS : transactions;
   const recent = displayTransactions.slice(0, 3);
-  const previewGoals = GOALS.filter((goal) => goal.percent < 100).slice(0, 3);
+  const previewGoals = (goals.length > 0 ? goals : GOALS).filter((goal) => goal.percent < 100).slice(0, 3);
 
   return (
     <section className="mx-auto w-full max-w-[1200px] px-4 py-4 sm:px-6 lg:px-8 lg:py-7">
@@ -727,43 +733,36 @@ function GoalCard({
   );
 }
 
-function GoalsScreen({ 
-  currency, 
+function GoalsScreen({
+  currency,
   showSampleData = false,
-  selectedGoalId = null, 
+  selectedGoalId = null,
   onSelectGoal = () => {},
-  onCreateGoalClick = () => {}
-}: { 
+  onCreateGoalClick = () => {},
+  goals = []
+}: {
   currency: CurrencyCode;
   showSampleData?: boolean;
   selectedGoalId?: string | null;
   onSelectGoal?: (goalId: string) => void;
   onCreateGoalClick?: () => void;
+  goals?: typeof GOALS;
 }) {
-  if (!showSampleData) {
+  // Show empty state if no goals
+  if (goals.length === 0) {
     return (
       <EmptyState
         icon={Target}
         title="No goals yet"
-        description="Create a savings target or debt payoff goal to start achieving your financial plans. Or load sample data to explore."
+        description="Create a savings target or debt payoff goal to start achieving your financial plans."
         action="Create Goal"
         onAction={onCreateGoalClick}
       />
     );
   }
-  
-  const savingsGoals = GOALS.filter((goal) => goal.type === 'SAVINGS');
-  const debtGoals = GOALS.filter((goal) => goal.type === 'DEBT');
 
-  if (true) {  // Show sample goals
-    return (
-      <EmptyState
-        icon={Target}
-        title="Turn a plan into a goal"
-        description="Create a savings target or a debt payoff goal, then track every contribution."
-      />
-    );
-  }
+  const savingsGoals = goals.filter((goal) => goal.type === 'SAVINGS');
+  const debtGoals = goals.filter((goal) => goal.type === 'DEBT');
 
   return (
     <section className="mx-auto w-full max-w-4xl px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
@@ -1105,6 +1104,7 @@ export default function DashboardPage() {
   const [isGoalCreationOpen, setIsGoalCreationOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [touchStart, setTouchStart] = useState<{ id: string; time: number } | null>(null);
+  const [goals, setGoals] = useState<typeof GOALS>([]);
 
   useEffect(() => {
     if (!loading && !user) router.push('/login');
@@ -1134,11 +1134,11 @@ export default function DashboardPage() {
     return () => window.clearTimeout(timer);
   }, [notice]);
 
-  // Load transactions from Supabase when period changes
+  // Load transactions and goals from Supabase when user/period changes
   useEffect(() => {
     if (!user) return;
 
-    const loadTransactions = async () => {
+    const loadData = async () => {
       try {
         // Ensure user profile exists
         await upsertUserProfile(user.id, user.email || '', user.email?.split('@')[0] || 'FOLO user', currency);
@@ -1146,14 +1146,18 @@ export default function DashboardPage() {
         // Load transactions from database
         const dbTransactions = await fetchTransactions(user.id, period);
         setTransactions(dbTransactions);
+
+        // Load goals from database
+        const dbGoals = await fetchGoals(user.id);
+        setGoals(dbGoals);
       } catch (error) {
-        console.error('Failed to load transactions:', error);
+        console.error('Failed to load data:', error);
         // Show sample data on error
         setShowSampleData(false);
       }
     };
 
-    loadTransactions();
+    loadData();
   }, [user, period, currency]);
 
   function updateCurrency(nextCurrency: CurrencyCode) {
@@ -1358,6 +1362,7 @@ export default function DashboardPage() {
               onReturnToSample={returnToSamplePeriod}
               onTransactionTouchStart={handleTransactionTouchStart}
               onTransactionTouchEnd={handleTransactionTouchEnd}
+              goals={goals}
             />
           ) : null}
           {activeTab === 'budget' ? (
@@ -1374,7 +1379,7 @@ export default function DashboardPage() {
               onTransactionTouchEnd={handleTransactionTouchEnd}
             />
           ) : null}
-          {activeTab === 'goals' ? <GoalsScreen currency={currency} showSampleData={showSampleData} selectedGoalId={selectedGoalId} onSelectGoal={setSelectedGoalId} onCreateGoalClick={() => setIsGoalCreationOpen(true)} /> : null}
+          {activeTab === 'goals' ? <GoalsScreen currency={currency} showSampleData={showSampleData} selectedGoalId={selectedGoalId} onSelectGoal={setSelectedGoalId} onCreateGoalClick={() => setIsGoalCreationOpen(true)} goals={goals} /> : null}
           {activeTab === 'reports' ? (
             showSampleData ? <ReportsScreen currency={currency} showSampleData={showSampleData} /> : <PeriodEmpty period={period} onReturn={returnToSamplePeriod} />
           ) : null}
@@ -1442,9 +1447,16 @@ export default function DashboardPage() {
       <GoalCreationSheet
         isOpen={isGoalCreationOpen}
         onClose={() => setIsGoalCreationOpen(false)}
-        onCreateGoal={(goal) => {
-          console.log('Goal created:', goal);
-          setIsGoalCreationOpen(false);
+        onCreateGoal={async (goal) => {
+          try {
+            const newGoal = await createGoalInSupabase(user!.id, goal);
+            setGoals((current) => [newGoal, ...current]);
+            setIsGoalCreationOpen(false);
+            setNotice(`Goal "${newGoal.name}" created successfully!`);
+          } catch (error) {
+            console.error('Failed to create goal:', error);
+            setNotice('Failed to create goal. Please try again.');
+          }
         }}
         currency={currency}
       />

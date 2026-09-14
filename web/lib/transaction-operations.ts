@@ -201,26 +201,48 @@ export async function upsertUserProfile(
   currencyCode: string
 ) {
   try {
-    const { data, error } = await supabase
+    // Check if profile exists first
+    const { data: existing } = await supabase
       .from('user_profiles')
-      .upsert(
-        {
+      .select('id')
+      .eq('id', userId)
+      .single();
+
+    if (existing) {
+      // Update existing profile
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .update({
+          currency_code: currencyCode,
+          currency_symbol: getCurrencySymbol(currencyCode),
+        })
+        .eq('id', userId)
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    } else {
+      // Create new profile
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .insert({
           id: userId,
           email,
           display_name: displayName,
           currency_code: currencyCode,
           currency_symbol: getCurrencySymbol(currencyCode),
-        },
-        { onConflict: 'id' }
-      )
-      .select()
-      .single();
+        })
+        .select()
+        .single();
 
-    if (error) throw error;
-    return data;
+      if (error) throw error;
+      return data;
+    }
   } catch (error) {
-    console.error('Error upserting user profile:', error);
-    throw error;
+    console.error('Error managing user profile:', error);
+    // Don't throw - profile creation is not critical
+    return null;
   }
 }
 
