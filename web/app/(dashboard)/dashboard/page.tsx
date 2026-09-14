@@ -493,26 +493,38 @@ export default function DashboardPage() {
         }}
       >
         {[
-          { icon: Home, label: 'Home', id: 'home' },
-          { icon: BarChart3, label: 'Budget', id: 'budget' },
-          { icon: () => <div className="w-6 h-6 rounded-3xl bg-[#10B981] flex items-center justify-center"><span className="text-white font-bold">+</span></div>, label: 'Add', id: 'add' },
-          { icon: TrendingUp, label: 'Activity', id: 'activity' },
-          { icon: User, label: 'Goals', id: 'goals' },
-        ].map(({ icon: Icon, label, id }) => (
-          <button
-            key={id}
-            onClick={() => setActiveTab(id)}
-            className="flex flex-col items-center justify-center gap-1 py-2 rounded-lg transition-all"
-            style={{
-              backgroundColor: activeTab === id ? 'rgba(16, 185, 129, 0.1)' : 'transparent',
-            }}
-          >
-            {typeof Icon === 'function' ? <Icon /> : <Icon className="w-5 h-5" style={{ color: activeTab === id ? '#0B0F17' : '#94a3b8' }} />}
-            <span className="text-xs font-medium" style={{ color: activeTab === id ? '#0B0F17' : '#94a3b8' }}>
-              {label}
-            </span>
-          </button>
-        ))}
+          { icon: 'home', label: 'Home', id: 'home' },
+          { icon: 'budget', label: 'Budget', id: 'budget' },
+          { icon: 'add', label: 'Add', id: 'add' },
+          { icon: 'activity', label: 'Activity', id: 'activity' },
+          { icon: 'goals', label: 'Goals', id: 'goals' },
+        ].map(({ icon, label, id }) => {
+          const renderIcon = () => {
+            switch (icon) {
+              case 'home': return <Home className="w-5 h-5" style={{ color: activeTab === id ? '#0B0F17' : '#94a3b8' }} />;
+              case 'budget': return <BarChart3 className="w-5 h-5" style={{ color: activeTab === id ? '#0B0F17' : '#94a3b8' }} />;
+              case 'add': return <div className="w-6 h-6 rounded-full bg-[#10B981] flex items-center justify-center text-white font-bold text-sm">+</div>;
+              case 'activity': return <TrendingUp className="w-5 h-5" style={{ color: activeTab === id ? '#0B0F17' : '#94a3b8' }} />;
+              case 'goals': return <User className="w-5 h-5" style={{ color: activeTab === id ? '#0B0F17' : '#94a3b8' }} />;
+              default: return null;
+            }
+          };
+          return (
+            <button
+              key={id}
+              onClick={() => setActiveTab(id)}
+              className="flex flex-col items-center justify-center gap-1 py-2 rounded-lg transition-all"
+              style={{
+                backgroundColor: activeTab === id ? 'rgba(16, 185, 129, 0.1)' : 'transparent',
+              }}
+            >
+              {renderIcon()}
+              <span className="text-xs font-medium" style={{ color: activeTab === id ? '#0B0F17' : '#94a3b8' }}>
+                {label}
+              </span>
+            </button>
+          );
+        })}
       </div>
     </div>
   );
