@@ -1,0 +1,175 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Source+Code+Pro:wght@400;500;600&display=swap">
+  <style>
+    body { margin: 0; font-family: 'Poppins', system-ui, -apple-system, sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: #059669; text-decoration: none; } a:hover { color: #047857; }
+    .fig { font-family: 'Source Code Pro', ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+    .card { padding: 13px 14px; background: #FFFFFF; border: 1px solid #E8EAED; border-radius: 13px; display: flex; flex-direction: column; gap: 9px; }
+    .track { height: 7px; background: #EDEFF2; border-radius: 3.5px; overflow: hidden; }
+    .secname { font-size: 10px; font-weight: 700; letter-spacing: 0.09em; color: #94a3b8; }
+  </style>
+</helmet>
+
+<div style="width: 390px; height: 844px; background: #F6F7F9; color: #0B0F17; display: flex; flex-direction: column; overflow: hidden;">
+
+  <!-- header -->
+  <div style="display: flex; align-items: center; justify-content: space-between; padding: 14px 20px 10px 20px;">
+    <div style="display: flex; flex-direction: column; gap: 1px;">
+      <div style="font-size: 20px; font-weight: 600; letter-spacing: -0.02em;">Goals</div>
+      <div style="font-size: 11px; color: #94a3b8; font-weight: 500;">2 of 5 achieved</div>
+    </div>
+    <div style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; margin-right: -10px;">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>
+    </div>
+  </div>
+
+  <!-- savings totals -->
+  <div style="margin: 2px 16px 0 16px; padding: 14px 16px; background: #FFFFFF; border: 1px solid #E8EAED; border-radius: 14px; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px;">
+    <div style="display: flex; flex-direction: column; gap: 4px;">
+      <div style="font-size: 9px; font-weight: 600; letter-spacing: 0.07em; color: #94a3b8;">TARGET</div>
+      <div class="fig" style="font-size: 16px; font-weight: 600; letter-spacing: -0.02em;">76,000</div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 4px; border-left: 1px solid #F0F2F4; padding-left: 12px;">
+      <div style="font-size: 9px; font-weight: 600; letter-spacing: 0.07em; color: #94a3b8;">SAVED</div>
+      <div class="fig" style="font-size: 16px; font-weight: 600; letter-spacing: -0.02em; color: #059669;">29,000</div>
+    </div>
+    <div style="display: flex; flex-direction: column; gap: 4px; border-left: 1px solid #F0F2F4; padding-left: 12px;">
+      <div style="font-size: 9px; font-weight: 600; letter-spacing: 0.07em; color: #94a3b8;">TO GO</div>
+      <div class="fig" style="font-size: 16px; font-weight: 600; letter-spacing: -0.02em;">47,000</div>
+    </div>
+  </div>
+
+  <div style="padding: 16px 16px 0 16px; display: flex; flex-direction: column; gap: 14px;">
+
+    <!-- SAVINGS -->
+    <div style="display: flex; flex-direction: column; gap: 9px;">
+      <span class="secname">SAVINGS</span>
+
+      <div class="card">
+        <div style="display: flex; align-items: flex-start; justify-content: space-between;">
+          <div style="display: flex; flex-direction: column; gap: 2px;">
+            <span style="font-size: 14px; font-weight: 600;">Emergency Fund</span>
+            <span style="font-size: 11px; color: #94a3b8;">by Dec 2026</span>
+          </div>
+          <span class="fig" style="font-size: 12px; font-weight: 600; color: #059669;">52%</span>
+        </div>
+        <div class="track"><div style="width: 52%; height: 7px; background: #10B981; border-radius: 3.5px;"></div></div>
+        <div style="display: flex; align-items: baseline; justify-content: space-between;">
+          <span class="fig" style="font-size: 12px; color: #475569;">10,500 <span style="color: #94a3b8;">/ 20,000</span></span>
+          <span class="fig" style="font-size: 11px; color: #94a3b8;">9,500 to go</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="display: flex; align-items: flex-start; justify-content: space-between;">
+          <div style="display: flex; flex-direction: column; gap: 2px;">
+            <span style="font-size: 14px; font-weight: 600;">Land Fund</span>
+            <span style="font-size: 11px; color: #94a3b8;">by Dec 2028</span>
+          </div>
+          <span class="fig" style="font-size: 12px; font-weight: 600; color: #475569;">25%</span>
+        </div>
+        <div class="track"><div style="width: 25%; height: 7px; background: #10B981; border-radius: 3.5px;"></div></div>
+        <div style="display: flex; align-items: baseline; justify-content: space-between;">
+          <span class="fig" style="font-size: 12px; color: #475569;">12,500 <span style="color: #94a3b8;">/ 50,000</span></span>
+          <span class="fig" style="font-size: 11px; color: #94a3b8;">37,500 to go</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="display: flex; align-items: flex-start; justify-content: space-between;">
+          <div style="display: flex; flex-direction: column; gap: 2px;">
+            <span style="font-size: 14px; font-weight: 600;">School Fees</span>
+            <span style="font-size: 11px; color: #94a3b8;">by Sep 2026</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 5px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M8 12.5l2.5 2.5L16 9.5"></path></svg>
+            <span style="font-size: 11px; font-weight: 600; color: #059669;">Achieved</span>
+          </div>
+        </div>
+        <div class="track"><div style="width: 100%; height: 7px; background: #10B981; border-radius: 3.5px;"></div></div>
+        <div style="display: flex; align-items: baseline; justify-content: space-between;">
+          <span class="fig" style="font-size: 12px; color: #475569;">6,000 <span style="color: #94a3b8;">/ 6,000</span></span>
+          <span class="fig" style="font-size: 11px; color: #94a3b8;">complete</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- DEBT -->
+    <div style="display: flex; flex-direction: column; gap: 9px;">
+      <span class="secname">DEBT PAYOFF</span>
+
+      <div class="card">
+        <div style="display: flex; align-items: flex-start; justify-content: space-between;">
+          <div style="display: flex; flex-direction: column; gap: 2px;">
+            <span style="font-size: 14px; font-weight: 600;">Credit Card</span>
+            <span style="font-size: 11px; color: #94a3b8;">GH&#8373;450 / month</span>
+          </div>
+          <span class="fig" style="font-size: 12px; font-weight: 600; color: #475569;">64%</span>
+        </div>
+        <div class="track"><div style="width: 64%; height: 7px; background: #10B981; border-radius: 3.5px;"></div></div>
+        <div style="display: flex; align-items: baseline; justify-content: space-between;">
+          <span class="fig" style="font-size: 12px; color: #475569;">5,150 <span style="color: #94a3b8;">paid of 8,000</span></span>
+          <span class="fig" style="font-size: 11px; color: #94a3b8;">2,850 left</span>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="display: flex; align-items: flex-start; justify-content: space-between;">
+          <div style="display: flex; flex-direction: column; gap: 2px;">
+            <span style="font-size: 14px; font-weight: 600;">Family Loan</span>
+            <span style="font-size: 11px; color: #94a3b8;">cleared Aug 2026</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 5px;">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M8 12.5l2.5 2.5L16 9.5"></path></svg>
+            <span style="font-size: 11px; font-weight: 600; color: #059669;">Cleared</span>
+          </div>
+        </div>
+        <div class="track"><div style="width: 100%; height: 7px; background: #10B981; border-radius: 3.5px;"></div></div>
+        <div style="display: flex; align-items: baseline; justify-content: space-between;">
+          <span class="fig" style="font-size: 12px; color: #475569;">5,000 <span style="color: #94a3b8;">paid of 5,000</span></span>
+          <span class="fig" style="font-size: 11px; color: #94a3b8;">complete</span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="flex-grow: 1;"></div>
+
+  <!-- tab bar -->
+  <div style="display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); background: #FFFFFF; border-top: 1px solid #E8EAED; padding: 8px 4px 14px 4px;">
+    <div style="height: 48px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5"></path><path d="M5 9.5V20h14V9.5"></path></svg>
+      <span style="font-size: 10px; font-weight: 500; color: #94a3b8;">Home</span>
+    </div>
+    <div style="height: 48px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16"></path><path d="M4 12h10"></path><path d="M4 18h13"></path></svg>
+      <span style="font-size: 10px; font-weight: 500; color: #94a3b8;">Budget</span>
+    </div>
+    <div style="height: 48px; display: flex; align-items: center; justify-content: center;">
+      <div style="width: 48px; height: 48px; border-radius: 16px; background: #10B981; display: flex; align-items: center; justify-content: center;">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>
+      </div>
+    </div>
+    <div style="height: 48px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3v6l-2.5-1.8L12 9V3"></path><path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v14a2 2 0 01-2 2H7a2 2 0 01-2-2z"></path><path d="M9 14h6"></path><path d="M9 17.5h4"></path></svg>
+      <span style="font-size: 10px; font-weight: 500; color: #94a3b8;">Activity</span>
+    </div>
+    <div style="height: 48px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px;">
+      <svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="#0B0F17" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"></circle><circle cx="12" cy="12" r="4.5"></circle><circle cx="12" cy="12" r="1"></circle></svg>
+      <span style="font-size: 10px; font-weight: 600; color: #0B0F17;">Goals</span>
+    </div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

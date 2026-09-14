@@ -1,0 +1,322 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&family=Source+Code+Pro:wght@400;500;600&display=swap">
+  <style>
+    body { margin: 0; font-family: 'Poppins', system-ui, -apple-system, sans-serif; -webkit-font-smoothing: antialiased; }
+    a { color: #059669; text-decoration: none; } a:hover { color: #047857; }
+    .fig { font-family: 'Source Code Pro', ui-monospace, monospace; font-variant-numeric: tabular-nums; }
+    .panel { background: #FFFFFF; border: 1px solid #E8EAED; border-radius: 14px; padding: 18px 20px; display: flex; flex-direction: column; gap: 16px; }
+    .ptitle { font-size: 13px; font-weight: 600; letter-spacing: -0.01em; color: #0B0F17; }
+    .psub { font-size: 11px; color: #94a3b8; }
+    .navitem { height: 38px; padding: 0 12px; border-radius: 9px; display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 500; color: #475569; }
+    .kpilab { font-size: 10px; font-weight: 600; letter-spacing: 0.08em; color: #94a3b8; }
+    .catrow { display: grid; grid-template-columns: 116px 1fr 72px; align-items: center; gap: 12px; }
+    .catname { font-size: 12px; color: #475569; text-align: right; }
+  </style>
+</helmet>
+
+<div style="width: 1440px; height: 900px; background: #F6F7F9; color: #0B0F17; display: flex; overflow: hidden;">
+
+  <!-- sidebar -->
+  <div style="width: 240px; flex-shrink: 0; background: #FFFFFF; border-right: 1px solid #E8EAED; display: flex; flex-direction: column; padding: 20px 14px;">
+    <div style="display: flex; align-items: center; gap: 9px; padding: 0 10px 22px 10px;">
+      <div style="width: 28px; height: 28px; border-radius: 8px; background: #10B981; display: flex; align-items: center; justify-content: center;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18V9"></path><path d="M10 18V5"></path><path d="M16 18v-7"></path><path d="M22 18V8"></path></svg>
+      </div>
+      <span style="font-size: 16px; font-weight: 700; letter-spacing: -0.02em;">FOLO</span>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 3px;">
+      <div class="navitem" style="background: #F1F5F3; color: #0B0F17; font-weight: 600;">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#0B0F17" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 10.5L12 3l9 7.5"></path><path d="M5 9.5V20h14V9.5"></path></svg>
+        Overview
+      </div>
+      <div class="navitem">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6h16"></path><path d="M4 12h10"></path><path d="M4 18h13"></path></svg>
+        Budget
+      </div>
+      <div class="navitem">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3v6l-2.5-1.8L12 9V3"></path><path d="M5 5a2 2 0 012-2h10a2 2 0 012 2v14a2 2 0 01-2 2H7a2 2 0 01-2-2z"></path><path d="M9 14h6"></path><path d="M9 17.5h4"></path></svg>
+        Transactions
+      </div>
+      <div class="navitem">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="8.5"></circle><circle cx="12" cy="12" r="4.5"></circle><circle cx="12" cy="12" r="1"></circle></svg>
+        Goals
+      </div>
+      <div class="navitem">
+        <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 18V9"></path><path d="M10 18V5"></path><path d="M16 18v-7"></path><path d="M22 18V8"></path></svg>
+        Reports
+      </div>
+    </div>
+
+    <div style="flex-grow: 1;"></div>
+
+    <div style="display: flex; align-items: center; gap: 10px; padding: 10px; border-top: 1px solid #F0F2F4;">
+      <div style="width: 30px; height: 30px; border-radius: 15px; background: #0B0F17; color: #FFFFFF; display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 600;">E</div>
+      <div style="display: flex; flex-direction: column; gap: 1px; min-width: 0;">
+        <span style="font-size: 12px; font-weight: 600;">Ellis Lamptey</span>
+        <span style="font-size: 10px; color: #94a3b8;">GH&#8373; &middot; GHS</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- main -->
+  <div style="flex-grow: 1; display: flex; flex-direction: column; min-width: 0;">
+
+    <!-- top bar -->
+    <div style="height: 64px; flex-shrink: 0; background: #FFFFFF; border-bottom: 1px solid #E8EAED; display: flex; align-items: center; justify-content: space-between; padding: 0 32px;">
+      <div style="display: flex; align-items: center; gap: 14px;">
+        <span style="font-size: 17px; font-weight: 600; letter-spacing: -0.02em;">Overview</span>
+        <div style="height: 34px; padding: 0 12px; border: 1px solid #E8EAED; border-radius: 9px; display: flex; align-items: center; gap: 9px;">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#475569" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="16" rx="2"></rect><path d="M3.5 10h17"></path><path d="M8 3v4"></path><path d="M16 3v4"></path></svg>
+          <span style="font-size: 13px; font-weight: 500;">September 2026</span>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#94a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"></path></svg>
+        </div>
+        <span style="font-size: 12px; color: #94a3b8;">16 days left</span>
+      </div>
+      <div style="height: 36px; padding: 0 15px; border-radius: 10px; background: #10B981; display: flex; align-items: center; gap: 7px;">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"></path><path d="M5 12h14"></path></svg>
+        <span style="font-size: 13px; font-weight: 600; color: #FFFFFF;">Add transaction</span>
+      </div>
+    </div>
+
+    <div style="padding: 24px 32px; display: flex; flex-direction: column; gap: 20px;">
+
+      <!-- KPI row -->
+      <div style="display: grid; grid-template-columns: 1.4fr 1fr 1fr 1fr; gap: 16px;">
+        <div style="background: #0B0F17; border-radius: 14px; padding: 18px 20px; display: flex; flex-direction: column; gap: 8px;">
+          <div class="kpilab" style="color: #7C8798;">LEFT TO SPEND</div>
+          <div class="fig" style="display: flex; align-items: baseline; gap: 3px; color: #FFFFFF;">
+            <span style="font-size: 16px; font-weight: 500; color: #94a3b8;">GH&#8373;</span>
+            <span style="font-size: 34px; font-weight: 600; letter-spacing: -0.03em; line-height: 1;">1,315</span>
+            <span style="font-size: 16px; font-weight: 500; color: #94a3b8;">.00</span>
+          </div>
+          <div class="fig" style="font-size: 11px; color: #94a3b8;">planned 1,800.00 &middot; 485 under</div>
+        </div>
+        <div class="panel" style="gap: 8px; padding: 18px 20px;">
+          <div class="kpilab">INCOME</div>
+          <div class="fig" style="font-size: 24px; font-weight: 600; letter-spacing: -0.025em;">9,200</div>
+          <div class="fig" style="font-size: 11px; color: #94a3b8;">of 9,500 expected</div>
+        </div>
+        <div class="panel" style="gap: 8px; padding: 18px 20px;">
+          <div class="kpilab">SPENT</div>
+          <div class="fig" style="font-size: 24px; font-weight: 600; letter-spacing: -0.025em; color: #ef4444;">5,935</div>
+          <div style="display: flex; align-items: center; gap: 5px;">
+            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"></path><path d="M12 17h.01"></path><path d="M10.3 3.9L2.4 18a1.8 1.8 0 001.6 2.7h16a1.8 1.8 0 001.6-2.7L13.7 3.9a1.8 1.8 0 00-3.4 0z"></path></svg>
+            <span class="fig" style="font-size: 11px; color: #ef4444; font-weight: 600;">185 over budget</span>
+          </div>
+        </div>
+        <div class="panel" style="gap: 8px; padding: 18px 20px;">
+          <div class="kpilab">SAVED + PAID</div>
+          <div class="fig" style="font-size: 24px; font-weight: 600; letter-spacing: -0.025em;">2,450</div>
+          <div class="fig" style="font-size: 11px; color: #94a3b8;">1,500 saved &middot; 950 debt</div>
+        </div>
+      </div>
+
+      <!-- charts row -->
+      <div style="display: grid; grid-template-columns: 660px 1fr; gap: 20px;">
+
+        <!-- spending by category: sequential single hue, sorted -->
+        <div class="panel">
+          <div style="display: flex; align-items: baseline; justify-content: space-between;">
+            <div style="display: flex; flex-direction: column; gap: 3px;">
+              <span class="ptitle">Where the money went</span>
+              <span class="psub">Actual spend by category &middot; September</span>
+            </div>
+            <span class="fig psub">GH&#8373;</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 11px;">
+            <div class="catrow">
+              <span class="catname">Rent</span>
+              <div style="height: 16px; display: flex; align-items: center;"><div style="width: 100%; height: 16px; background: #047857; border-radius: 0 4px 4px 0;"></div></div>
+              <span class="fig" style="font-size: 12px; font-weight: 600;">1,800</span>
+            </div>
+            <div class="catrow">
+              <span class="catname">Food</span>
+              <div style="height: 16px; display: flex; align-items: center;"><div style="width: 78%; height: 16px; background: #059669; border-radius: 0 4px 4px 0;"></div></div>
+              <span class="fig" style="font-size: 12px; font-weight: 600;">1,410</span>
+            </div>
+            <div class="catrow">
+              <span class="catname">Transport</span>
+              <div style="height: 16px; display: flex; align-items: center;"><div style="width: 36%; height: 16px; background: #10B981; border-radius: 0 4px 4px 0;"></div></div>
+              <span class="fig" style="font-size: 12px; font-weight: 600;">640</span>
+            </div>
+            <div class="catrow">
+              <span class="catname">Tithe</span>
+              <div style="height: 16px; display: flex; align-items: center;"><div style="width: 34%; height: 16px; background: #10B981; border-radius: 0 4px 4px 0;"></div></div>
+              <span class="fig" style="font-size: 12px; font-weight: 600;">615</span>
+            </div>
+            <div class="catrow">
+              <span class="catname">Electricity &middot; ECG</span>
+              <div style="height: 16px; display: flex; align-items: center;"><div style="width: 21%; height: 16px; background: #34D399; border-radius: 0 4px 4px 0;"></div></div>
+              <span class="fig" style="font-size: 12px; font-weight: 600;">385</span>
+            </div>
+            <div class="catrow">
+              <span class="catname">Internet</span>
+              <div style="height: 16px; display: flex; align-items: center;"><div style="width: 19%; height: 16px; background: #34D399; border-radius: 0 4px 4px 0;"></div></div>
+              <span class="fig" style="font-size: 12px; font-weight: 600;">350</span>
+            </div>
+            <div class="catrow">
+              <span class="catname">Car Insurance</span>
+              <div style="height: 16px; display: flex; align-items: center;"><div style="width: 17%; height: 16px; background: #6EE7B7; border-radius: 0 4px 4px 0;"></div></div>
+              <span class="fig" style="font-size: 12px; font-weight: 600;">300</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- variance: diverging, centred on zero -->
+        <div class="panel">
+          <div style="display: flex; flex-direction: column; gap: 3px;">
+            <span class="ptitle">Over and under plan</span>
+            <span class="psub">Actual minus budgeted, by group</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 14px; padding-top: 4px;">
+
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <div style="display: flex; align-items: baseline; justify-content: space-between;">
+                <span style="font-size: 12px; color: #475569;">Bills</span>
+                <span class="fig" style="font-size: 11px; color: #059669; font-weight: 600;">&minus;60 under</span>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1px 1fr; align-items: center;">
+                <div style="display: flex; justify-content: flex-end;"><div style="width: 20%; height: 14px; background: #10B981; border-radius: 4px 0 0 4px;"></div></div>
+                <div style="width: 1px; height: 22px; background: #CBD5E1;"></div>
+                <div></div>
+              </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <div style="display: flex; align-items: baseline; justify-content: space-between;">
+                <span style="font-size: 12px; color: #475569;">Expenses</span>
+                <span class="fig" style="font-size: 11px; color: #ef4444; font-weight: 600;">+245 over</span>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1px 1fr; align-items: center;">
+                <div></div>
+                <div style="width: 1px; height: 22px; background: #CBD5E1;"></div>
+                <div style="display: flex; justify-content: flex-start;"><div style="width: 82%; height: 14px; background: #ef4444; border-radius: 0 4px 4px 0;"></div></div>
+              </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <div style="display: flex; align-items: baseline; justify-content: space-between;">
+                <span style="font-size: 12px; color: #475569;">Savings</span>
+                <span class="fig" style="font-size: 11px; color: #94a3b8; font-weight: 500;">0 on plan</span>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1px 1fr; align-items: center;">
+                <div></div>
+                <div style="width: 1px; height: 22px; background: #CBD5E1;"></div>
+                <div></div>
+              </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <div style="display: flex; align-items: baseline; justify-content: space-between;">
+                <span style="font-size: 12px; color: #475569;">Debt</span>
+                <span class="fig" style="font-size: 11px; color: #94a3b8; font-weight: 500;">0 on plan</span>
+              </div>
+              <div style="display: grid; grid-template-columns: 1fr 1px 1fr; align-items: center;">
+                <div></div>
+                <div style="width: 1px; height: 22px; background: #CBD5E1;"></div>
+                <div></div>
+              </div>
+            </div>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; padding-top: 2px;">
+              <span class="fig psub">under</span>
+              <span class="fig psub">0</span>
+              <span class="fig psub">over</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- bottom row -->
+      <div style="display: grid; grid-template-columns: 740px 1fr; gap: 20px;">
+
+        <!-- net position line -->
+        <div class="panel">
+          <div style="display: flex; align-items: baseline; justify-content: space-between;">
+            <div style="display: flex; flex-direction: column; gap: 3px;">
+              <span class="ptitle">Net position by month</span>
+              <span class="psub">Income minus everything out &middot; last 6 periods</span>
+            </div>
+            <span class="fig" style="font-size: 12px; font-weight: 600; color: #059669;">+815 this month</span>
+          </div>
+          <svg width="660" height="176" viewBox="0 0 530 176" style="overflow: visible;">
+            <line x1="20" y1="129" x2="510" y2="129" stroke="#CBD5E1" stroke-width="1"></line>
+            <text x="14" y="132" text-anchor="end" font-family="'Geist Mono', monospace" font-size="9" fill="#94a3b8">0</text>
+            <line x1="20" y1="27" x2="510" y2="27" stroke="#F0F2F4" stroke-width="1"></line>
+            <text x="14" y="30" text-anchor="end" font-family="'Geist Mono', monospace" font-size="9" fill="#94a3b8">1,400</text>
+            <polyline points="40,65 130,39 220,148 310,79 400,27 490,66" fill="none" stroke="#10B981" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></polyline>
+            <circle cx="40" cy="65" r="4" fill="#FFFFFF" stroke="#10B981" stroke-width="2"></circle>
+            <circle cx="130" cy="39" r="4" fill="#FFFFFF" stroke="#10B981" stroke-width="2"></circle>
+            <circle cx="220" cy="148" r="4" fill="#FFFFFF" stroke="#ef4444" stroke-width="2"></circle>
+            <circle cx="310" cy="79" r="4" fill="#FFFFFF" stroke="#10B981" stroke-width="2"></circle>
+            <circle cx="400" cy="27" r="4" fill="#FFFFFF" stroke="#10B981" stroke-width="2"></circle>
+            <circle cx="490" cy="66" r="4.5" fill="#10B981" stroke="#FFFFFF" stroke-width="2"></circle>
+            <text x="220" y="165" text-anchor="middle" font-family="'Geist Mono', monospace" font-size="9" fill="#ef4444" font-weight="600">&#8722;240</text>
+            <text x="490" y="54" text-anchor="middle" font-family="'Geist Mono', monospace" font-size="10" fill="#0B0F17" font-weight="600">815</text>
+            <text x="40" y="176" text-anchor="middle" font-family="Geist, sans-serif" font-size="10" fill="#94a3b8">Apr</text>
+            <text x="130" y="176" text-anchor="middle" font-family="Geist, sans-serif" font-size="10" fill="#94a3b8">May</text>
+            <text x="220" y="176" text-anchor="middle" font-family="Geist, sans-serif" font-size="10" fill="#94a3b8">Jun</text>
+            <text x="310" y="176" text-anchor="middle" font-family="Geist, sans-serif" font-size="10" fill="#94a3b8">Jul</text>
+            <text x="400" y="176" text-anchor="middle" font-family="Geist, sans-serif" font-size="10" fill="#94a3b8">Aug</text>
+            <text x="490" y="176" text-anchor="middle" font-family="Geist, sans-serif" font-size="10" fill="#0B0F17" font-weight="600">Sep</text>
+          </svg>
+        </div>
+
+        <!-- goals compact -->
+        <div class="panel">
+          <div style="display: flex; align-items: baseline; justify-content: space-between;">
+            <span class="ptitle">Goals</span>
+            <span class="psub">2 of 5 achieved</span>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 14px;">
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <div style="display: flex; align-items: baseline; justify-content: space-between;">
+                <span style="font-size: 12px; font-weight: 500;">Emergency Fund</span>
+                <span class="fig" style="font-size: 11px; color: #475569;">10,500 <span style="color: #94a3b8;">/ 20,000</span></span>
+              </div>
+              <div style="height: 6px; background: #EDEFF2; border-radius: 3px;"><div style="width: 52%; height: 6px; background: #10B981; border-radius: 3px;"></div></div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <div style="display: flex; align-items: baseline; justify-content: space-between;">
+                <span style="font-size: 12px; font-weight: 500;">Land Fund</span>
+                <span class="fig" style="font-size: 11px; color: #475569;">12,500 <span style="color: #94a3b8;">/ 50,000</span></span>
+              </div>
+              <div style="height: 6px; background: #EDEFF2; border-radius: 3px;"><div style="width: 25%; height: 6px; background: #10B981; border-radius: 3px;"></div></div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <div style="display: flex; align-items: baseline; justify-content: space-between;">
+                <span style="font-size: 12px; font-weight: 500;">Credit Card payoff</span>
+                <span class="fig" style="font-size: 11px; color: #475569;">5,150 <span style="color: #94a3b8;">/ 8,000</span></span>
+              </div>
+              <div style="height: 6px; background: #EDEFF2; border-radius: 3px;"><div style="width: 64%; height: 6px; background: #10B981; border-radius: 3px;"></div></div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+              <div style="display: flex; align-items: baseline; justify-content: space-between;">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                  <span style="font-size: 12px; font-weight: 500;">School Fees</span>
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#059669" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"></circle><path d="M8 12.5l2.5 2.5L16 9.5"></path></svg>
+                </div>
+                <span class="fig" style="font-size: 11px; color: #059669; font-weight: 600;">Achieved</span>
+              </div>
+              <div style="height: 6px; background: #EDEFF2; border-radius: 3px;"><div style="width: 100%; height: 6px; background: #10B981; border-radius: 3px;"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+</x-dc>
+</body>
+</html>

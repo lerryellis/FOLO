@@ -1,0 +1,62 @@
+{
+  "artboards": [
+    { "file": "Main.dc.html",         "x": 0,    "y": 0,    "w": 390,  "h": 844, "title": "Home" },
+    { "file": "Add.dc.html",          "x": 470,  "y": 0,    "w": 390,  "h": 844, "title": "Add transaction" },
+    { "file": "Budget.dc.html",       "x": 940,  "y": 0,    "w": 390,  "h": 844, "title": "Budget" },
+    { "file": "Transactions.dc.html", "x": 1410, "y": 0,    "w": 390,  "h": 844, "title": "Activity" },
+    { "file": "Goals.dc.html",        "x": 1880, "y": 0,    "w": 390,  "h": 844, "title": "Goals" },
+    { "file": "Dashboard.dc.html",    "x": 0,    "y": 1000, "w": 1440, "h": 900, "title": "Web dashboard" }
+  ],
+  "annotations": [
+    {
+      "id": "note-hero",
+      "x": 0,
+      "y": -150,
+      "w": 390,
+      "text": "One number leads. Everything else supports it.\n\n'Left to spend' = opening balance + income − bills − expenses − savings − debt. Same formula the spreadsheet dashboard runs."
+    },
+    {
+      "id": "note-add",
+      "x": 470,
+      "y": -150,
+      "w": 390,
+      "text": "Two taps and a number.\n\nKeypad first because the amount is what you know. Group and category are one tap each; date defaults to today; note is optional. Logging friction is what kills budget apps."
+    },
+    {
+      "id": "note-meters",
+      "x": 940,
+      "y": -150,
+      "w": 390,
+      "text": "Meters, not charts.\n\nSpent-vs-budget is a ratio against a limit, so it gets a meter. This one screen replaces the workbook's 28 charts."
+    },
+    {
+      "id": "note-status",
+      "x": 1410,
+      "y": -150,
+      "w": 390,
+      "text": "Over/under is never colour alone.\n\nEvery status carries a sign, a word ('over', 'under') and an icon. Roughly 1 in 12 men can't separate red from green — and 'am I overspent' is the wrong thing to make anyone guess."
+    },
+    {
+      "id": "note-figures",
+      "x": 1880,
+      "y": -150,
+      "w": 390,
+      "text": "All money is Geist Mono with tabular figures, so digits line up down a column. Proportional numerals make a list of amounts look ragged."
+    },
+    {
+      "id": "note-web",
+      "x": 1500,
+      "y": 1000,
+      "w": 320,
+      "text": "Three charts earn their place:\n\n1. Where the money went — sorted bars, one hue, darkest = largest. Not a pie: 20 categories is unreadable as slices.\n\n2. Over and under plan — diverging, centred on zero, because the question is polarity.\n\n3. Net position — a line, only once there are 3+ periods of history.\n\nNo dual-axis anywhere."
+    },
+    {
+      "id": "note-tokens",
+      "x": 1500,
+      "y": 1420,
+      "w": 320,
+      "text": "Matched to FOLO's real tokens: #0B0F17 ink, #10B981 emerald (both already dominant in web/app), #ef4444 for critical, slate greys, Geist + Geist Mono per the @theme block in globals.css.\n\nField names follow supabase_schema.sql — category_type, budgeted_amount, transaction_date, target_amount."
+    }
+  ],
+  "launch": { "view": "canvas" }
+}
