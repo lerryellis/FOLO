@@ -1,5 +1,6 @@
 'use client';
 
+import { BarChart3, Lightbulb, TrendingUp, Sparkles } from 'lucide-react';
 import { BUDGET_EDUCATION } from '@/lib/folo-data';
 
 export function BudgetTips() {
@@ -8,7 +9,9 @@ export function BudgetTips() {
       {/* Why Budget */}
       <article className="rounded-2xl border border-[#E8EAED] bg-gradient-to-br from-[#F0FDF9] to-white p-5">
         <div className="mb-3 flex items-center gap-2">
-          <div className="text-lg">📊</div>
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#E7F7F0]">
+            <BarChart3 className="h-5 w-5 text-[#10B981]" />
+          </div>
           <h3 className="font-semibold text-[#0B0F17]">{BUDGET_EDUCATION.whyBudget.title}</h3>
         </div>
         <ul className="space-y-2 text-sm text-[#475569]">
@@ -24,7 +27,9 @@ export function BudgetTips() {
       {/* Allocation Strategy */}
       <article className="rounded-2xl border border-[#E8EAED] bg-gradient-to-br from-[#FFF7ED] to-white p-5">
         <div className="mb-3 flex items-center gap-2">
-          <div className="text-lg">💡</div>
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#FEF3C7]">
+            <Lightbulb className="h-5 w-5 text-[#D97706]" />
+          </div>
           <h3 className="font-semibold text-[#0B0F17]">{BUDGET_EDUCATION.allocationStrategy.title}</h3>
         </div>
         <p className="mb-3 text-xs text-[#64748b]">{BUDGET_EDUCATION.allocationStrategy.method}</p>
@@ -46,7 +51,9 @@ export function BudgetTips() {
       {/* Actual vs Budget */}
       <article className="rounded-2xl border border-[#E8EAED] bg-gradient-to-br from-[#EFF6FF] to-white p-5">
         <div className="mb-3 flex items-center gap-2">
-          <div className="text-lg">📈</div>
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#DBEAFE]">
+            <TrendingUp className="h-5 w-5 text-[#3B82F6]" />
+          </div>
           <h3 className="font-semibold text-[#0B0F17]">{BUDGET_EDUCATION.actualVsBudget.title}</h3>
         </div>
         <p className="mb-3 text-sm text-[#475569]">{BUDGET_EDUCATION.actualVsBudget.explanation}</p>
@@ -63,7 +70,9 @@ export function BudgetTips() {
       {/* Best Practices */}
       <article className="rounded-2xl border border-[#E8EAED] bg-gradient-to-br from-[#F3E8FF] to-white p-5">
         <div className="mb-3 flex items-center gap-2">
-          <div className="text-lg">⭐</div>
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#F3E8FF]">
+            <Sparkles className="h-5 w-5 text-[#A855F7]" />
+          </div>
           <h3 className="font-semibold text-[#0B0F17]">{BUDGET_EDUCATION.bestPractices.title}</h3>
         </div>
         <ul className="space-y-1.5 text-xs text-[#475569]">
