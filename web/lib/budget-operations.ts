@@ -5,29 +5,35 @@ import { supabase } from './supabase';
  */
 export async function getOrCreateBudgetPeriod(userId: string, date: Date): Promise<string> {
   try {
-    // Parse date to YYYY-MM format
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const period = `${year}-${month}`;
-
     // Calculate start and end dates for the month
-    const startDate = new Date(year, date.getMonth(), 1);
-    const endDate = new Date(year, date.getMonth() + 1, 0);
+    const year = date.getFullYear();
+    const monthIndex = date.getMonth();
+    const startDate = new Date(year, monthIndex, 1);
+    const endDate = new Date(year, monthIndex + 1, 0);
 
-    // Check if period already exists (use maybeSingle to handle no rows)
+    const startDateStr = startDate.toISOString().split('T')[0];
+    const endDateStr = endDate.toISOString().split('T')[0];
+
+    // Check if period already exists for this date range
     const { data: existing, error: fetchError } = await supabase
       .from('budget_periods')
       .select('id')
       .eq('user_id', userId)
-      .eq('period', period)
+      .eq('start_date', startDateStr)
       .maybeSingle();
 
     if (fetchError) {
-      console.error('Error fetching budget period:', fetchError);
+      console.error('Error fetching budget period:', {
+        error: fetchError,
+        userId,
+        startDate: startDateStr,
+        message: fetchError instanceof Error ? fetchError.message : String(fetchError),
+      });
       throw fetchError;
     }
 
     if (existing) {
+      console.log('Found existing budget period:', existing.id);
       return existing.id;
     }
 
@@ -36,9 +42,8 @@ export async function getOrCreateBudgetPeriod(userId: string, date: Date): Promi
       .from('budget_periods')
       .insert({
         user_id: userId,
-        period,
-        start_date: startDate.toISOString().split('T')[0],
-        end_date: endDate.toISOString().split('T')[0],
+        start_date: startDateStr,
+        end_date: endDateStr,
         starting_balance: 0,
       })
       .select('id')
@@ -53,12 +58,16 @@ export async function getOrCreateBudgetPeriod(userId: string, date: Date): Promi
       throw new Error('Failed to create budget period: no data returned');
     }
 
+    console.log('Created new budget period:', created.id);
+
     // Auto-create empty budget items for each category (so UI doesn't fall back to hardcoded)
     const { data: categories, error: catError } = await supabase
       .from('categories')
       .select('id, category_type');
 
-    if (!catError && categories && categories.length > 0) {
+    if (catError) {
+      console.error('Error fetching categories:', catError);
+    } else if (categories && categories.length > 0) {
       const budgetItems = categories.map((cat) => ({
         budget_period_id: created.id,
         user_id: userId,
@@ -66,10 +75,15 @@ export async function getOrCreateBudgetPeriod(userId: string, date: Date): Promi
         budgeted_amount: 0,
       }));
 
-      await supabase
+      const { error: insertError } = await supabase
         .from('budget_items')
-        .insert(budgetItems)
-        .select();
+        .insert(budgetItems);
+
+      if (insertError) {
+        console.error('Error creating budget items:', insertError);
+      } else {
+        console.log('Auto-created budget items for period:', created.id);
+      }
     }
 
     return created.id;
