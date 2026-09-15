@@ -56,7 +56,9 @@ import {
   getBudgetGroupTotals,
   updateBudgetAmount,
   getOrCreateBudgetItem,
+  getPeriodSummary,
   type BudgetGroupTotal,
+  type PeriodSummary,
 } from '@/lib/budget-operations';
 import {
   BUDGET_EDUCATION,
@@ -270,6 +272,9 @@ function OverviewScreen({
   showSampleData = false,
   onTransactionClick = () => {},
   goals = [],
+  userId,
+  budgetPeriodId,
+  budgetTotals = [],
 }: {
   currency: CurrencyCode;
   transactions: Transaction[];
@@ -280,6 +285,9 @@ function OverviewScreen({
   showSampleData?: boolean;
   onTransactionClick?: (transaction: Transaction) => void;
   goals?: typeof GOALS;
+  userId?: string;
+  budgetPeriodId?: string;
+  budgetTotals?: BudgetGroupTotal[];
 }) {
   if (!isBudgeted || transactions.length === 0) {
     return (
