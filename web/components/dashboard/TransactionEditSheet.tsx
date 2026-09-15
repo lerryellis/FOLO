@@ -31,13 +31,21 @@ export function TransactionEditSheet({
   if (!editData || !transaction) return null;
 
   const handleUpdateTransaction = () => {
-    const amountMinor = parseAmountToMinor(amount);
-    if (amountMinor <= 0) return;
+    if (!editData) return;
 
-    onUpdate({
-      ...editData,
-      amountMinor: editData.categoryType === 'INCOME' ? amountMinor : -amountMinor,
-    });
+    const updatedTransaction = { ...editData };
+
+    // Only update amount if user entered a new value
+    if (amount.trim()) {
+      const amountMinor = parseAmountToMinor(amount);
+      if (amountMinor <= 0) {
+        alert('Amount must be greater than 0');
+        return;
+      }
+      updatedTransaction.amountMinor = editData.categoryType === 'INCOME' ? amountMinor : -amountMinor;
+    }
+
+    onUpdate(updatedTransaction);
     onClose();
   };
 

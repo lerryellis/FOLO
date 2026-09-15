@@ -83,39 +83,34 @@ export async function saveTransaction(userId: string, transaction: Transaction) 
  * Fetch all transactions for a user in a given month
  */
 export async function fetchTransactions(userId: string, date: Date) {
-  try {
-    const year = date.getFullYear();
-    const month = date.getMonth();
-    const startDate = new Date(year, month, 1).toISOString().split('T')[0];
-    const endDate = new Date(year, month + 1, 0).toISOString().split('T')[0];
+  const year = date.getFullYear();
+  const month = date.getMonth();
+  const startDate = new Date(year, month, 1).toISOString().split('T')[0];
+  const endDate = new Date(year, month + 1, 0).toISOString().split('T')[0];
 
-    const { data, error } = await supabase
-      .from('transactions')
-      .select('*')
-      .eq('user_id', userId)
-      .gte('transaction_date', startDate)
-      .lte('transaction_date', endDate)
-      .order('transaction_date', { ascending: false });
+  const { data, error } = await supabase
+    .from('transactions')
+    .select('*')
+    .eq('user_id', userId)
+    .gte('transaction_date', startDate)
+    .lte('transaction_date', endDate)
+    .order('transaction_date', { ascending: false });
 
-    if (error) throw error;
+  if (error) throw error;
 
-    // Convert database format to app format
-    return data.map((row: any): Transaction => ({
-      id: row.id,
-      name: row.notes || row.category_name,
-      category: row.category_name,
-      categoryType: row.category_type,
-      amountMinor: row.category_type === 'INCOME'
-        ? Math.round(row.amount * 100)
-        : -Math.round(row.amount * 100),
-      date: row.transaction_date,
-      note: row.notes || undefined,
-      pending: false,
-    }));
-  } catch (error) {
-    console.error('Error fetching transactions:', error);
-    throw error;
-  }
+  // Convert database format to app format
+  return (data ?? []).map((row: any): Transaction => ({
+    id: row.id,
+    name: row.notes || row.category_name,
+    category: row.category_name,
+    categoryType: row.category_type,
+    amountMinor: row.category_type === 'INCOME'
+      ? Math.round(row.amount * 100)
+      : -Math.round(row.amount * 100),
+    date: row.transaction_date,
+    note: row.notes || undefined,
+    pending: false,
+  }));
 }
 
 /**
@@ -200,50 +195,45 @@ export async function upsertUserProfile(
   displayName: string,
   currencyCode: string
 ) {
-  try {
-    // Check if profile exists first
-    const { data: existing } = await supabase
+  // `maybeSingle` treats an absent profile as normal, but preserves database
+  // failures such as a missing relation or an RLS policy failure.
+  const { data: existing, error: existingError } = await supabase
+    .from('user_profiles')
+    .select('id')
+    .eq('id', userId)
+    .maybeSingle();
+
+  if (existingError) throw existingError;
+
+  if (existing) {
+    const { data, error } = await supabase
       .from('user_profiles')
-      .select('id')
+      .update({
+        currency_code: currencyCode,
+        currency_symbol: getCurrencySymbol(currencyCode),
+      })
       .eq('id', userId)
+      .select()
       .single();
 
-    if (existing) {
-      // Update existing profile
-      const { data, error } = await supabase
-        .from('user_profiles')
-        .update({
-          currency_code: currencyCode,
-          currency_symbol: getCurrencySymbol(currencyCode),
-        })
-        .eq('id', userId)
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    } else {
-      // Create new profile
-      const { data, error } = await supabase
-        .from('user_profiles')
-        .insert({
-          id: userId,
-          email,
-          display_name: displayName,
-          currency_code: currencyCode,
-          currency_symbol: getCurrencySymbol(currencyCode),
-        })
-        .select()
-        .single();
-
-      if (error) throw error;
-      return data;
-    }
-  } catch (error) {
-    console.error('Error managing user profile:', error);
-    // Don't throw - profile creation is not critical
-    return null;
+    if (error) throw error;
+    return data;
   }
+
+  const { data, error } = await supabase
+    .from('user_profiles')
+    .insert({
+      id: userId,
+      email,
+      display_name: displayName,
+      currency_code: currencyCode,
+      currency_symbol: getCurrencySymbol(currencyCode),
+    })
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
 }
 
 /**

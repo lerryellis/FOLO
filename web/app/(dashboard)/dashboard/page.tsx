@@ -47,6 +47,7 @@ import {
   createGoal as createGoalInSupabase,
   fetchGoals,
 } from '@/lib/goal-operations';
+import { describeSupabaseError, isMissingSupabaseRelation } from '@/lib/supabase-error';
 import { resetAllUserData } from '@/lib/reset-user-data';
 import { linkTransactionToGoal, updateGoalProgressFromTransactions } from '@/lib/goal-transaction-operations';
 import {
@@ -1171,8 +1172,13 @@ export default function DashboardPage() {
         const dbGoals = await fetchGoals(user.id);
         setGoals(dbGoals);
       } catch (error) {
-        console.error('Failed to load data:', error);
-        // Show sample data on error
+        if (isMissingSupabaseRelation(error)) {
+          setNotice('Database setup is incomplete. Apply supabase_schema.sql, then reload FOLO.');
+          setShowSampleData(false);
+          return;
+        }
+
+        console.error('Failed to load data:', describeSupabaseError(error));
         setShowSampleData(false);
       }
     };
