@@ -294,6 +294,108 @@ export function detectCurrencyFromLocale(): CurrencyCode {
   return langMap[lang] || 'USD';
 }
 
+export const GOALS_EDUCATION = {
+  pageUsage: {
+    title: "How to Use the Goals Page",
+    sections: [
+      {
+        heading: "Creating Multiple Goals",
+        tips: [
+          "Click 'Create Goal' to start a new savings or debt payoff goal",
+          "You can have unlimited goals - each tracked completely separately",
+          "Give each goal a meaningful name (e.g., 'Emergency Fund', 'Car Purchase', 'Credit Card Payoff')",
+          "Set a realistic target amount based on your goal deadline"
+        ]
+      },
+      {
+        heading: "Two Types of Goals",
+        tips: [
+          "Savings Goals: For money you want to accumulate (emergency fund, house down payment, education)",
+          "Debt Payoff Goals: For loans and debts you want to eliminate (credit cards, personal loans, mortgages)",
+          "Both types are tracked separately and progress is calculated independently"
+        ]
+      },
+      {
+        heading: "Linking Transactions to Goals",
+        tips: [
+          "When creating a transaction, you can assign it to a goal",
+          "The transaction amount automatically updates that goal's progress",
+          "A single transaction can only be linked to one goal",
+          "You can edit transactions later to change which goal they're linked to"
+        ]
+      },
+      {
+        heading: "Tracking Progress",
+        tips: [
+          "Each goal shows its current progress vs target amount",
+          "The progress bar fills as you add transactions toward the goal",
+          "Goals reaching 100% show a 'Achieved' or 'Cleared' badge",
+          "Review your goals monthly to ensure you're on track"
+        ]
+      },
+      {
+        heading: "Best Practices for Goal Setting",
+        tips: [
+          "Be specific: 'Emergency Fund' (not just 'Savings')",
+          "Be realistic: Set amounts you can actually achieve",
+          "Prioritize: Focus on 2-3 major goals at a time for better results",
+          "Review regularly: Adjust targets if circumstances change",
+          "Celebrate milestones: Acknowledge progress at 25%, 50%, 75%, 100%"
+        ]
+      }
+    ]
+  },
+  whyGoals: {
+    title: "Why Set Financial Goals?",
+    tips: [
+      "Goals give your money a PURPOSE - without them, you're just spending randomly",
+      "Goals keep you MOTIVATED - progress tracking shows you're making real progress",
+      "Goals enable PLANNING - you can allocate money strategically to what matters most",
+      "Goals build FINANCIAL DISCIPLINE - linking transactions shows you exactly where your money goes",
+      "Goals create ACCOUNTABILITY - tracking separates what you WANT to do from what you actually do"
+    ]
+  },
+  goalTypes: {
+    savings: {
+      title: "Savings Goals",
+      description: "Build wealth by saving toward something meaningful",
+      examples: [
+        "Emergency fund (3-6 months of expenses)",
+        "House down payment",
+        "Vacation fund",
+        "Education/skill development",
+        "Investment portfolio",
+        "Car purchase",
+        "Wedding expenses"
+      ],
+      tips: [
+        "Start small and build momentum",
+        "Automate transfers to your goal account if possible",
+        "Increase amounts as your income grows",
+        "Review and celebrate milestones"
+      ]
+    },
+    debt: {
+      title: "Debt Payoff Goals",
+      description: "Systematically eliminate loans and credit card debt",
+      examples: [
+        "Credit card balance",
+        "Personal loan",
+        "Student loan",
+        "Mortgage",
+        "Family loan",
+        "Business loan"
+      ],
+      tips: [
+        "List all debts with interest rates",
+        "Consider paying highest interest first (avalanche method)",
+        "Or pay smallest balance first for quick wins (snowball method)",
+        "Each extra payment gets you closer to freedom"
+      ]
+    }
+  }
+};
+
 export const BUDGET_EDUCATION = {
   pageUsage: {
     title: "How to Use the Budget Page",
