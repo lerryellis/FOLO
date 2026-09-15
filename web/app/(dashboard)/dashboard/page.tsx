@@ -1460,6 +1460,8 @@ export default function DashboardPage() {
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [goals, setGoals] = useState<typeof GOALS>([]);
   const [showDeleteMonthConfirm, setShowDeleteMonthConfirm] = useState(false);
+  const [showProfileMenu, setShowProfileMenu] = useState(false);
+  const [showDeleteAllConfirm, setShowDeleteAllConfirm] = useState(false);
   const [budgetPeriodId, setBudgetPeriodId] = useState<string>('');
   const [budgetTotals, setBudgetTotals] = useState<BudgetGroupTotal[]>([]);
   const [periodSummary, setPeriodSummary] = useState<PeriodSummary | null>(null);
@@ -1763,22 +1765,52 @@ export default function DashboardPage() {
         </nav>
 
         <div className="mt-auto border-t border-[#F0F2F4] pt-4">
-          <div className="flex items-center gap-2.5 px-2">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#0B0F17] text-xs font-semibold text-white">
-              {userInitial}
-            </div>
-            <div className="min-w-0 flex-1">
-              <p className="truncate text-xs font-semibold">{user.email?.split('@')[0] || 'FOLO user'}</p>
-              <p className="mt-0.5 text-[10px] font-medium text-[#64748b]">{getCurrency(currency).symbol} · {currency}</p>
-            </div>
+          <div className="relative">
             <button
               type="button"
-              onClick={handleSignOut}
-              aria-label="Sign out"
-              className="flex h-11 w-11 items-center justify-center rounded-xl text-[#64748b] hover:bg-[#F6F7F9] hover:text-[#0B0F17]"
+              onClick={() => setShowProfileMenu(!showProfileMenu)}
+              className="flex w-full items-center gap-2.5 rounded-xl px-2 py-2 hover:bg-[#F6F7F9] transition-colors"
+              aria-label="User profile menu"
             >
-              <LogOut className="h-4 w-4" />
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-[#0B0F17] text-xs font-semibold text-white">
+                {userInitial}
+              </div>
+              <div className="min-w-0 flex-1 text-left">
+                <p className="truncate text-xs font-semibold">{user.email?.split('@')[0] || 'FOLO user'}</p>
+                <p className="mt-0.5 text-[10px] font-medium text-[#64748b]">{getCurrency(currency).symbol} · {currency}</p>
+              </div>
             </button>
+
+            {showProfileMenu && (
+              <>
+                <div className="absolute inset-0 z-40" onClick={() => setShowProfileMenu(false)} />
+                <div className="absolute bottom-full left-0 right-0 mb-2 z-50 w-full rounded-xl border border-[#E8EAED] bg-white shadow-lg">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowProfileMenu(false);
+                      setShowDeleteAllConfirm(true);
+                    }}
+                    className="flex w-full items-center gap-2 px-4 py-3 text-sm font-medium text-[#DC2626] hover:bg-[#FEF2F2] transition-colors"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                    Delete All Data
+                  </button>
+                  <div className="border-t border-[#F0F2F4]" />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowProfileMenu(false);
+                      handleSignOut();
+                    }}
+                    className="flex w-full items-center gap-2 px-4 py-3 text-sm font-medium text-[#475569] hover:bg-[#F6F7F9] transition-colors"
+                  >
+                    <LogOut className="h-4 w-4" />
+                    Sign Out
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </aside>
@@ -1989,6 +2021,34 @@ export default function DashboardPage() {
                 className="flex-1 rounded-xl bg-[#ef4444] py-2 font-semibold text-white hover:bg-[#dc2626]"
               >
                 Delete All
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showDeleteAllConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="rounded-2xl border border-[#E8EAED] bg-white p-6 max-w-sm mx-4">
+            <h3 className="text-lg font-semibold text-[#0B0F17]">Delete All Data for This Profile?</h3>
+            <p className="mt-2 text-sm text-[#64748b]">
+              This will permanently delete <strong>all transactions, budgets, and goals</strong> for your profile. Everything will be reset to zero and ready for fresh manual input. This action cannot be undone.
+            </p>
+            <div className="mt-6 flex gap-3">
+              <button
+                onClick={() => setShowDeleteAllConfirm(false)}
+                className="flex-1 rounded-xl border border-[#E8EAED] py-2 font-semibold text-[#0B0F17] hover:bg-[#F6F7F9]"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setShowDeleteAllConfirm(false);
+                  handleResetAllData();
+                }}
+                className="flex-1 rounded-xl bg-[#ef4444] py-2 font-semibold text-white hover:bg-[#dc2626]"
+              >
+                Delete All Data
               </button>
             </div>
           </div>
