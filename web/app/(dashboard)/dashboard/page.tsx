@@ -1525,6 +1525,11 @@ export default function DashboardPage() {
         current.map((t) => (t.id === updatedTransaction.id ? updatedTransaction : t))
       );
       setEditingTransaction(null);
+
+      // Reload goals in case amounts changed and affected progress
+      const updatedGoals = await fetchGoals(user!.id);
+      setGoals(updatedGoals);
+
       setNotice('Transaction updated successfully.');
     } catch (error) {
       console.error('Failed to update transaction:', error);
@@ -1537,6 +1542,11 @@ export default function DashboardPage() {
       await deleteTransactionFromSupabase(user!.id, transactionId);
       setTransactions((current) => current.filter((t) => t.id !== transactionId));
       setEditingTransaction(null);
+
+      // Reload goals in case deleted transaction affected progress
+      const updatedGoals = await fetchGoals(user!.id);
+      setGoals(updatedGoals);
+
       setNotice('Transaction deleted successfully.');
     } catch (error) {
       console.error('Failed to delete transaction:', error);
@@ -1568,6 +1578,10 @@ export default function DashboardPage() {
       // Reload transactions
       const dbTransactions = await fetchTransactions(user!.id, period);
       setTransactions(dbTransactions);
+
+      // Reload goals in case deleted transactions affected progress
+      const updatedGoals = await fetchGoals(user!.id);
+      setGoals(updatedGoals);
 
       setNotice(`✅ All transactions for ${formatPeriod(period)} deleted.`);
       setShowDeleteMonthConfirm(false);
