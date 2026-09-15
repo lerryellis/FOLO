@@ -167,6 +167,31 @@ export async function updateTransaction(userId: string, transactionId: string, u
       updateData.category_name = updates.category;
     }
 
+    // If backdating, we need to find the correct budget period first
+    if (updates.date !== undefined) {
+      const newDate = new Date(updates.date);
+      const monthStart = new Date(newDate.getFullYear(), newDate.getMonth(), 1);
+      const monthEnd = new Date(newDate.getFullYear(), newDate.getMonth() + 1, 0);
+
+      const { data: budgetPeriod, error: budgetError } = await supabase
+        .from('budget_periods')
+        .select('id')
+        .eq('user_id', userId)
+        .gte('start_date', monthStart.toISOString().split('T')[0])
+        .lte('end_date', monthEnd.toISOString().split('T')[0])
+        .single();
+
+      if (budgetError && budgetError.code !== 'PGRST116') {
+        // PGRST116 = no rows found, which is ok if the period doesn't exist yet
+        throw new Error(`Budget period lookup failed: ${budgetError.message}`);
+      }
+
+      // If budget period exists, update it; otherwise the transaction will still update
+      if (budgetPeriod) {
+        updateData.budget_period_id = budgetPeriod.id;
+      }
+    }
+
     const { data, error } = await supabase
       .from('transactions')
       .update(updateData)
@@ -175,7 +200,14 @@ export async function updateTransaction(userId: string, transactionId: string, u
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      const errorMsg = error instanceof Error ? error.message : JSON.stringify(error);
+      throw new Error(`Failed to update transaction: ${errorMsg}. Check that the transaction exists and belongs to you.`);
+    }
+
+    if (!data) {
+      throw new Error('Transaction update returned no data. Transaction may not exist or belong to another user.');
+    }
 
     const { data: linkedGoalRows, error: linkedGoalsError } = await supabase
       .from('goal_transactions')
@@ -201,7 +233,8 @@ export async function updateTransaction(userId: string, transactionId: string, u
 
     return data;
   } catch (error) {
-    console.error('Error updating transaction:', error);
+    const errorMsg = error instanceof Error ? error.message : JSON.stringify(error);
+    console.error('Error updating transaction:', errorMsg);
     throw error;
   }
 }
