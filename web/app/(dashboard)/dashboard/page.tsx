@@ -540,6 +540,7 @@ function BudgetScreen({
   const [showBudgetEdit, setShowBudgetEdit] = useState(false);
   const [budgetTotals, setBudgetTotals] = useState<BudgetGroupTotal[]>([]);
   const [budgetLoading, setBudgetLoading] = useState(false);
+  const [selectedEditCategory, setSelectedEditCategory] = useState<string | null>(null);
 
   // Load budgets from database
   useEffect(() => {
@@ -702,7 +703,11 @@ function BudgetScreen({
                 : 'Income';
 
               return (
-                <article key={dbGroup.category_type} className="rounded-2xl border border-[#E8EAED] bg-white p-4 sm:p-5">
+                <article
+                  key={dbGroup.category_type}
+                  onClick={() => setSelectedEditCategory(dbGroup.category_type)}
+                  className="cursor-pointer rounded-2xl border border-[#E8EAED] bg-white p-4 sm:p-5 transition-all hover:border-[#10B981] hover:shadow-md"
+                >
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <h3 className="text-sm font-semibold text-[#0B0F17]">{categoryName}</h3>
@@ -729,7 +734,11 @@ function BudgetScreen({
               const isOver = group.actualMinor > group.budgetMinor;
               const variance = group.actualMinor - group.budgetMinor;
               return (
-                <article key={group.type} className="rounded-2xl border border-[#E8EAED] bg-white p-4 sm:p-5">
+                <article
+                  key={group.type}
+                  onClick={() => setSelectedEditCategory(group.type)}
+                  className="cursor-pointer rounded-2xl border border-[#E8EAED] bg-white p-4 sm:p-5 transition-all hover:border-[#10B981] hover:shadow-md"
+                >
                   <div className="flex items-start justify-between gap-4">
                     <div>
                       <h3 className="text-sm font-semibold text-[#0B0F17]">{group.name}</h3>
@@ -778,8 +787,11 @@ function BudgetScreen({
 
       {/* Budget Edit Sheet */}
       <BudgetEditSheet
-        isOpen={showBudgetEdit}
-        onClose={() => setShowBudgetEdit(false)}
+        isOpen={showBudgetEdit || !!selectedEditCategory}
+        onClose={() => {
+          setShowBudgetEdit(false);
+          setSelectedEditCategory(null);
+        }}
         onSave={handleSaveBudgets}
         currency={currency}
         budgets={{
