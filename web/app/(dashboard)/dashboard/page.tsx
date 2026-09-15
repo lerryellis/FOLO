@@ -364,17 +364,25 @@ function OverviewScreen({
           </div>
           <div className="mt-4 space-y-4">
             {BUDGET_GROUPS.filter((group) => group.type !== 'INCOME').map((group) => {
-              const isOver = group.actualMinor > group.budgetMinor;
+              // Calculate actual from transactions
+              const actualMinor = Math.abs(
+                displayTransactions
+                  .filter((t) => t.categoryType === group.type)
+                  .reduce((sum, t) => sum + t.amountMinor, 0)
+              );
+              const isOver = actualMinor > group.budgetMinor;
+              const percent = group.budgetMinor > 0 ? Math.round((actualMinor / group.budgetMinor) * 100) : 0;
+
               return (
                 <div key={group.type}>
                   <div className="mb-2 flex items-baseline justify-between gap-4">
                     <span className="text-sm font-medium text-[#0B0F17]">{group.name}</span>
                     <span className={`money text-xs font-medium ${isOver ? 'text-[#DC2626]' : 'text-[#475569]'}`}>
-                      {formatMoney(group.actualMinor, currency)}{' '}
+                      {formatMoney(actualMinor, currency)}{' '}
                       <span className="text-[#64748b]">/ {formatMoney(group.budgetMinor, currency)}</span>
                     </span>
                   </div>
-                  <Meter percent={group.percent} isOver={isOver} />
+                  <Meter percent={percent} isOver={isOver} />
                 </div>
               );
             })}
