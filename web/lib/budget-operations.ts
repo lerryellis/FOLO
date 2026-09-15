@@ -14,13 +14,18 @@ export async function getOrCreateBudgetPeriod(userId: string, date: Date): Promi
     const startDate = new Date(year, date.getMonth(), 1);
     const endDate = new Date(year, date.getMonth() + 1, 0);
 
-    // Check if period already exists
+    // Check if period already exists (use maybeSingle to handle no rows)
     const { data: existing, error: fetchError } = await supabase
       .from('budget_periods')
       .select('id')
       .eq('user_id', userId)
       .eq('period', period)
-      .single();
+      .maybeSingle();
+
+    if (fetchError) {
+      console.error('Error fetching budget period:', fetchError);
+      throw fetchError;
+    }
 
     if (existing) {
       return existing.id;
@@ -39,10 +44,21 @@ export async function getOrCreateBudgetPeriod(userId: string, date: Date): Promi
       .select('id')
       .single();
 
-    if (createError) throw createError;
+    if (createError) {
+      console.error('Error creating budget period:', createError);
+      throw createError;
+    }
+
+    if (!created) {
+      throw new Error('Failed to create budget period: no data returned');
+    }
+
     return created.id;
   } catch (error) {
-    console.error('Error managing budget period:', error);
+    console.error('Error managing budget period:', {
+      message: error instanceof Error ? error.message : String(error),
+      error: error,
+    });
     throw error;
   }
 }

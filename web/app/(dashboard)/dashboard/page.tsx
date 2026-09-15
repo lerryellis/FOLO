@@ -1473,7 +1473,13 @@ export default function DashboardPage() {
           return;
         }
 
-        console.error('Failed to load data:', describeSupabaseError(error));
+        const errorMsg = describeSupabaseError(error);
+        console.error('Failed to load data:', {
+          message: errorMsg,
+          error: error instanceof Error ? error.message : String(error),
+          details: error,
+        });
+        setNotice(`Error loading data: ${errorMsg || 'Unknown error'}`);
         setShowSampleData(false);
       }
     };
