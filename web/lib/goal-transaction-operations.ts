@@ -6,17 +6,38 @@ import { supabase } from './supabase';
 export async function linkTransactionToGoal(
   userId: string,
   goalId: string,
-  transactionId: string,
-  amount: number
+  transactionId: string
 ) {
   try {
+    const [{ data: transaction, error: transactionError }, { data: goal, error: goalError }] = await Promise.all([
+      supabase
+        .from('transactions')
+        .select('id, amount, transaction_date')
+        .eq('id', transactionId)
+        .eq('user_id', userId)
+        .maybeSingle(),
+      supabase
+        .from('financial_goals')
+        .select('id')
+        .eq('id', goalId)
+        .eq('user_id', userId)
+        .maybeSingle(),
+    ]);
+
+    if (transactionError) throw transactionError;
+    if (goalError) throw goalError;
+    if (!transaction || !goal) throw new Error('The transaction or goal is no longer available.');
+
     const { data, error } = await supabase
       .from('goal_transactions')
       .insert({
         user_id: userId,
         goal_id: goalId,
-        amount: Math.abs(amount) / 100, // Convert from minor units
-        transaction_date: new Date().toISOString().split('T')[0],
+        transaction_id: transactionId,
+        // Read these from the persisted transaction instead of trusting a
+        // stale UI payload. `amount` remains for historical/manual entries.
+        amount: Math.abs(transaction.amount),
+        transaction_date: transaction.transaction_date,
       })
       .select()
       .single();
@@ -41,7 +62,8 @@ export async function unlinkTransactionFromGoal(userId: string, goalId: string, 
       .from('goal_transactions')
       .delete()
       .eq('user_id', userId)
-      .eq('goal_id', goalId);
+      .eq('goal_id', goalId)
+      .eq('transaction_id', transactionId);
 
     if (error) throw error;
 

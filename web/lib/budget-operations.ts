@@ -1,10 +1,34 @@
 import { supabase } from './supabase';
 
+const DEFAULT_CATEGORIES = [
+  { category_type: 'INCOME', name: 'Income' },
+  { category_type: 'BILLS', name: 'Bills' },
+  { category_type: 'EXPENSES', name: 'Expenses' },
+  { category_type: 'SAVINGS', name: 'Savings' },
+  { category_type: 'DEBT', name: 'Debt' },
+] as const;
+
+/** Ensure every user owns the five top-level categories used by FOLO budgets. */
+async function ensureDefaultCategories(userId: string) {
+  const { error } = await supabase
+    .from('categories')
+    .upsert(
+      DEFAULT_CATEGORIES.map((category) => ({ ...category, user_id: userId })),
+      { onConflict: 'user_id,category_type,name', ignoreDuplicates: true }
+    );
+
+  if (error) throw error;
+}
+
 /**
  * Get or create a budget period for the given date
  */
 export async function getOrCreateBudgetPeriod(userId: string, date: Date): Promise<string> {
   try {
+    // Categories are tenant-owned. Provisioning them before either path means
+    // a user with an existing period can always edit its group budgets.
+    await ensureDefaultCategories(userId);
+
     // Calculate start and end dates for the month
     const year = date.getFullYear();
     const monthIndex = date.getMonth();
@@ -66,7 +90,10 @@ export async function getOrCreateBudgetPeriod(userId: string, date: Date): Promi
       .select('id, category_type');
 
     if (catError) {
-      console.error('Error fetching categories:', catError);
+      console.error('Error fetching categories:', {
+        message: catError instanceof Error ? catError.message : String(catError),
+        error: catError,
+      });
     } else if (categories && categories.length > 0) {
       const budgetItems = categories.map((cat) => ({
         budget_period_id: created.id,
@@ -80,10 +107,16 @@ export async function getOrCreateBudgetPeriod(userId: string, date: Date): Promi
         .insert(budgetItems);
 
       if (insertError) {
-        console.error('Error creating budget items:', insertError);
+        console.error('Error creating budget items:', {
+          message: insertError instanceof Error ? insertError.message : String(insertError),
+          error: insertError,
+          itemCount: budgetItems.length,
+        });
       } else {
         console.log('Auto-created budget items for period:', created.id);
       }
+    } else {
+      console.warn('No categories found - budget items will not be auto-created');
     }
 
     return created.id;
@@ -149,6 +182,7 @@ export async function getOrCreateBudgetItem(
   const { data: category, error: categoryError } = await supabase
     .from('categories')
     .select('id')
+    .eq('user_id', userId)
     .eq('category_type', categoryType)
     .order('id', { ascending: true })
     .limit(1)

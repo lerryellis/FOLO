@@ -10,6 +10,27 @@ type TransactionRow = {
   transaction_date: string;
 };
 
+async function synchroniseLinkedGoalProgress(userId: string, goalIds: string[]) {
+  for (const goalId of goalIds) {
+    const { data: goalTransactions, error: goalTransactionsError } = await supabase
+      .from('goal_transactions')
+      .select('amount')
+      .eq('user_id', userId)
+      .eq('goal_id', goalId);
+
+    if (goalTransactionsError) throw goalTransactionsError;
+
+    const progress = (goalTransactions ?? []).reduce((total, entry) => total + Number(entry.amount || 0), 0);
+    const { error: goalError } = await supabase
+      .from('financial_goals')
+      .update({ current_progress: progress })
+      .eq('id', goalId)
+      .eq('user_id', userId);
+
+    if (goalError) throw goalError;
+  }
+}
+
 function toTransaction(row: TransactionRow): Transaction {
   return {
     id: row.id,
@@ -155,6 +176,29 @@ export async function updateTransaction(userId: string, transactionId: string, u
       .single();
 
     if (error) throw error;
+
+    const { data: linkedGoalRows, error: linkedGoalsError } = await supabase
+      .from('goal_transactions')
+      .select('goal_id')
+      .eq('user_id', userId)
+      .eq('transaction_id', transactionId);
+
+    if (linkedGoalsError) throw linkedGoalsError;
+
+    if (linkedGoalRows && linkedGoalRows.length > 0) {
+      const { error: linkUpdateError } = await supabase
+        .from('goal_transactions')
+        .update({
+          amount: Math.abs(Number(data.amount)),
+          transaction_date: data.transaction_date,
+        })
+        .eq('user_id', userId)
+        .eq('transaction_id', transactionId);
+
+      if (linkUpdateError) throw linkUpdateError;
+      await synchroniseLinkedGoalProgress(userId, linkedGoalRows.map((row) => row.goal_id));
+    }
+
     return data;
   } catch (error) {
     console.error('Error updating transaction:', error);
@@ -167,6 +211,26 @@ export async function updateTransaction(userId: string, transactionId: string, u
  */
 export async function deleteTransaction(userId: string, transactionId: string) {
   try {
+    const { data: linkedGoalRows, error: linkedGoalsError } = await supabase
+      .from('goal_transactions')
+      .select('goal_id')
+      .eq('user_id', userId)
+      .eq('transaction_id', transactionId);
+
+    if (linkedGoalsError) throw linkedGoalsError;
+
+    // Explicitly remove the link so that the following progress sync is
+    // guaranteed even on installations that predate the FK cascade.
+    if (linkedGoalRows && linkedGoalRows.length > 0) {
+      const { error: unlinkError } = await supabase
+        .from('goal_transactions')
+        .delete()
+        .eq('user_id', userId)
+        .eq('transaction_id', transactionId);
+
+      if (unlinkError) throw unlinkError;
+    }
+
     const { error } = await supabase
       .from('transactions')
       .delete()
@@ -174,6 +238,7 @@ export async function deleteTransaction(userId: string, transactionId: string) {
       .eq('user_id', userId);
 
     if (error) throw error;
+    await synchroniseLinkedGoalProgress(userId, (linkedGoalRows ?? []).map((row) => row.goal_id));
   } catch (error) {
     console.error('Error deleting transaction:', error);
     throw error;

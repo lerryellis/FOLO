@@ -95,6 +95,7 @@ CREATE TABLE IF NOT EXISTS public.goal_transactions (
     id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     goal_id UUID NOT NULL REFERENCES public.financial_goals(id) ON DELETE CASCADE,
     user_id UUID NOT NULL REFERENCES public.user_profiles(id) ON DELETE CASCADE,
+    transaction_id UUID REFERENCES public.transactions(id) ON DELETE CASCADE,
     amount DECIMAL(12,2) NOT NULL,
     transaction_date DATE NOT NULL,
     notes TEXT,
@@ -119,6 +120,10 @@ CREATE INDEX IF NOT EXISTS idx_transactions_user_period_date
 CREATE INDEX IF NOT EXISTS idx_financial_goals_user_id ON public.financial_goals(user_id);
 CREATE INDEX IF NOT EXISTS idx_goal_transactions_goal_id ON public.goal_transactions(goal_id);
 CREATE INDEX IF NOT EXISTS idx_goal_transactions_user_id ON public.goal_transactions(user_id);
+CREATE INDEX IF NOT EXISTS idx_goal_transactions_transaction_id ON public.goal_transactions(transaction_id);
+CREATE UNIQUE INDEX IF NOT EXISTS goal_transactions_goal_transaction_key
+    ON public.goal_transactions(goal_id, transaction_id)
+    WHERE transaction_id IS NOT NULL;
 
 -- ============================================
 -- ROW LEVEL SECURITY (RLS) POLICIES

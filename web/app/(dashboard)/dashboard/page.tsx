@@ -1587,7 +1587,7 @@ export default function DashboardPage() {
 
       // Link to goal if selected
       if (goalId) {
-        await linkTransactionToGoal(user!.id, goalId, savedTransaction.id, savedTransaction.amountMinor);
+        await linkTransactionToGoal(user!.id, goalId, savedTransaction.id);
 
         // Reload goals to update progress
         const updatedGoals = await fetchGoals(user!.id);
