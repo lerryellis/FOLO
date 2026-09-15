@@ -647,77 +647,128 @@ function BudgetScreen({
       </div>
 
       <div className="grid grid-cols-3 rounded-2xl border border-[#E8EAED] bg-white p-4 sm:p-5">
-        {[
-          { label: 'Budgeted', value: 820000 },
-          { label: 'Actual', value: 838500 },
-          { label: 'Variance', value: 18500, critical: true },
-        ].map((item, index) => (
-          <div key={item.label} className={index === 0 ? '' : 'border-l border-[#F0F2F4] pl-3 sm:pl-5'}>
-            <p className="text-[9px] font-semibold uppercase tracking-[0.07em] text-[#64748b] sm:text-[10px]">{item.label}</p>
-            <Money
-              amountMinor={item.value}
-              currency={currency}
-              showPlus={item.critical}
-              className={`mt-2 block text-sm font-semibold sm:text-lg ${item.critical ? 'text-[#DC2626]' : 'text-[#0B0F17]'}`}
-            />
-            {item.critical ? <p className="mt-1 text-[10px] font-semibold text-[#DC2626]">over plan</p> : null}
-          </div>
-        ))}
+        {(() => {
+          // Calculate totals from database budgets
+          const totalBudgetedMinor = Math.round(
+            budgetTotals.reduce((sum, group) => sum + (group.budgeted || 0), 0) * 100
+          );
+          const totalActualMinor = Math.round(
+            budgetTotals.reduce((sum, group) => sum + (group.actual || 0), 0) * 100
+          );
+          const varianceMinor = totalActualMinor - totalBudgetedMinor;
+          const isOver = varianceMinor > 0;
+
+          return [
+            { label: 'Budgeted', value: totalBudgetedMinor },
+            { label: 'Actual', value: totalActualMinor },
+            { label: 'Variance', value: Math.abs(varianceMinor), critical: isOver },
+          ].map((item, index) => (
+            <div key={item.label} className={index === 0 ? '' : 'border-l border-[#F0F2F4] pl-3 sm:pl-5'}>
+              <p className="text-[9px] font-semibold uppercase tracking-[0.07em] text-[#64748b] sm:text-[10px]">{item.label}</p>
+              <Money
+                amountMinor={item.value}
+                currency={currency}
+                showPlus={item.critical}
+                className={`mt-2 block text-sm font-semibold sm:text-lg ${item.critical ? 'text-[#DC2626]' : 'text-[#0B0F17]'}`}
+              />
+              {item.critical ? <p className="mt-1 text-[10px] font-semibold text-[#DC2626]">{varianceMinor > 0 ? 'over' : 'under'} plan</p> : null}
+            </div>
+          ));
+        })()}
       </div>
 
 
       <BudgetChart currency={currency} />
 
       <div className="mt-5 space-y-3">
-        {BUDGET_GROUPS.map((group) => {
-          const isOver = group.actualMinor > group.budgetMinor;
-          const variance = group.actualMinor - group.budgetMinor;
-          return (
-            <article key={group.type} className="rounded-2xl border border-[#E8EAED] bg-white p-4 sm:p-5">
-              <div className="flex items-start justify-between gap-4">
-                <div>
-                  <h3 className="text-sm font-semibold text-[#0B0F17]">{group.name}</h3>
-                  <p className={`money mt-1 text-[11px] font-medium ${isOver ? 'text-[#DC2626]' : 'text-[#475569]'}`}>
-                    {variance > 0
-                      ? `${formatMoney(variance, currency, { showPlus: true })} over plan`
-                      : variance < 0
-                        ? `${formatMoney(variance, currency)} under plan`
-                        : '0 on plan'}
-                  </p>
-                </div>
-                <span className={`money text-xs font-semibold ${isOver ? 'text-[#DC2626]' : 'text-[#0B0F17]'}`}>
-                  {formatMoney(group.actualMinor, currency)}{' '}
-                  <span className="font-normal text-[#64748b]">/ {formatMoney(group.budgetMinor, currency)}</span>
-                </span>
-              </div>
-              <div className="mt-3">
-                <Meter percent={group.percent} isOver={isOver} />
-              </div>
+        {budgetTotals && budgetTotals.length > 0
+          ? budgetTotals.map((dbGroup) => {
+              const actualMinor = Math.round((dbGroup.actual || 0) * 100);
+              const budgetMinor = Math.round((dbGroup.budgeted || 0) * 100);
+              const isOver = actualMinor > budgetMinor;
+              const variance = actualMinor - budgetMinor;
+              const percent = budgetMinor > 0 ? Math.round((actualMinor / budgetMinor) * 100) : 0;
 
-              {group.type === 'EXPENSES' ? (
-                <div className="mt-5 border-t border-[#F0F2F4] pt-4">
-                  <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#64748b]">Expense categories</p>
-                  <div className="space-y-4">
-                    {EXPENSE_ITEMS.map((item) => {
-                      const itemOver = item.actualMinor > item.budgetMinor;
-                      return (
-                        <div key={item.name}>
-                          <div className="mb-2 flex items-baseline justify-between gap-3">
-                            <span className="text-xs font-medium text-[#475569]">{item.name}</span>
-                            <span className={`money text-[11px] ${itemOver ? 'font-semibold text-[#DC2626]' : 'text-[#475569]'}`}>
-                              {formatMoney(item.actualMinor, currency)} / {formatMoney(item.budgetMinor, currency)}
-                            </span>
-                          </div>
-                          <Meter percent={item.percent} isOver={itemOver} />
-                        </div>
-                      );
-                    })}
+              // Map category_type to display name
+              const categoryName = dbGroup.category_type === 'BILLS' ? 'Bills'
+                : dbGroup.category_type === 'EXPENSES' ? 'Expenses'
+                : dbGroup.category_type === 'SAVINGS' ? 'Savings'
+                : dbGroup.category_type === 'DEBT' ? 'Debt'
+                : 'Income';
+
+              return (
+                <article key={dbGroup.category_type} className="rounded-2xl border border-[#E8EAED] bg-white p-4 sm:p-5">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <h3 className="text-sm font-semibold text-[#0B0F17]">{categoryName}</h3>
+                      <p className={`money mt-1 text-[11px] font-medium ${isOver ? 'text-[#DC2626]' : 'text-[#475569]'}`}>
+                        {variance > 0
+                          ? `${formatMoney(variance, currency, { showPlus: true })} over plan`
+                          : variance < 0
+                            ? `${formatMoney(variance, currency)} under plan`
+                            : '0 on plan'}
+                      </p>
+                    </div>
+                    <span className={`money text-xs font-semibold ${isOver ? 'text-[#DC2626]' : 'text-[#0B0F17]'}`}>
+                      {formatMoney(actualMinor, currency)}{' '}
+                      <span className="font-normal text-[#64748b]">/ {formatMoney(budgetMinor, currency)}</span>
+                    </span>
                   </div>
-                </div>
-              ) : null}
-            </article>
-          );
-        })}
+                  <div className="mt-3">
+                    <Meter percent={percent} isOver={isOver} />
+                  </div>
+                </article>
+              );
+            })
+          : BUDGET_GROUPS.map((group) => {
+              const isOver = group.actualMinor > group.budgetMinor;
+              const variance = group.actualMinor - group.budgetMinor;
+              return (
+                <article key={group.type} className="rounded-2xl border border-[#E8EAED] bg-white p-4 sm:p-5">
+                  <div className="flex items-start justify-between gap-4">
+                    <div>
+                      <h3 className="text-sm font-semibold text-[#0B0F17]">{group.name}</h3>
+                      <p className={`money mt-1 text-[11px] font-medium ${isOver ? 'text-[#DC2626]' : 'text-[#475569]'}`}>
+                        {variance > 0
+                          ? `${formatMoney(variance, currency, { showPlus: true })} over plan`
+                          : variance < 0
+                            ? `${formatMoney(variance, currency)} under plan`
+                            : '0 on plan'}
+                      </p>
+                    </div>
+                    <span className={`money text-xs font-semibold ${isOver ? 'text-[#DC2626]' : 'text-[#0B0F17]'}`}>
+                      {formatMoney(group.actualMinor, currency)}{' '}
+                      <span className="font-normal text-[#64748b]">/ {formatMoney(group.budgetMinor, currency)}</span>
+                    </span>
+                  </div>
+                  <div className="mt-3">
+                    <Meter percent={group.percent} isOver={isOver} />
+                  </div>
+
+                  {group.type === 'EXPENSES' ? (
+                    <div className="mt-5 border-t border-[#F0F2F4] pt-4">
+                      <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#64748b]">Expense categories</p>
+                      <div className="space-y-4">
+                        {EXPENSE_ITEMS.map((item) => {
+                          const itemOver = item.actualMinor > item.budgetMinor;
+                          return (
+                            <div key={item.name}>
+                              <div className="mb-2 flex items-baseline justify-between gap-3">
+                                <span className="text-xs font-medium text-[#475569]">{item.name}</span>
+                                <span className={`money text-[11px] ${itemOver ? 'font-semibold text-[#DC2626]' : 'text-[#475569]'}`}>
+                                  {formatMoney(item.actualMinor, currency)} / {formatMoney(item.budgetMinor, currency)}
+                                </span>
+                              </div>
+                              <Meter percent={item.percent} isOver={itemOver} />
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  ) : null}
+                </article>
+              );
+            })}
       </div>
 
       {/* Budget Edit Sheet */}
