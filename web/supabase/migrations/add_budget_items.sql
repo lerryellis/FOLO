@@ -1,20 +1,19 @@
 -- Create categories table (if not exists)
 CREATE TABLE IF NOT EXISTS public.categories (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  code VARCHAR(50) NOT NULL UNIQUE,  -- 'INCOME', 'BILLS', 'EXPENSES', 'SAVINGS', 'DEBT'
+  category_type VARCHAR(20) NOT NULL UNIQUE,  -- 'INCOME', 'BILLS', 'EXPENSES', 'SAVINGS', 'DEBT'
   name VARCHAR(100) NOT NULL,
-  category_type VARCHAR(20) NOT NULL,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );
 
--- Insert standard categories
-INSERT INTO public.categories (code, name, category_type) VALUES
-  ('INCOME', 'Income', 'INCOME'),
-  ('BILLS', 'Bills', 'BILLS'),
-  ('EXPENSES', 'Expenses', 'EXPENSES'),
-  ('SAVINGS', 'Savings', 'SAVINGS'),
-  ('DEBT', 'Debt', 'DEBT')
-ON CONFLICT (code) DO NOTHING;
+-- Insert standard categories (if not already exists)
+INSERT INTO public.categories (category_type, name) VALUES
+  ('INCOME', 'Income'),
+  ('BILLS', 'Bills'),
+  ('EXPENSES', 'Expenses'),
+  ('SAVINGS', 'Savings'),
+  ('DEBT', 'Debt')
+ON CONFLICT (category_type) DO NOTHING;
 
 -- Create budget_items table
 CREATE TABLE IF NOT EXISTS public.budget_items (

@@ -33,6 +33,7 @@ import {
 import { ReportsScreen } from '@/components/dashboard/ReportsScreen';
 import { BudgetChart } from '@/components/dashboard/BudgetChart';
 import { BudgetTips } from '@/components/dashboard/BudgetTips';
+import { BudgetEditSheet } from '@/components/dashboard/BudgetEditSheet';
 import { GoalCreationSheet } from '@/components/dashboard/GoalCreationSheet';
 import { TransactionEditSheet } from '@/components/dashboard/TransactionEditSheet';
 import { useAuth } from '@/lib/hooks/useAuth';
@@ -51,6 +52,12 @@ import {
 import { describeSupabaseError, isMissingSupabaseRelation } from '@/lib/supabase-error';
 import { resetAllUserData } from '@/lib/reset-user-data';
 import { linkTransactionToGoal, updateGoalProgressFromTransactions } from '@/lib/goal-transaction-operations';
+import {
+  getBudgetGroupTotals,
+  updateBudgetAmount,
+  getOrCreateBudgetItem,
+  type BudgetGroupTotal,
+} from '@/lib/budget-operations';
 import {
   BUDGET_EDUCATION,
   BUDGET_GROUPS,
@@ -462,11 +469,55 @@ function OverviewScreen({
 function BudgetScreen({
   currency,
   showSampleData = false,
+  userId,
+  budgetPeriodId,
+  onBudgetsChange,
 }: {
   currency: CurrencyCode;
   showSampleData?: boolean;
+  userId?: string;
+  budgetPeriodId?: string;
+  onBudgetsChange?: () => void;
 }) {
   const [showBudgetInfo, setShowBudgetInfo] = useState(false);
+  const [showBudgetEdit, setShowBudgetEdit] = useState(false);
+  const [budgetTotals, setBudgetTotals] = useState<BudgetGroupTotal[]>([]);
+  const [budgetLoading, setBudgetLoading] = useState(false);
+
+  // Load budgets from database
+  useEffect(() => {
+    if (!userId || !budgetPeriodId) return;
+
+    const loadBudgets = async () => {
+      try {
+        setBudgetLoading(true);
+        const totals = await getBudgetGroupTotals(userId, budgetPeriodId);
+        setBudgetTotals(totals || []);
+      } catch (error) {
+        console.error('Error loading budgets:', error);
+      } finally {
+        setBudgetLoading(false);
+      }
+    };
+
+    loadBudgets();
+  }, [userId, budgetPeriodId]);
+
+  const handleSaveBudgets = async (budgets: Record<string, number>) => {
+    if (!userId || !budgetPeriodId) return;
+
+    try {
+      for (const [categoryType, amount] of Object.entries(budgets)) {
+        await getOrCreateBudgetItem(userId, budgetPeriodId, categoryType, amount);
+      }
+      // Reload budgets
+      const totals = await getBudgetGroupTotals(userId, budgetPeriodId);
+      setBudgetTotals(totals || []);
+      onBudgetsChange?.();
+    } catch (error) {
+      console.error('Error saving budgets:', error);
+    }
+  };
 
   if (!showSampleData) {
     return (
@@ -525,9 +576,18 @@ function BudgetScreen({
         </div>
       )}
 
-      <div className="mb-5">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.09em] text-[#64748b]">{formatPeriod(new Date())}</p>
-        <h2 className="mt-1 text-xl font-semibold tracking-[-0.025em] text-[#0B0F17]">Budget</h2>
+      <div className="mb-5 flex items-center justify-between">
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-[0.09em] text-[#64748b]">{formatPeriod(new Date())}</p>
+          <h2 className="mt-1 text-xl font-semibold tracking-[-0.025em] text-[#0B0F17]">Budget</h2>
+        </div>
+        <button
+          onClick={() => setShowBudgetEdit(true)}
+          className="flex items-center gap-2 rounded-xl border border-[#E8EAED] bg-white px-3 py-2 text-sm font-semibold text-[#0B0F17] transition-colors hover:bg-[#F6F7F9]"
+        >
+          <Edit2 className="h-4 w-4" />
+          Edit Budgets
+        </button>
       </div>
 
       <div className="grid grid-cols-3 rounded-2xl border border-[#E8EAED] bg-white p-4 sm:p-5">
@@ -603,6 +663,31 @@ function BudgetScreen({
           );
         })}
       </div>
+
+      {/* Budget Edit Sheet */}
+      <BudgetEditSheet
+        isOpen={showBudgetEdit}
+        onClose={() => setShowBudgetEdit(false)}
+        onSave={handleSaveBudgets}
+        currency={currency}
+        budgets={{
+          INCOME: budgetTotals.find((t) => t.category_type === 'INCOME')?.budgeted
+            ? Math.round(budgetTotals.find((t) => t.category_type === 'INCOME')!.budgeted * 100)
+            : 0,
+          BILLS: budgetTotals.find((t) => t.category_type === 'BILLS')?.budgeted
+            ? Math.round(budgetTotals.find((t) => t.category_type === 'BILLS')!.budgeted * 100)
+            : 0,
+          EXPENSES: budgetTotals.find((t) => t.category_type === 'EXPENSES')?.budgeted
+            ? Math.round(budgetTotals.find((t) => t.category_type === 'EXPENSES')!.budgeted * 100)
+            : 0,
+          SAVINGS: budgetTotals.find((t) => t.category_type === 'SAVINGS')?.budgeted
+            ? Math.round(budgetTotals.find((t) => t.category_type === 'SAVINGS')!.budgeted * 100)
+            : 0,
+          DEBT: budgetTotals.find((t) => t.category_type === 'DEBT')?.budgeted
+            ? Math.round(budgetTotals.find((t) => t.category_type === 'DEBT')!.budgeted * 100)
+            : 0,
+        }}
+      />
     </section>
   );
 }
