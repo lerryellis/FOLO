@@ -48,6 +48,7 @@ import {
   fetchGoals,
 } from '@/lib/goal-operations';
 import { resetAllUserData } from '@/lib/reset-user-data';
+import { linkTransactionToGoal, updateGoalProgressFromTransactions } from '@/lib/goal-transaction-operations';
 import {
   BUDGET_GROUPS,
   CATEGORY_MAP,
@@ -827,11 +828,15 @@ function AddScreen({
   isOnline,
   onClose,
   onSave,
+  goals = [],
+  userId = '',
 }: {
   currency: CurrencyCode;
   isOnline: boolean;
   onClose: () => void;
-  onSave: (transaction: Transaction) => void;
+  onSave: (transaction: Transaction, goalId?: string) => void;
+  goals?: typeof GOALS;
+  userId?: string;
 }) {
   const [amount, setAmount] = useState('');
   const [selectedGroup, setSelectedGroup] = useState<CategoryType>('EXPENSES');
@@ -841,6 +846,7 @@ function AddScreen({
   const [selectedCreditCardType, setSelectedCreditCardType] = useState(CREDIT_CARD_TYPES[0]);
   const [selectedDate, setSelectedDate] = useState(localDateValue);
   const [note, setNote] = useState('');
+  const [selectedGoalId, setSelectedGoalId] = useState<string>('');
 
   // Update category when group changes
   useEffect(() => {
@@ -885,7 +891,7 @@ function AddScreen({
       date: selectedDate,
       note: note.trim() || undefined,
       pending: !isOnline,
-    });
+    }, selectedGoalId || undefined);
   }
 
   return (
@@ -1187,14 +1193,23 @@ export default function DashboardPage() {
     setPeriod(new Date(SAMPLE_YEAR, SAMPLE_MONTH, 1));
   }
 
-  async function saveTransaction(transaction: Transaction) {
+  async function saveTransaction(transaction: Transaction, goalId?: string) {
     try {
       // Save to Supabase first
       await saveTransactionToSupabase(user!.id, transaction);
 
+      // Link to goal if selected
+      if (goalId) {
+        await linkTransactionToGoal(user!.id, goalId, transaction.id, transaction.amountMinor);
+
+        // Reload goals to update progress
+        const updatedGoals = await fetchGoals(user!.id);
+        setGoals(updatedGoals);
+      }
+
       // Update local state
       setTransactions((current) => [transaction, ...current]);
-      setNotice('Transaction saved successfully.');
+      setNotice(goalId ? 'Transaction saved and linked to goal!' : 'Transaction saved successfully.');
       setActiveTab('activity');
     } catch (error) {
       console.error('Failed to save transaction:', error);
@@ -1419,6 +1434,8 @@ export default function DashboardPage() {
               isOnline={isOnline}
               onClose={() => setActiveTab('home')}
               onSave={saveTransaction}
+              goals={goals}
+              userId={user.id}
             />
           ) : null}
         </main>
