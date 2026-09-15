@@ -290,28 +290,48 @@ function OverviewScreen({
   const recent = displayTransactions.slice(0, 3);
   const previewGoals = (goals.length > 0 ? goals : GOALS).filter((goal) => goal.percent < 100).slice(0, 3);
 
+  // Calculate actual values from transactions
+  const incomeMinor = displayTransactions
+    .filter((t) => t.categoryType === 'INCOME')
+    .reduce((sum, t) => sum + t.amountMinor, 0);
+
+  const spentMinor = Math.abs(
+    displayTransactions
+      .filter((t) => t.categoryType === 'BILLS' || t.categoryType === 'EXPENSES')
+      .reduce((sum, t) => sum + t.amountMinor, 0)
+  );
+
+  const savedAndPaidMinor = Math.abs(
+    displayTransactions
+      .filter((t) => t.categoryType === 'SAVINGS' || t.categoryType === 'DEBT')
+      .reduce((sum, t) => sum + t.amountMinor, 0)
+  );
+
+  const netMinor = incomeMinor - spentMinor - savedAndPaidMinor;
+
   return (
     <section className="mx-auto w-full max-w-[1200px] px-4 py-4 sm:px-6 lg:px-8 lg:py-7">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[1.4fr_repeat(3,minmax(0,1fr))] lg:gap-4">
         <article className="rounded-2xl border border-[#E8EAED] bg-white p-5 sm:col-span-2 lg:col-span-1 lg:border-[#0B0F17] lg:bg-[#0B0F17]">
           <div className="flex items-center justify-between">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.09em] text-[#64748b] lg:text-[#94a3b8]">Left to spend</p>
-            <span className="text-xs font-medium text-[#64748b] lg:text-[#94a3b8]">16 days left</span>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.09em] text-[#64748b] lg:text-[#94a3b8]">Net this month</p>
+            <span className="text-xs font-medium text-[#64748b] lg:text-[#94a3b8]">{new Date().getDate()} days in</span>
           </div>
           <Money
-            amountMinor={transactions.reduce((sum, t) => sum + (t.categoryType === 'INCOME' ? t.amountMinor : -t.amountMinor), 0)}
+            amountMinor={netMinor}
             currency={currency}
-            className="mt-3 block text-[34px] font-semibold leading-none tracking-[-0.04em] text-[#0B0F17] lg:text-white"
+            showPlus
+            className={`mt-3 block text-[34px] font-semibold leading-none tracking-[-0.04em] ${netMinor >= 0 ? 'text-[#0B0F17] lg:text-white' : 'text-[#DC2626]'}`}
           />
           <p className="money mt-3 text-xs text-[#64748b] lg:text-[#94a3b8]">
-            planned {formatMoney(180_000, currency)} · {formatMoney(48_500, currency)} under
+            {incomeMinor > 0 ? `Income: ${formatMoney(incomeMinor, currency)}` : 'No income recorded'}
           </p>
         </article>
 
         {[
-          { label: 'Income', value: 920_000, detail: `of ${formatMoney(950_000, currency)} expected` },
-          { label: 'Spent', value: 593_500, detail: `${formatMoney(18_500, currency)} over budget`, critical: true },
-          { label: 'Saved + paid', value: 245_000, detail: `${formatMoney(150_000, currency)} saved · ${formatMoney(95_000, currency)} debt` },
+          { label: 'Income', value: incomeMinor, detail: incomeMinor > 0 ? `${formatMoney(incomeMinor, currency)} recorded` : 'No income yet' },
+          { label: 'Spent', value: spentMinor, detail: spentMinor > 0 ? `${formatMoney(spentMinor, currency)} spent` : 'No expenses yet', critical: false },
+          { label: 'Saved + paid', value: savedAndPaidMinor, detail: savedAndPaidMinor > 0 ? `${formatMoney(savedAndPaidMinor, currency)} allocated` : 'No savings/debt yet' },
         ].map((stat) => (
           <article key={stat.label} className="rounded-2xl border border-[#E8EAED] bg-white p-4 lg:p-5">
             <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#64748b]">{stat.label}</p>
