@@ -27,8 +27,8 @@ export function BudgetTips() {
       {/* Allocation Strategy */}
       <article className="rounded-2xl border border-[#E8EAED] bg-gradient-to-br from-[#FFF7ED] to-white p-5">
         <div className="mb-3 flex items-center gap-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#FEF3C7]">
-            <Lightbulb className="h-5 w-5 text-[#D97706]" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#E7F7F0]">
+            <Lightbulb className="h-5 w-5 text-[#10B981]" />
           </div>
           <h3 className="font-semibold text-[#0B0F17]">{BUDGET_EDUCATION.allocationStrategy.title}</h3>
         </div>
@@ -51,8 +51,8 @@ export function BudgetTips() {
       {/* Actual vs Budget */}
       <article className="rounded-2xl border border-[#E8EAED] bg-gradient-to-br from-[#EFF6FF] to-white p-5">
         <div className="mb-3 flex items-center gap-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#DBEAFE]">
-            <TrendingUp className="h-5 w-5 text-[#3B82F6]" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#E7F7F0]">
+            <TrendingUp className="h-5 w-5 text-[#10B981]" />
           </div>
           <h3 className="font-semibold text-[#0B0F17]">{BUDGET_EDUCATION.actualVsBudget.title}</h3>
         </div>
@@ -70,8 +70,8 @@ export function BudgetTips() {
       {/* Best Practices */}
       <article className="rounded-2xl border border-[#E8EAED] bg-gradient-to-br from-[#F3E8FF] to-white p-5">
         <div className="mb-3 flex items-center gap-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#F3E8FF]">
-            <Sparkles className="h-5 w-5 text-[#A855F7]" />
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#E7F7F0]">
+            <Sparkles className="h-5 w-5 text-[#10B981]" />
           </div>
           <h3 className="font-semibold text-[#0B0F17]">{BUDGET_EDUCATION.bestPractices.title}</h3>
         </div>
