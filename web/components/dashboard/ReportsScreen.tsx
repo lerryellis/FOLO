@@ -13,6 +13,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
+import { TrendingUp, TrendingDown, Target, FileBarChart } from 'lucide-react';
 import type { CurrencyCode, Transaction } from '@/lib/folo-data';
 import { formatMoney, getCurrency } from '@/lib/folo-data';
 import {
@@ -21,7 +22,7 @@ import {
   calculateNetPosition,
   calculatePeriodSummary,
 } from '@/lib/reports-calculations';
-import { FileBarChart } from 'lucide-react';
+import { HelpTooltip } from './HelpTooltip';
 
 import type { BudgetGroupTotal } from '@/lib/budget-operations';
 
@@ -67,14 +68,46 @@ function NetDot({ cx = 0, cy = 0, payload }: NetDotProps) {
   );
 }
 
-function PanelHeading({ title, subtitle, trailing }: { title: string; subtitle: string; trailing?: string }) {
+interface StatCardProps {
+  label: string;
+  value: string;
+  change?: string;
+  changeIsPositive?: boolean;
+  helpTitle?: string;
+  helpContent?: string;
+}
+
+function StatCard({ label, value, change, changeIsPositive, helpTitle, helpContent }: StatCardProps) {
   return (
-    <div className="flex items-start justify-between gap-4">
-      <div>
+    <div className="rounded-lg border border-[#E8EAED] bg-white p-4">
+      <div className="flex items-start justify-between">
+        <div className="flex-1">
+          <p className="text-xs font-medium uppercase tracking-[0.05em] text-[#64748b]">{label}</p>
+          <p className="mt-2 text-lg font-semibold text-[#0B0F17]">{value}</p>
+          {change && (
+            <p className={`mt-1 text-xs font-medium ${changeIsPositive ? 'text-[#10B981]' : 'text-[#ef4444]'}`}>
+              {changeIsPositive ? '↑' : '↓'} {change}
+            </p>
+          )}
+        </div>
+        {helpTitle && helpContent && (
+          <HelpTooltip title={helpTitle} content={helpContent} />
+        )}
+      </div>
+    </div>
+  );
+}
+
+function SectionHeader({ title, subtitle, helpTitle, helpContent }: { title: string; subtitle: string; helpTitle?: string; helpContent?: string }) {
+  return (
+    <div className="mb-4 flex items-start justify-between gap-4">
+      <div className="flex-1">
         <h3 className="text-sm font-semibold tracking-[-0.01em] text-[#0B0F17]">{title}</h3>
         <p className="mt-1 text-xs text-[#64748b]">{subtitle}</p>
       </div>
-      {trailing ? <span className="money text-xs font-semibold text-[#475569]">{trailing}</span> : null}
+      {helpTitle && helpContent && (
+        <HelpTooltip title={helpTitle} content={helpContent} />
+      )}
     </div>
   );
 }
@@ -99,61 +132,130 @@ export function ReportsScreen({ currency, showSampleData = false, transactions =
   const netPosition = calculateNetPosition(transactions);
   const summary = calculatePeriodSummary(transactions);
 
+  // Calculate summary statistics
+  const totalIncome = transactions
+    .filter(t => t.categoryType === 'INCOME')
+    .reduce((sum, t) => sum + t.amountMinor, 0);
+
+  const totalExpenses = transactions
+    .filter(t => ['BILLS', 'EXPENSES'].includes(t.categoryType))
+    .reduce((sum, t) => sum + t.amountMinor, 0);
+
+  const totalSavings = transactions
+    .filter(t => t.categoryType === 'SAVINGS')
+    .reduce((sum, t) => sum + t.amountMinor, 0);
+
+  const expenseRatio = totalIncome > 0 ? Math.round((totalExpenses / totalIncome) * 100) : 0;
+  const savingsRate = totalIncome > 0 ? Math.round((totalSavings / totalIncome) * 100) : 0;
+
+  // Budget performance: calculate percentage on budget
+  const totalBudgeted = budgetGroups.reduce((sum, g) => sum + g.budgeted, 0);
+  const budgetHealth = totalBudgeted > 0 ? Math.round(((totalBudgeted - totalExpenses) / totalBudgeted) * 100) : 0;
+
   return (
     <section className="mx-auto w-full max-w-[1200px] px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
-      <div className="mb-5 flex items-end justify-between gap-4">
+      {/* Header */}
+      <div className="mb-7 flex items-end justify-between gap-4">
         <div>
           <p className="text-[10px] font-semibold uppercase tracking-[0.09em] text-[#64748b]">September 2026</p>
-          <h2 className="mt-1 text-xl font-semibold tracking-[-0.025em] text-[#0B0F17]">Reports</h2>
+          <h2 className="mt-1 text-xl font-semibold tracking-[-0.025em] text-[#0B0F17]">Reports & Analytics</h2>
         </div>
-        <p className="hidden text-xs text-[#64748b] sm:block">Three signals. No chart clutter.</p>
+        <p className="hidden text-xs text-[#64748b] sm:block">Your financial insights at a glance</p>
       </div>
 
-      <div className="grid gap-5 xl:grid-cols-[1.35fr_0.65fr]">
-        <article className="rounded-[14px] border border-[#E8EAED] bg-white p-4 sm:p-5">
-          <PanelHeading
-            title="Where the money went"
-            subtitle="Actual spend by category · sorted high to low"
-            trailing={currencySymbol}
+      {/* Summary Statistics Section */}
+      <div className="mb-7">
+        <h3 className="mb-3 text-xs font-semibold uppercase tracking-[0.05em] text-[#64748b]">Financial Overview</h3>
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+          <StatCard
+            label="Total Income"
+            value={formatMoney(totalIncome, currency)}
+            helpTitle="Total Income"
+            helpContent="All income transactions received this period from all sources (salary, freelance, etc.)"
           />
-          <div className="mt-5 h-[330px] w-full" aria-label="Horizontal bar chart of spending by category">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={spendingByCategory} layout="vertical" margin={{ top: 0, right: 24, bottom: 0, left: 8 }}>
-                <CartesianGrid horizontal={false} stroke="#F0F2F4" />
-                <XAxis
-                  type="number"
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: '#64748b', fontSize: 10 }}
-                  tickFormatter={(value: number) => formatMoney(value, currency, { includeSymbol: false }).replace('.00', '')}
-                />
-                <YAxis
-                  type="category"
-                  dataKey="name"
-                  width={104}
-                  axisLine={false}
-                  tickLine={false}
-                  tick={{ fill: '#475569', fontSize: 11 }}
-                />
-                <Tooltip
-                  cursor={{ fill: '#F6F7F9' }}
-                  formatter={(value) => [formatMoney(Number(value), currency), 'Actual']}
-                  contentStyle={{ border: '1px solid #E8EAED', borderRadius: 10, boxShadow: '0 8px 24px rgba(11,15,23,0.08)' }}
-                  labelStyle={{ color: '#0B0F17', fontWeight: 600 }}
-                />
-                <Bar dataKey="amountMinor" radius={[0, 4, 4, 0]} maxBarSize={18}>
-                  {spendingByCategory.map((entry) => (
-                    <Cell key={entry.name} fill={entry.fill} />
-                  ))}
-                </Bar>
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        </article>
+          <StatCard
+            label="Total Expenses"
+            value={formatMoney(totalExpenses, currency)}
+            helpTitle="Total Expenses"
+            helpContent="Sum of bills and expenses spent this period across all categories"
+          />
+          <StatCard
+            label="Savings This Month"
+            value={formatMoney(totalSavings, currency)}
+            change={`${savingsRate}% of income`}
+            changeIsPositive={savingsRate > 0}
+            helpTitle="Savings Rate"
+            helpContent="Percentage of income allocated to savings goals and debt repayment"
+          />
+          <StatCard
+            label="Remaining Balance"
+            value={formatMoney(summary.netMinor, currency)}
+            change={budgetHealth > 0 ? `${budgetHealth}% under budget` : `${Math.abs(budgetHealth)}% over budget`}
+            changeIsPositive={budgetHealth > 0}
+            helpTitle="Cash Position"
+            helpContent="Income minus all expenses and savings this period"
+          />
+        </div>
+      </div>
 
-        <article className="rounded-[14px] border border-[#E8EAED] bg-white p-4 sm:p-5">
-          <PanelHeading title="Over and under plan" subtitle="Actual minus budgeted, by group" />
-          <div className="mt-5 h-[330px] w-full" aria-label="Diverging bar chart of budget variance">
+      {/* Spending Analysis Section */}
+      <div className="mb-7 rounded-[14px] border border-[#E8EAED] bg-white p-4 sm:p-5">
+        <SectionHeader
+          title="Spending by Category"
+          subtitle="Where your money went this month"
+          helpTitle="Category Breakdown"
+          helpContent="Shows actual spending across all expense categories, sorted by amount. Bars are colored to show relative magnitude — darker shades indicate higher spending."
+        />
+        <div className="h-[330px] w-full" aria-label="Horizontal bar chart of spending by category">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={spendingByCategory} layout="vertical" margin={{ top: 0, right: 24, bottom: 0, left: 8 }}>
+              <CartesianGrid horizontal={false} stroke="#F0F2F4" />
+              <XAxis
+                type="number"
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: '#64748b', fontSize: 10 }}
+                tickFormatter={(value: number) => formatMoney(value, currency, { includeSymbol: false }).replace('.00', '')}
+              />
+              <YAxis
+                type="category"
+                dataKey="name"
+                width={104}
+                axisLine={false}
+                tickLine={false}
+                tick={{ fill: '#475569', fontSize: 11 }}
+              />
+              <Tooltip
+                cursor={{ fill: '#F6F7F9' }}
+                formatter={(value) => [formatMoney(Number(value), currency), 'Actual']}
+                contentStyle={{ border: '1px solid #E8EAED', borderRadius: 10, boxShadow: '0 8px 24px rgba(11,15,23,0.08)' }}
+                labelStyle={{ color: '#0B0F17', fontWeight: 600 }}
+              />
+              <Bar dataKey="amountMinor" radius={[0, 4, 4, 0]} maxBarSize={18}>
+                {spendingByCategory.map((entry) => (
+                  <Cell key={entry.name} fill={entry.fill} />
+                ))}
+              </Bar>
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+        <p className="mt-4 text-xs text-[#64748b]">
+          💡 <strong>Insight:</strong> {spendingByCategory[0]?.name} is your largest expense category, accounting for {
+            ((spendingByCategory[0]?.amountMinor || 0) / totalExpenses * 100).toFixed(0)
+          }% of total spending.
+        </p>
+      </div>
+
+      {/* Budget Performance Section */}
+      <div className="grid gap-5 lg:grid-cols-2">
+        <div className="rounded-[14px] border border-[#E8EAED] bg-white p-4 sm:p-5">
+          <SectionHeader
+            title="Budget Performance"
+            subtitle="Actual vs planned spending"
+            helpTitle="Over/Under Analysis"
+            helpContent="Shows how much each spending group is over or under budget. Green = under budget (good), Red = over budget (exceeded limit), Gray = on target."
+          />
+          <div className="h-[300px] w-full" aria-label="Diverging bar chart of budget variance">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={budgetVariance} layout="vertical" margin={{ top: 4, right: 16, bottom: 12, left: 0 }}>
                 <CartesianGrid horizontal={false} stroke="#F0F2F4" />
@@ -195,19 +297,61 @@ export function ReportsScreen({ currency, showSampleData = false, transactions =
               </BarChart>
             </ResponsiveContainer>
           </div>
-          <div className="mt-1 flex items-center justify-between text-[10px] font-medium uppercase tracking-[0.07em] text-[#64748b]">
-            <span>− under</span>
-            <span>0 on plan</span>
-            <span>+ over</span>
+          <div className="mt-3 flex items-center justify-between text-[10px] font-medium uppercase tracking-[0.07em] text-[#64748b]">
+            <span>− under budget</span>
+            <span>0 on target</span>
+            <span>+ over budget</span>
           </div>
-        </article>
+        </div>
+
+        {/* Key Metrics Panel */}
+        <div className="space-y-3">
+          <div className="rounded-[14px] border border-[#E8EAED] bg-white p-4 sm:p-5">
+            <h4 className="flex items-center justify-between text-sm font-semibold text-[#0B0F17]">
+              Budget Health Score
+              <HelpTooltip
+                title="Budget Health"
+                content="Percentage of budgeted amount remaining. 100% means you're exactly on track; positive means you're under budget (saved money)."
+              />
+            </h4>
+            <div className="mt-4">
+              <div className="relative h-2 w-full overflow-hidden rounded-full bg-[#E8EAED]">
+                <div
+                  className={`h-full ${budgetHealth > 0 ? 'bg-[#10B981]' : 'bg-[#ef4444]'}`}
+                  style={{ width: `${Math.max(0, Math.min(100, budgetHealth + 50))}%` }}
+                />
+              </div>
+              <p className={`mt-2 text-sm font-semibold ${budgetHealth > 0 ? 'text-[#10B981]' : 'text-[#ef4444]'}`}>
+                {budgetHealth > 0 ? '✓' : '⚠'} {budgetHealth}% {budgetHealth > 0 ? 'under' : 'over'} budget
+              </p>
+            </div>
+          </div>
+
+          <div className="rounded-[14px] border border-[#E8EAED] bg-white p-4 sm:p-5">
+            <h4 className="flex items-center justify-between text-sm font-semibold text-[#0B0F17]">
+              Expense Ratio
+              <HelpTooltip
+                title="Expense Ratio"
+                content="Percentage of income spent on bills and expenses. Lower is better — leaves more for savings."
+              />
+            </h4>
+            <p className="mt-3 text-2xl font-semibold text-[#0B0F17]">{expenseRatio}%</p>
+            <p className="mt-2 text-xs text-[#64748b]">
+              {expenseRatio < 60 ? '💰 Excellent ratio — strong savings capacity' :
+               expenseRatio < 80 ? '📊 Moderate ratio — room for optimization' :
+               '⚠️ High ratio — review spending patterns'}
+            </p>
+          </div>
+        </div>
       </div>
 
-      <article className="mt-5 rounded-[14px] border border-[#E8EAED] bg-white p-4 sm:p-5">
-        <PanelHeading
-          title="Net position by month"
-          subtitle="Income minus everything out · last 6 completed periods"
-          trailing={`${formatMoney(summary.netMinor, currency, { showPlus: true })} this month`}
+      {/* Trends Section */}
+      <article className="mt-7 rounded-[14px] border border-[#E8EAED] bg-white p-4 sm:p-5">
+        <SectionHeader
+          title="Cash Flow Trends"
+          subtitle="Net position over the last 6 months"
+          helpTitle="Net Position Trend"
+          helpContent="Shows your monthly net position (income minus all outflows). Positive values mean money left over; negative means you spent more than earned."
         />
         <div className="mt-5 h-[280px] w-full" aria-label="Line chart of net position by month">
           <ResponsiveContainer width="100%" height="100%">
@@ -242,6 +386,11 @@ export function ReportsScreen({ currency, showSampleData = false, transactions =
               />
             </LineChart>
           </ResponsiveContainer>
+        </div>
+        <div className="mt-4 rounded-lg bg-[#F0FDF9] p-3">
+          <p className="text-xs text-[#047857]">
+            <strong>Trend Analysis:</strong> Your current net position is <strong>{formatMoney(summary.netMinor, currency)}</strong>. This is the income minus all expenses. Compare it with previous months to identify spending patterns and plan ahead.
+          </p>
         </div>
       </article>
     </section>
