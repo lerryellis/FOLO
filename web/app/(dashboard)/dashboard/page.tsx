@@ -934,16 +934,18 @@ function ActivityScreen({
   );
 }
 
-function GoalCard({ 
-  goal, 
-  currency, 
-  isSelected = false, 
-  onSelect = () => {} 
-}: { 
-  goal: Goal; 
+function GoalCard({
+  goal,
+  currency,
+  isSelected = false,
+  onSelect = () => {},
+  onAddToSavings = () => {}
+}: {
+  goal: Goal;
   currency: CurrencyCode;
   isSelected?: boolean;
   onSelect?: () => void;
+  onAddToSavings?: (goal: Goal) => void;
 }) {
   const isComplete = goal.percent >= 100;
   const status = goal.type === 'DEBT' ? 'Cleared' : 'Achieved';
@@ -988,10 +990,23 @@ function GoalCard({
             </button>
           </div>
         ) : isComplete ? (
-          <span className="flex shrink-0 items-center gap-1.5 rounded-full bg-[#E7F7F0] px-2.5 py-1 text-[11px] font-semibold text-[#065F46]">
-            <CheckCircle2 className="h-3.5 w-3.5" />
-            {status}
-          </span>
+          <div className="flex shrink-0 flex-col items-end gap-1.5">
+            <span className="flex items-center gap-1.5 rounded-full bg-[#E7F7F0] px-2.5 py-1 text-[11px] font-semibold text-[#065F46]">
+              <CheckCircle2 className="h-3.5 w-3.5" />
+              {status}
+            </span>
+            {goal.type === 'SAVINGS' && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onAddToSavings(goal);
+                }}
+                className="rounded-lg bg-[#10B981] px-2.5 py-1 text-[10px] font-semibold text-white hover:bg-[#059669] transition-colors"
+              >
+                Add to Savings
+              </button>
+            )}
+          </div>
         ) : (
           <span className="money shrink-0 text-xs font-semibold text-[#475569]">{goal.percent}%</span>
         )}
