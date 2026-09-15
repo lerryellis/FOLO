@@ -53,6 +53,25 @@ export async function getOrCreateBudgetPeriod(userId: string, date: Date): Promi
       throw new Error('Failed to create budget period: no data returned');
     }
 
+    // Auto-create empty budget items for each category (so UI doesn't fall back to hardcoded)
+    const { data: categories, error: catError } = await supabase
+      .from('categories')
+      .select('id, category_type');
+
+    if (!catError && categories && categories.length > 0) {
+      const budgetItems = categories.map((cat) => ({
+        budget_period_id: created.id,
+        user_id: userId,
+        category_id: cat.id,
+        budgeted_amount: 0,
+      }));
+
+      await supabase
+        .from('budget_items')
+        .insert(budgetItems)
+        .select();
+    }
+
     return created.id;
   } catch (error) {
     console.error('Error managing budget period:', {
