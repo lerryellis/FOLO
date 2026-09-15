@@ -1026,18 +1026,26 @@ function GoalsScreen({
   const savingsGoals = goals.filter((goal) => goal.type === 'SAVINGS');
   const debtGoals = goals.filter((goal) => goal.type === 'DEBT');
 
+  // Calculate summary totals from all goals
+  const targetMinor = goals.reduce((sum, goal) => sum + goal.targetMinor, 0);
+  const progressMinor = goals.reduce((sum, goal) => sum + goal.progressMinor, 0);
+  const toGoMinor = Math.max(targetMinor - progressMinor, 0);
+  const completeCount = goals.filter((goal) => goal.percent >= 100).length;
+
   return (
     <section className="mx-auto w-full max-w-4xl px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
       <div className="mb-5">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.09em] text-[#64748b]">2 of 5 complete</p>
+        <p className="text-[10px] font-semibold uppercase tracking-[0.09em] text-[#64748b]">
+          {completeCount} of {goals.length} complete
+        </p>
         <h2 className="mt-1 text-xl font-semibold tracking-[-0.025em] text-[#0B0F17]">Goals</h2>
       </div>
 
       <div className="grid grid-cols-3 rounded-2xl border border-[#E8EAED] bg-white p-4 sm:p-5">
         {[
-          { label: 'Target', value: 8900000 },
-          { label: 'Saved / paid', value: 3915000, accent: true },
-          { label: 'To go', value: 4985000 },
+          { label: 'Target', value: targetMinor },
+          { label: 'Saved / paid', value: progressMinor, accent: true },
+          { label: 'To go', value: toGoMinor },
         ].map((item, index) => (
           <div key={item.label} className={index === 0 ? '' : 'border-l border-[#F0F2F4] pl-3 sm:pl-5'}>
             <p className="text-[9px] font-semibold uppercase tracking-[0.07em] text-[#64748b] sm:text-[10px]">{item.label}</p>
