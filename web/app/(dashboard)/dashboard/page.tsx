@@ -1067,6 +1067,10 @@ function GoalsScreen({
   const progressMinor = goals.reduce((sum, goal) => sum + goal.progressMinor, 0);
   const toGoMinor = Math.max(targetMinor - progressMinor, 0);
   const completeCount = goals.filter((goal) => goal.percent >= 100).length;
+  const completedGoals = goals.filter((goal) => goal.percent >= 100);
+  const yearToDateSavingsMinor = completedGoals
+    .filter((goal) => goal.type === 'SAVINGS')
+    .reduce((sum, goal) => sum + goal.targetMinor, 0);
 
   return (
     <section className="mx-auto w-full max-w-4xl px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
@@ -1076,6 +1080,30 @@ function GoalsScreen({
         </p>
         <h2 className="mt-1 text-xl font-semibold tracking-[-0.025em] text-[#0B0F17]">Goals</h2>
       </div>
+
+      {/* Year-to-Date Savings Card */}
+      {yearToDateSavingsMinor > 0 && (
+        <article className="mb-5 rounded-2xl border border-[#10B981] bg-[#F0FDF9] p-4 sm:p-5">
+          <div className="flex items-start justify-between">
+            <div>
+              <p className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#065F46]">Year-to-Date Savings</p>
+              <Money
+                amountMinor={yearToDateSavingsMinor}
+                currency={currency}
+                className="mt-2 block text-2xl font-bold text-[#065F46]"
+              />
+              <p className="mt-1 text-[11px] text-[#047857]">
+                From {completedGoals.filter((g) => g.type === 'SAVINGS').length} completed savings goal{
+                  completedGoals.filter((g) => g.type === 'SAVINGS').length === 1 ? '' : 's'
+                }
+              </p>
+            </div>
+            <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#10B981] text-lg">
+              💰
+            </div>
+          </div>
+        </article>
+      )}
 
       <div className="grid grid-cols-3 rounded-2xl border border-[#E8EAED] bg-white p-4 sm:p-5">
         {[
