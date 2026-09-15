@@ -475,7 +475,12 @@ function OverviewScreen({
                   transaction={transaction}
                   currency={currency}
                   isLast={index === recent.length - 1}
-                  onClick={onTransactionClick}
+                  onClick={(tx) => {
+                    // Navigate to activity page and then edit
+                    setActiveTab('activity');
+                    // Small delay to let the tab change before opening edit
+                    setTimeout(() => onTransactionClick(tx), 100);
+                  }}
                 />
               ))
             ) : (
