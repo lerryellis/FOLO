@@ -51,6 +51,7 @@ import { describeSupabaseError, isMissingSupabaseRelation } from '@/lib/supabase
 import { resetAllUserData } from '@/lib/reset-user-data';
 import { linkTransactionToGoal, updateGoalProgressFromTransactions } from '@/lib/goal-transaction-operations';
 import {
+  BUDGET_EDUCATION,
   BUDGET_GROUPS,
   CATEGORY_MAP,
   CREDIT_CARD_TYPES,
@@ -436,6 +437,8 @@ function BudgetScreen({
   currency: CurrencyCode;
   showSampleData?: boolean;
 }) {
+  const [showBudgetInfo, setShowBudgetInfo] = useState(false);
+
   if (!showSampleData) {
     return (
       <section className="mx-auto w-full max-w-4xl px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
@@ -449,7 +452,50 @@ function BudgetScreen({
   }
 
   return (
-    <section className="mx-auto w-full max-w-4xl px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
+    <section className="relative mx-auto w-full max-w-4xl px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
+      {/* Floating Info Button */}
+      <button
+        onClick={() => setShowBudgetInfo(true)}
+        className="fixed bottom-24 right-4 z-40 flex h-12 w-12 items-center justify-center rounded-full bg-[#10B981] text-white shadow-lg hover:bg-[#059669] transition-colors lg:bottom-6"
+        aria-label="How to use the budget page"
+        title="How to use the budget page"
+      >
+        <Inbox className="h-6 w-6" />
+      </button>
+
+      {/* Info Modal */}
+      {showBudgetInfo && (
+        <div className="fixed inset-0 z-50 flex items-end lg:items-center lg:justify-center">
+          <div className="absolute inset-0 bg-black/40" onClick={() => setShowBudgetInfo(false)} />
+          <div className="relative w-full lg:w-full lg:max-w-2xl animate-in slide-in-from-bottom lg:slide-in-from-center duration-300 rounded-t-3xl lg:rounded-2xl border border-[#E8EAED] bg-white p-6 sm:p-8 max-h-[90vh] overflow-y-auto">
+            <div className="mb-6 flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-[#0B0F17]">{BUDGET_EDUCATION.pageUsage.title}</h2>
+              <button
+                onClick={() => setShowBudgetInfo(false)}
+                className="flex h-10 w-10 items-center justify-center rounded-lg hover:bg-[#F6F7F9]"
+              >
+                <X className="h-5 w-5 text-[#64748b]" />
+              </button>
+            </div>
+            <div className="space-y-6">
+              {BUDGET_EDUCATION.pageUsage.sections.map((section, idx) => (
+                <div key={idx}>
+                  <h3 className="mb-3 text-sm font-semibold text-[#0B0F17]">{section.heading}</h3>
+                  <ul className="space-y-2">
+                    {section.tips.map((tip, tipIdx) => (
+                      <li key={tipIdx} className="flex gap-3 text-sm text-[#475569]">
+                        <span className="mt-1 shrink-0 text-[#10B981]">•</span>
+                        <span>{tip}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       <div className="mb-5">
         <p className="text-[10px] font-semibold uppercase tracking-[0.09em] text-[#64748b]">{formatPeriod(new Date())}</p>
         <h2 className="mt-1 text-xl font-semibold tracking-[-0.025em] text-[#0B0F17]">Budget</h2>

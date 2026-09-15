@@ -295,6 +295,43 @@ export function detectCurrencyFromLocale(): CurrencyCode {
 }
 
 export const BUDGET_EDUCATION = {
+  pageUsage: {
+    title: "How to Use the Budget Page",
+    sections: [
+      {
+        heading: "Getting Started",
+        tips: [
+          "Load Sample Data to see a complete budget example with real numbers",
+          "The Budget Pulse shows your spending across all categories at a glance",
+          "Green progress bars mean you're under budget. Red means you've exceeded your limit"
+        ]
+      },
+      {
+        heading: "Reading Your Budget",
+        tips: [
+          "Budgeted: The amount you planned to spend in this category",
+          "Actual: What you've actually spent so far this month",
+          "Variance: The difference (negative = under budget, positive = over budget)"
+        ]
+      },
+      {
+        heading: "Making Adjustments",
+        tips: [
+          "If you're consistently under budget in a category, you can reallocate that money",
+          "If you're over budget, review your spending and adjust your target for next month",
+          "Use the expense category breakdown to identify where your money is actually going"
+        ]
+      },
+      {
+        heading: "Monthly Review",
+        tips: [
+          "Review your budget weekly to catch overspends early",
+          "Compare this month's actuals to last month's to spot trends",
+          "Adjust future budgets based on realistic spending patterns"
+        ]
+      }
+    ]
+  },
   whyBudget: {
     title: "Why Budget?",
     tips: [
