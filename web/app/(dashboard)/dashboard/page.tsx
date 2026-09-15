@@ -1381,6 +1381,28 @@ function AddScreen({
         />
       </label>
 
+      {/* Goal Linking */}
+      {goals.length > 0 && (
+        <label className="mt-3 block">
+          <span className="mb-1.5 block text-[10px] font-semibold uppercase tracking-[0.08em] text-[#64748b]">Link to Goal (optional)</span>
+          <select
+            value={selectedGoalId}
+            onChange={(event) => setSelectedGoalId(event.target.value)}
+            className="min-h-12 w-full rounded-xl border border-[#E8EAED] bg-white px-3 text-sm font-medium text-[#0B0F17] outline-none transition-colors focus:border-[#10B981]"
+          >
+            <option value="">— No goal —</option>
+            {goals
+              .filter((goal) => goal.percent < 100) // Only show active goals
+              .map((goal) => (
+                <option key={goal.id} value={goal.id}>
+                  {goal.name} ({goal.percent}%)
+                </option>
+              ))}
+          </select>
+          <p className="mt-1 text-xs text-[#64748b]">💡 This transaction will add to your goal progress</p>
+        </label>
+      )}
+
       <div className="mt-auto pt-5">
         <div className="grid grid-cols-3 gap-2">
           {['1', '2', '3', '4', '5', '6', '7', '8', '9', '.', '0', 'backspace'].map((key) => (
