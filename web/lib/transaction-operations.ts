@@ -240,20 +240,23 @@ export async function updateTransaction(userId: string, transactionId: string, u
 }
 
 /**
- * Delete a transaction
+ * Delete a transaction and unlink from any associated goals
  */
 export async function deleteTransaction(userId: string, transactionId: string) {
   try {
+    // Step 1: Find linked goals before deletion
     const { data: linkedGoalRows, error: linkedGoalsError } = await supabase
       .from('goal_transactions')
       .select('goal_id')
       .eq('user_id', userId)
       .eq('transaction_id', transactionId);
 
-    if (linkedGoalsError) throw linkedGoalsError;
+    if (linkedGoalsError) {
+      const errorMsg = linkedGoalsError instanceof Error ? linkedGoalsError.message : JSON.stringify(linkedGoalsError);
+      throw new Error(`Failed to check linked goals: ${errorMsg}`);
+    }
 
-    // Explicitly remove the link so that the following progress sync is
-    // guaranteed even on installations that predate the FK cascade.
+    // Step 2: Remove goal links (cascading delete)
     if (linkedGoalRows && linkedGoalRows.length > 0) {
       const { error: unlinkError } = await supabase
         .from('goal_transactions')
@@ -261,19 +264,36 @@ export async function deleteTransaction(userId: string, transactionId: string) {
         .eq('user_id', userId)
         .eq('transaction_id', transactionId);
 
-      if (unlinkError) throw unlinkError;
+      if (unlinkError) {
+        const errorMsg = unlinkError instanceof Error ? unlinkError.message : JSON.stringify(unlinkError);
+        throw new Error(`Failed to unlink from goals: ${errorMsg}`);
+      }
     }
 
-    const { error } = await supabase
+    // Step 3: Delete the transaction itself
+    const { error: deleteError } = await supabase
       .from('transactions')
       .delete()
       .eq('id', transactionId)
       .eq('user_id', userId);
 
-    if (error) throw error;
-    await synchroniseLinkedGoalProgress(userId, (linkedGoalRows ?? []).map((row) => row.goal_id));
+    if (deleteError) {
+      const errorMsg = deleteError instanceof Error ? deleteError.message : JSON.stringify(deleteError);
+      throw new Error(`Failed to delete transaction: ${errorMsg}. Transaction may not exist or belong to another user.`);
+    }
+
+    // Step 4: Update goal progress for any linked goals
+    if (linkedGoalRows && linkedGoalRows.length > 0) {
+      try {
+        await synchroniseLinkedGoalProgress(userId, linkedGoalRows.map((row) => row.goal_id));
+      } catch (progressError) {
+        // Log but don't fail - transaction is already deleted
+        console.warn('Warning: Failed to update goal progress after transaction delete:', progressError);
+      }
+    }
   } catch (error) {
-    console.error('Error deleting transaction:', error);
+    const errorMsg = error instanceof Error ? error.message : JSON.stringify(error);
+    console.error('Error deleting transaction:', errorMsg);
     throw error;
   }
 }
