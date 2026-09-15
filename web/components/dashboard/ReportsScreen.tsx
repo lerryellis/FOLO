@@ -13,19 +13,20 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
+import type { CurrencyCode, Transaction } from '@/lib/folo-data';
+import { formatMoney, getCurrency } from '@/lib/folo-data';
 import {
-  NET_POSITION,
-  PLAN_VARIANCE,
-  SPENDING_BY_CATEGORY,
-  type CurrencyCode,
-  formatMoney,
-  getCurrency,
-} from '@/lib/folo-data';
+  calculateSpendingByCategory,
+  calculateBudgetVariance,
+  calculateNetPosition,
+  calculatePeriodSummary,
+} from '@/lib/reports-calculations';
 import { FileBarChart } from 'lucide-react';
 
 interface ReportsScreenProps {
   currency: CurrencyCode;
   showSampleData?: boolean;
+  transactions?: Transaction[];
 }
 
 function EmptyState({ icon: Icon, title, description }: { icon: any; title: string; description: string }) {
@@ -75,18 +76,25 @@ function PanelHeading({ title, subtitle, trailing }: { title: string; subtitle: 
   );
 }
 
-export function ReportsScreen({ currency, showSampleData = false }: ReportsScreenProps) {
+export function ReportsScreen({ currency, showSampleData = false, transactions = [] }: ReportsScreenProps) {
   const currencySymbol = getCurrency(currency).symbol;
 
-  if (!showSampleData) {
+  // Show empty state if no transactions
+  if (transactions.length === 0) {
     return (
       <EmptyState
         icon={FileBarChart}
         title="No reports yet"
-        description="Add transactions to see spending insights and detailed reports. Or load sample data to explore."
+        description="Add transactions to see spending insights and detailed reports."
       />
     );
   }
+
+  // Calculate report data from transactions
+  const spendingByCategory = calculateSpendingByCategory(transactions);
+  const budgetVariance = calculateBudgetVariance(transactions);
+  const netPosition = calculateNetPosition(transactions);
+  const summary = calculatePeriodSummary(transactions);
 
   return (
     <section className="mx-auto w-full max-w-[1200px] px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
@@ -107,7 +115,7 @@ export function ReportsScreen({ currency, showSampleData = false }: ReportsScree
           />
           <div className="mt-5 h-[330px] w-full" aria-label="Horizontal bar chart of spending by category">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={SPENDING_BY_CATEGORY} layout="vertical" margin={{ top: 0, right: 24, bottom: 0, left: 8 }}>
+              <BarChart data={spendingByCategory} layout="vertical" margin={{ top: 0, right: 24, bottom: 0, left: 8 }}>
                 <CartesianGrid horizontal={false} stroke="#F0F2F4" />
                 <XAxis
                   type="number"
@@ -131,7 +139,7 @@ export function ReportsScreen({ currency, showSampleData = false }: ReportsScree
                   labelStyle={{ color: '#0B0F17', fontWeight: 600 }}
                 />
                 <Bar dataKey="amountMinor" radius={[0, 4, 4, 0]} maxBarSize={18}>
-                  {SPENDING_BY_CATEGORY.map((entry) => (
+                  {spendingByCategory.map((entry) => (
                     <Cell key={entry.name} fill={entry.fill} />
                   ))}
                 </Bar>
@@ -144,7 +152,7 @@ export function ReportsScreen({ currency, showSampleData = false }: ReportsScree
           <PanelHeading title="Over and under plan" subtitle="Actual minus budgeted, by group" />
           <div className="mt-5 h-[330px] w-full" aria-label="Diverging bar chart of budget variance">
             <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={PLAN_VARIANCE} layout="vertical" margin={{ top: 4, right: 16, bottom: 12, left: 0 }}>
+              <BarChart data={budgetVariance} layout="vertical" margin={{ top: 4, right: 16, bottom: 12, left: 0 }}>
                 <CartesianGrid horizontal={false} stroke="#F0F2F4" />
                 <XAxis
                   type="number"
@@ -174,7 +182,7 @@ export function ReportsScreen({ currency, showSampleData = false }: ReportsScree
                   labelStyle={{ color: '#0B0F17', fontWeight: 600 }}
                 />
                 <Bar dataKey="varianceMinor" radius={4} maxBarSize={22}>
-                  {PLAN_VARIANCE.map((entry) => (
+                  {budgetVariance.map((entry) => (
                     <Cell
                       key={entry.name}
                       fill={entry.varianceMinor > 0 ? '#ef4444' : entry.varianceMinor < 0 ? '#10B981' : '#CBD5E1'}
@@ -196,11 +204,11 @@ export function ReportsScreen({ currency, showSampleData = false }: ReportsScree
         <PanelHeading
           title="Net position by month"
           subtitle="Income minus everything out · last 6 completed periods"
-          trailing={`${formatMoney(81_500, currency, { showPlus: true })} this month`}
+          trailing={`${formatMoney(summary.netMinor, currency, { showPlus: true })} this month`}
         />
         <div className="mt-5 h-[280px] w-full" aria-label="Line chart of net position by month">
           <ResponsiveContainer width="100%" height="100%">
-            <LineChart data={NET_POSITION} margin={{ top: 8, right: 18, bottom: 4, left: 8 }}>
+            <LineChart data={netPosition} margin={{ top: 8, right: 18, bottom: 4, left: 8 }}>
               <CartesianGrid vertical={false} stroke="#F0F2F4" />
               <XAxis
                 dataKey="month"

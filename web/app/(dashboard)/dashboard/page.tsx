@@ -1411,7 +1411,7 @@ export default function DashboardPage() {
           ) : null}
           {activeTab === 'goals' ? <GoalsScreen currency={currency} showSampleData={showSampleData} selectedGoalId={selectedGoalId} onSelectGoal={setSelectedGoalId} onCreateGoalClick={() => setIsGoalCreationOpen(true)} goals={goals} /> : null}
           {activeTab === 'reports' ? (
-            showSampleData ? <ReportsScreen currency={currency} showSampleData={showSampleData} /> : <PeriodEmpty period={period} onReturn={returnToSamplePeriod} />
+            transactions.length > 0 ? <ReportsScreen currency={currency} showSampleData={showSampleData} transactions={transactions} /> : <PeriodEmpty period={period} onReturn={returnToSamplePeriod} />
           ) : null}
           {activeTab === 'add' ? (
             <AddScreen
