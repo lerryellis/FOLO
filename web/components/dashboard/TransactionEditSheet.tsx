@@ -5,13 +5,23 @@ import { X, Trash2 } from 'lucide-react';
 import { getCurrency, parseAmountToMinor, type Transaction } from '@/lib/folo-data';
 import type { CurrencyCode } from '@/lib/folo-data';
 
+interface Goal {
+  id: string;
+  name: string;
+  type: 'SAVINGS' | 'DEBT';
+  targetMinor: number;
+  progressMinor: number;
+  percent: number;
+}
+
 interface TransactionEditSheetProps {
   transaction: Transaction | null;
   isOpen: boolean;
   onClose: () => void;
-  onUpdate: (transaction: Transaction) => void;
+  onUpdate: (transaction: Transaction, linkedGoalId?: string) => void;
   onDelete: (transactionId: string) => void;
   currency: CurrencyCode;
+  availableGoals?: Goal[];
 }
 
 export function TransactionEditSheet({
@@ -21,6 +31,7 @@ export function TransactionEditSheet({
   onUpdate,
   onDelete,
   currency,
+  availableGoals = [],
 }: TransactionEditSheetProps) {
   if (!isOpen || !transaction) return null;
 
@@ -32,6 +43,7 @@ export function TransactionEditSheet({
       onDelete={onDelete}
       onUpdate={onUpdate}
       currency={currency}
+      availableGoals={availableGoals}
     />
   );
 }
@@ -42,10 +54,19 @@ function TransactionEditForm({
   onUpdate,
   onDelete,
   currency,
-}: Omit<TransactionEditSheetProps, 'isOpen'> & { transaction: Transaction }) {
+  availableGoals = [],
+}: Omit<TransactionEditSheetProps, 'isOpen'> & { transaction: Transaction; availableGoals: Goal[] }) {
   const [editData, setEditData] = useState<Transaction>(transaction);
   const [amount, setAmount] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [selectedGoalId, setSelectedGoalId] = useState<string | null>(null);
+
+  // Suggest compatible goals based on transaction type
+  const suggestedGoals = availableGoals.filter((goal) => {
+    if (transaction.categoryType === 'DEBT') return goal.type === 'DEBT';
+    if (transaction.categoryType === 'SAVINGS') return goal.type === 'SAVINGS';
+    return false;
+  });
 
   const currencySymbol = getCurrency(currency).symbol;
 
@@ -62,7 +83,7 @@ function TransactionEditForm({
       updatedTransaction.amountMinor = editData.categoryType === 'INCOME' ? amountMinor : -amountMinor;
     }
 
-    onUpdate(updatedTransaction);
+    onUpdate(updatedTransaction, selectedGoalId || undefined);
     onClose();
   };
 
@@ -159,6 +180,30 @@ function TransactionEditForm({
               placeholder="Add a note"
             />
           </label>
+
+          {/* Link to Goal */}
+          {suggestedGoals.length > 0 && (
+            <label className="block">
+              <span className="mb-2 block text-sm font-semibold text-[#0B0F17]">
+                Link to Goal <span className="text-xs text-[#64748b] font-normal">(optional)</span>
+              </span>
+              <select
+                value={selectedGoalId || ''}
+                onChange={(e) => setSelectedGoalId(e.target.value || null)}
+                className="min-h-12 w-full rounded-xl border border-[#E8EAED] bg-white px-3 text-sm font-medium text-[#0B0F17] outline-none focus:border-[#10B981]"
+              >
+                <option value="">Select a goal...</option>
+                {suggestedGoals.map((goal) => (
+                  <option key={goal.id} value={goal.id}>
+                    {goal.name} ({goal.percent}% complete)
+                  </option>
+                ))}
+              </select>
+              <p className="mt-2 text-xs text-[#64748b]">
+                💡 This transaction will add to your goal progress when linked
+              </p>
+            </label>
+          )}
         </div>
 
         {/* Action Buttons */}
