@@ -37,6 +37,7 @@ import { BudgetEditSheet } from '@/components/dashboard/BudgetEditSheet';
 import { GoalCreationSheet } from '@/components/dashboard/GoalCreationSheet';
 import { GoalEditSheet } from '@/components/dashboard/GoalEditSheet';
 import { TransactionEditSheet } from '@/components/dashboard/TransactionEditSheet';
+import { HelpTooltip } from '@/components/dashboard/HelpTooltip';
 import { useAuth } from '@/lib/hooks/useAuth';
 import {
   saveTransaction as saveTransactionToSupabase,
@@ -332,9 +333,15 @@ function OverviewScreen({
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[1.4fr_repeat(3,minmax(0,1fr))] lg:gap-4">
         <article className="rounded-2xl border border-[#E8EAED] bg-white p-5 sm:col-span-2 lg:col-span-1 lg:border-[#0B0F17] lg:bg-[#0B0F17]">
           <div className="mb-4 flex items-center justify-between">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.09em] text-[#64748b] lg:text-[#94a3b8]">
-              {showLeftToBudget ? 'Left to budget' : 'Left to spend'}
-            </p>
+            <div className="flex items-center gap-2">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.09em] text-[#64748b] lg:text-[#94a3b8]">
+                {showLeftToBudget ? 'Left to budget' : 'Left to spend'}
+              </p>
+              <HelpTooltip
+                title="Actual vs Planned"
+                content={showLeftToBudget ? "Your planned cash available based on budgeted amounts." : "Your actual cash available based on recorded transactions."}
+              />
+            </div>
             <div className="flex gap-1 rounded-lg bg-[#F3F4F6] p-1 lg:bg-[#1F2937]">
               <button
                 type="button"
@@ -392,9 +399,15 @@ function OverviewScreen({
       <div className="mt-5 grid gap-5 lg:grid-cols-[1.25fr_0.75fr]">
         <article className="rounded-2xl border border-[#E8EAED] bg-white p-4 sm:p-5">
           <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-sm font-semibold text-[#0B0F17]">Budget pulse</h2>
-              <p className="mt-1 text-xs text-[#64748b]">Actual against plan by group</p>
+            <div className="flex items-center gap-2">
+              <div>
+                <h2 className="text-sm font-semibold text-[#0B0F17]">Budget pulse</h2>
+                <p className="mt-1 text-xs text-[#64748b]">Actual against plan by group</p>
+              </div>
+              <HelpTooltip
+                title="Budget Pulse"
+                content="Compare your actual spending against budgeted amounts for each category. Green shows under budget, red shows over."
+              />
             </div>
             <button
               type="button"
@@ -463,9 +476,15 @@ function OverviewScreen({
         <div className="grid gap-5">
           <article className="overflow-hidden rounded-2xl border border-[#E8EAED] bg-white">
             <div className="flex items-center justify-between px-4 py-3 sm:px-5">
-              <div>
-                <h2 className="text-sm font-semibold text-[#0B0F17]">Recent activity</h2>
-                <p className="mt-1 text-xs text-[#64748b]">Latest transactions</p>
+              <div className="flex items-center gap-2">
+                <div>
+                  <h2 className="text-sm font-semibold text-[#0B0F17]">Recent activity</h2>
+                  <p className="mt-1 text-xs text-[#64748b]">Latest transactions</p>
+                </div>
+                <HelpTooltip
+                  title="Recent Activity"
+                  content="Your latest income and expense transactions. Click any transaction to edit or view details."
+                />
               </div>
               <button
                 type="button"
@@ -497,7 +516,13 @@ function OverviewScreen({
 
           <article className="rounded-2xl border border-[#E8EAED] bg-white p-4 sm:p-5">
             <div className="flex items-center justify-between">
-              <h2 className="text-sm font-semibold text-[#0B0F17]">Goals</h2>
+              <div className="flex items-center gap-2">
+                <h2 className="text-sm font-semibold text-[#0B0F17]">Goals</h2>
+                <HelpTooltip
+                  title="Goals"
+                  content="Track savings targets and debt payoff plans. Create goals, link transactions to them, and watch your progress grow."
+                />
+              </div>
               <button
                 type="button"
                 onClick={() => setActiveTab('goals')}
@@ -524,7 +549,13 @@ function OverviewScreen({
           {spreadsheetSummary.expenseByCategoryMinor.length > 0 && (
             <article className="rounded-2xl border border-[#E8EAED] bg-white p-4 sm:p-5">
               <div className="flex items-center justify-between">
-                <h2 className="text-sm font-semibold text-[#0B0F17]">Where the money went</h2>
+                <div className="flex items-center gap-2">
+                  <h2 className="text-sm font-semibold text-[#0B0F17]">Where the money went</h2>
+                  <HelpTooltip
+                    title="Expense Breakdown"
+                    content="See which expense categories you've spent the most on. Percentages show what share of total expenses each category represents."
+                  />
+                </div>
                 <button
                   type="button"
                   onClick={() => setActiveTab('reports')}
