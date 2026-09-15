@@ -263,10 +263,14 @@ export async function updateBudgetAmount(
   budgetedAmount: number
 ) {
   try {
+    // budgetedAmount comes in minor units from BudgetEditSheet
+    // Database expects DECIMAL(12,2) format, so divide by 100
+    const decimalAmount = budgetedAmount / 100;
+
     const { data, error } = await supabase
       .from('budget_items')
       .update({
-        budgeted_amount: budgetedAmount,
+        budgeted_amount: decimalAmount,
         updated_at: new Date().toISOString(),
       })
       .eq('id', budgetItemId)
