@@ -194,22 +194,19 @@ function TransactionRow({
   transaction,
   currency,
   isLast = false,
-  onTouchStart = () => {},
-  onTouchEnd = () => {}
+  onClick = () => {}
 }: {
   transaction: Transaction;
   currency: CurrencyCode;
   isLast?: boolean;
-  onTouchStart?: (id: string) => void;
-  onTouchEnd?: (transaction: Transaction) => void;
+  onClick?: (transaction: Transaction) => void;
 }) {
   const isIncome = transaction.amountMinor > 0;
 
   return (
     <div
       className={`flex items-center gap-3 px-4 py-3.5 cursor-pointer transition-colors hover:bg-[#F9FAFB] ${isLast ? '' : 'border-b border-[#F0F2F4]'}`}
-      onTouchStart={() => onTouchStart(transaction.id)}
-      onTouchEnd={() => onTouchEnd(transaction)}
+      onClick={() => onClick(transaction)}
     >
       <div
         className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl ${
@@ -262,8 +259,7 @@ function OverviewScreen({
   period,
   onReturnToSample,
   showSampleData = false,
-  onTransactionTouchStart = () => {},
-  onTransactionTouchEnd = () => {},
+  onTransactionClick = () => {},
   goals = [],
 }: {
   currency: CurrencyCode;
@@ -273,8 +269,7 @@ function OverviewScreen({
   period: Date;
   onReturnToSample: () => void;
   showSampleData?: boolean;
-  onTransactionTouchStart?: (id: string) => void;
-  onTransactionTouchEnd?: (transaction: Transaction) => void;
+  onTransactionClick?: (transaction: Transaction) => void;
   goals?: typeof GOALS;
 }) {
   if (!isBudgeted || transactions.length === 0) {
@@ -386,8 +381,7 @@ function OverviewScreen({
                   transaction={transaction}
                   currency={currency}
                   isLast={index === recent.length - 1}
-                  onTouchStart={onTransactionTouchStart}
-                  onTouchEnd={onTransactionTouchEnd}
+                  onClick={onTransactionClick}
                 />
               ))
             ) : (
@@ -544,16 +538,14 @@ function ActivityScreen({
   isBudgeted,
   period,
   onReturnToSample,
-  onTransactionTouchStart = () => {},
-  onTransactionTouchEnd = () => {},
+  onTransactionClick = () => {},
 }: {
   currency: CurrencyCode;
   transactions: Transaction[];
   isBudgeted: boolean;
   period: Date;
   onReturnToSample: () => void;
-  onTransactionTouchStart?: (id: string) => void;
-  onTransactionTouchEnd?: (transaction: Transaction) => void;
+  onTransactionClick?: (transaction: Transaction) => void;
 }) {
   const [filter, setFilter] = useState<'ALL' | CategoryType>('ALL');
   const filteredTransactions = useMemo(
@@ -640,8 +632,7 @@ function ActivityScreen({
                     transaction={transaction}
                     currency={currency}
                     isLast={index === group.items.length - 1}
-                    onTouchStart={onTransactionTouchStart}
-                    onTouchEnd={onTransactionTouchEnd}
+                    onClick={onTransactionClick}
                   />
                 ))}
               </div>
@@ -1111,7 +1102,6 @@ export default function DashboardPage() {
   const [showSampleData, setShowSampleData] = useState(false);
   const [isGoalCreationOpen, setIsGoalCreationOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
-  const [touchStart, setTouchStart] = useState<{ id: string; time: number } | null>(null);
   const [goals, setGoals] = useState<typeof GOALS>([]);
 
   useEffect(() => {
@@ -1283,19 +1273,8 @@ export default function DashboardPage() {
 
   if (!user) return null;
 
-  const handleTransactionTouchStart = (transactionId: string) => {
-    setTouchStart({ id: transactionId, time: Date.now() });
-  };
-
-  const handleTransactionTouchEnd = (transaction: Transaction) => {
-    if (!touchStart) return;
-    const duration = Date.now() - touchStart.time;
-
-    // Long-press: > 500ms
-    if (duration > 500) {
-      setEditingTransaction(transaction);
-    }
-    setTouchStart(null);
+  const handleTransactionClick = (transaction: Transaction) => {
+    setEditingTransaction(transaction);
   };
 
   const isBudgeted = period.getFullYear() === SAMPLE_YEAR && period.getMonth() === SAMPLE_MONTH;
@@ -1411,8 +1390,7 @@ export default function DashboardPage() {
               isBudgeted={isBudgeted}
               period={period}
               onReturnToSample={returnToSamplePeriod}
-              onTransactionTouchStart={handleTransactionTouchStart}
-              onTransactionTouchEnd={handleTransactionTouchEnd}
+              onTransactionClick={handleTransactionClick}
               goals={goals}
             />
           ) : null}
@@ -1426,8 +1404,7 @@ export default function DashboardPage() {
               isBudgeted={isBudgeted}
               period={period}
               onReturnToSample={returnToSamplePeriod}
-              onTransactionTouchStart={handleTransactionTouchStart}
-              onTransactionTouchEnd={handleTransactionTouchEnd}
+              onTransactionClick={handleTransactionClick}
             />
           ) : null}
           {activeTab === 'goals' ? <GoalsScreen currency={currency} showSampleData={showSampleData} selectedGoalId={selectedGoalId} onSelectGoal={setSelectedGoalId} onCreateGoalClick={() => setIsGoalCreationOpen(true)} goals={goals} /> : null}
