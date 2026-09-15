@@ -58,7 +58,9 @@ export function calculateSpreadsheetBudgetSummary({
   for (const group of budgetGroups) {
     if (GROUPS.includes(group.category_type as BudgetGroup)) {
       const categoryType = group.category_type as BudgetGroup;
-      plannedByGroupMinor[categoryType] += Math.round(Number(group.budgeted) * 100);
+      // BudgetGroupAmount.budgeted is in DECIMAL format from database (e.g., 100.00 for ₵100)
+      // Convert to minor units by multiplying by 100
+      plannedByGroupMinor[categoryType] += Math.round(Number(group.budgeted || 0) * 100);
     }
   }
 
