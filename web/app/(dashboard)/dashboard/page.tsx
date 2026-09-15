@@ -1053,7 +1053,7 @@ function GoalCard({
           {formatMoney(goal.progressMinor, currency)} / {formatMoney(goal.targetMinor, currency)}
         </span>
         <span className={`money ${isComplete ? 'font-semibold text-[#065F46]' : 'text-[#64748b]'}`}>
-          {isComplete ? status : `${formatMoney(remaining, currency)} to go`}
+          {isComplete ? status : goal.monthlyPaymentMinor ? `${formatMoney(goal.remainingMinor || 0, currency)} after payments` : `${formatMoney(remaining, currency)} to go`}
         </span>
       </div>
     </article>

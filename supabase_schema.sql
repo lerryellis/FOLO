@@ -86,6 +86,9 @@ CREATE TABLE IF NOT EXISTS public.financial_goals (
     goal_date DATE,
     description TEXT,
     is_completed BOOLEAN DEFAULT false,
+    -- Monthly payment tracking
+    monthly_payment_amount DECIMAL(12,2), -- Amount paid monthly (optional)
+    payment_start_date DATE, -- When monthly payments start
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );

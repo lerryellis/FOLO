@@ -8,13 +8,18 @@ import type { CurrencyCode } from '@/lib/folo-data';
 interface GoalCreationSheetProps {
   isOpen: boolean;
   onClose: () => void;
-  onCreateGoal: (goal: Omit<Goal, 'id' | 'percent' | 'icon' | 'detail'>) => void;
+  onCreateGoal: (goal: Omit<Goal, 'id' | 'percent' | 'icon' | 'detail' | 'remainingMinor'> & {
+    monthlyPaymentMinor?: number;
+    paymentStartDate?: string;
+  }) => void;
   currency: CurrencyCode;
 }
 
 export function GoalCreationSheet({ isOpen, onClose, onCreateGoal, currency }: GoalCreationSheetProps) {
   const [goalName, setGoalName] = useState('');
   const [targetAmount, setTargetAmount] = useState('');
+  const [monthlyPayment, setMonthlyPayment] = useState('');
+  const [paymentStartDate, setPaymentStartDate] = useState('');
   const [goalType, setGoalType] = useState<'SAVINGS' | 'DEBT'>('SAVINGS');
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -25,6 +30,17 @@ export function GoalCreationSheet({ isOpen, onClose, onCreateGoal, currency }: G
 
     if (!goalName.trim()) newErrors.goal_name = 'Goal name is required';
     if (!targetAmount.trim()) newErrors.target_amount = 'Target amount is required';
+
+    // Monthly payment validation: if provided, must be positive and start date must be set
+    if (monthlyPayment.trim()) {
+      if (!paymentStartDate) {
+        newErrors.payment_start_date = 'Payment start date is required for monthly payments';
+      }
+      const monthlyMinor = parseAmountToMinor(monthlyPayment);
+      if (monthlyMinor <= 0) {
+        newErrors.monthly_payment = 'Monthly payment must be greater than 0';
+      }
+    }
 
     if (Object.keys(newErrors).length > 0) {
       setErrors(newErrors);
@@ -37,16 +53,29 @@ export function GoalCreationSheet({ isOpen, onClose, onCreateGoal, currency }: G
       return;
     }
 
-    onCreateGoal({
+    const goal: Omit<Goal, 'id' | 'percent' | 'icon' | 'detail' | 'remainingMinor'> & {
+      monthlyPaymentMinor?: number;
+      paymentStartDate?: string;
+    } = {
       name: goalName.trim(),
       type: goalType,
       targetMinor,
       progressMinor: 0,
-    });
+    };
+
+    // Add optional monthly payment fields
+    if (monthlyPayment.trim()) {
+      goal.monthlyPaymentMinor = parseAmountToMinor(monthlyPayment);
+      goal.paymentStartDate = paymentStartDate;
+    }
+
+    onCreateGoal(goal);
 
     // Reset form
     setGoalName('');
     setTargetAmount('');
+    setMonthlyPayment('');
+    setPaymentStartDate('');
     setGoalType('SAVINGS');
     setErrors({});
     onClose();
@@ -162,6 +191,43 @@ export function GoalCreationSheet({ isOpen, onClose, onCreateGoal, currency }: G
             </button>
           ))}
         </div>
+
+        {/* Monthly Payment (Optional) */}
+        <label className="mt-6 block">
+          <span className="mb-2 block text-sm font-semibold text-[#0B0F17]">
+            Monthly Payment <span className="text-xs text-[#64748b] font-normal">(optional)</span>
+          </span>
+          <input
+            type="text"
+            value={monthlyPayment}
+            onChange={(e) => {
+              setMonthlyPayment(e.target.value);
+              setErrors((prev) => ({ ...prev, monthly_payment: '' }));
+            }}
+            placeholder={`e.g., 100 to reduce goal by ₵100/month`}
+            className="min-h-12 w-full rounded-xl border border-[#E8EAED] bg-white px-3 text-sm font-medium text-[#0B0F17] outline-none placeholder:text-[#94a3b8] focus:border-[#10B981]"
+          />
+          {errors.monthly_payment && <p className="mt-1 text-xs text-[#ef4444]">{errors.monthly_payment}</p>}
+          <p className="mt-1 text-xs text-[#64748b]">💡 Goal amount will automatically deflate by this amount each month</p>
+        </label>
+
+        {/* Payment Start Date (Optional) */}
+        {monthlyPayment.trim() && (
+          <label className="mt-4 block">
+            <span className="mb-2 block text-sm font-semibold text-[#0B0F17]">When do payments start?</span>
+            <input
+              type="date"
+              value={paymentStartDate}
+              onChange={(e) => {
+                setPaymentStartDate(e.target.value);
+                setErrors((prev) => ({ ...prev, payment_start_date: '' }));
+              }}
+              className="min-h-12 w-full rounded-xl border border-[#E8EAED] bg-white px-3 text-sm font-medium text-[#0B0F17] outline-none focus:border-[#10B981]"
+            />
+            {errors.payment_start_date && <p className="mt-1 text-xs text-[#ef4444]">{errors.payment_start_date}</p>}
+            <p className="mt-1 text-xs text-[#64748b]">📅 Goal will deflate from this date forward</p>
+          </label>
+        )}
 
         {/* Create Button */}
         <button

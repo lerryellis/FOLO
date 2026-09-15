@@ -4,7 +4,10 @@ import { useState } from 'react';
 import { Save, Trash2, X } from 'lucide-react';
 import { getCurrency, parseAmountToMinor, type CurrencyCode, type Goal } from '@/lib/folo-data';
 
-type GoalEditValues = Pick<Goal, 'name' | 'type' | 'targetMinor'>;
+type GoalEditValues = Pick<Goal, 'name' | 'type' | 'targetMinor'> & {
+  monthlyPaymentMinor?: number;
+  paymentStartDate?: string;
+};
 
 interface GoalEditSheetProps {
   currency: CurrencyCode;
@@ -38,6 +41,8 @@ function GoalEditForm({
   const [name, setName] = useState(goal.name);
   const [targetAmount, setTargetAmount] = useState((goal.targetMinor / 100).toFixed(2));
   const [type, setType] = useState<Goal['type']>(goal.type);
+  const [monthlyPayment, setMonthlyPayment] = useState(goal.monthlyPaymentMinor ? (goal.monthlyPaymentMinor / 100).toFixed(2) : '');
+  const [paymentStartDate, setPaymentStartDate] = useState(goal.paymentStartDate || '');
   const [error, setError] = useState('');
 
   const handleSave = () => {
@@ -55,7 +60,26 @@ function GoalEditForm({
       return;
     }
 
-    onUpdate(goal.id, { name: name.trim(), type, targetMinor });
+    // Validate monthly payment if provided
+    if (monthlyPayment.trim()) {
+      if (!paymentStartDate) {
+        setError('Payment start date is required for monthly payments.');
+        return;
+      }
+      const monthlyMinor = parseAmountToMinor(monthlyPayment);
+      if (monthlyMinor <= 0) {
+        setError('Monthly payment must be greater than zero.');
+        return;
+      }
+    }
+
+    const updateValues: GoalEditValues = { name: name.trim(), type, targetMinor };
+    if (monthlyPayment.trim()) {
+      updateValues.monthlyPaymentMinor = parseAmountToMinor(monthlyPayment);
+      updateValues.paymentStartDate = paymentStartDate;
+    }
+
+    onUpdate(goal.id, updateValues);
   };
 
   return (
@@ -96,6 +120,47 @@ function GoalEditForm({
           </div>
           <p className="mt-1 text-xs text-[#64748b]">Current progress: {getCurrency(currency).symbol}{(goal.progressMinor / 100).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</p>
         </label>
+
+        {/* Monthly Payment */}
+        <label className="mt-4 block">
+          <span className="mb-2 block text-sm font-semibold text-[#0B0F17]">
+            Monthly Payment <span className="text-xs text-[#64748b] font-normal">(optional)</span>
+          </span>
+          <div className="flex min-h-12 items-center rounded-xl border border-[#E8EAED] bg-white px-3 focus-within:border-[#10B981]">
+            <span className="mr-2 text-sm font-semibold text-[#475569]">{getCurrency(currency).symbol}</span>
+            <input
+              type="number"
+              min="0"
+              step="0.01"
+              inputMode="decimal"
+              value={monthlyPayment}
+              onChange={(event) => {
+                setMonthlyPayment(event.target.value);
+                setError('');
+              }}
+              className="money w-full bg-transparent text-right text-lg font-semibold outline-none"
+              placeholder="0.00"
+            />
+          </div>
+          <p className="mt-1 text-xs text-[#64748b]">💡 Goal amount will automatically reduce by this amount each month</p>
+        </label>
+
+        {/* Payment Start Date */}
+        {monthlyPayment.trim() && (
+          <label className="mt-4 block">
+            <span className="mb-2 block text-sm font-semibold text-[#0B0F17]">When do payments start?</span>
+            <input
+              type="date"
+              value={paymentStartDate}
+              onChange={(event) => {
+                setPaymentStartDate(event.target.value);
+                setError('');
+              }}
+              className="min-h-12 w-full rounded-xl border border-[#E8EAED] bg-white px-3 text-sm font-medium text-[#0B0F17] outline-none focus:border-[#10B981]"
+            />
+            <p className="mt-1 text-xs text-[#64748b]">📅 Goal will deflate from this date forward</p>
+          </label>
+        )}
 
         {error ? <p className="mt-3 text-sm font-medium text-[#DC2626]">{error}</p> : null}
 

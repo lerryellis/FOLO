@@ -27,9 +27,12 @@ export interface Goal {
   type: 'SAVINGS' | 'DEBT';
   targetMinor: number;
   progressMinor: number;
+  remainingMinor?: number; // Amount left after deflation (target - accumulated payments)
   percent: number;
   icon: string;
   detail: string;
+  monthlyPaymentMinor?: number; // Monthly payment amount in minor units
+  paymentStartDate?: string; // When monthly payments start (YYYY-MM-DD)
 }
 
 export const CURRENCIES: CurrencyOption[] = [
