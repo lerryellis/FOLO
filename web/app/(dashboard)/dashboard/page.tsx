@@ -47,6 +47,7 @@ import {
   createGoal as createGoalInSupabase,
   fetchGoals,
 } from '@/lib/goal-operations';
+import { resetAllUserData } from '@/lib/reset-user-data';
 import {
   BUDGET_GROUPS,
   CATEGORY_MAP,
@@ -1117,14 +1118,27 @@ export default function DashboardPage() {
       if (storedCurrency && CURRENCIES.some((option) => option.code === storedCurrency)) setCurrency(storedCurrency);
       updateOnlineStatus();
     };
+
+    // Keyboard shortcut to reset data (Cmd/Ctrl + Shift + R)
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.shiftKey && e.key === 'R') {
+        e.preventDefault();
+        if (confirm('🗑️  Clear all data from Supabase? This cannot be undone.')) {
+          handleResetAllData();
+        }
+      }
+    };
+
     const hydrationTimer = window.setTimeout(hydrateClientPreferences, 0);
     window.addEventListener('online', updateOnlineStatus);
     window.addEventListener('offline', updateOnlineStatus);
+    window.addEventListener('keydown', handleKeyDown);
 
     return () => {
       window.clearTimeout(hydrationTimer);
       window.removeEventListener('online', updateOnlineStatus);
       window.removeEventListener('offline', updateOnlineStatus);
+      window.removeEventListener('keydown', handleKeyDown);
     };
   }, []);
 
@@ -1211,6 +1225,22 @@ export default function DashboardPage() {
     } catch (error) {
       console.error('Failed to delete transaction:', error);
       setNotice('Failed to delete transaction. Please try again.');
+    }
+  }
+
+  async function handleResetAllData() {
+    try {
+      setNotice('Clearing all data...');
+      const results = await resetAllUserData(user!.id);
+      console.log('Reset results:', results);
+
+      // Reload data
+      setTransactions([]);
+      setGoals([]);
+      setNotice('✅ All data cleared. Dashboard reset.');
+    } catch (error) {
+      console.error('Failed to reset data:', error);
+      setNotice('❌ Failed to clear data. Please try again.');
     }
   }
 
