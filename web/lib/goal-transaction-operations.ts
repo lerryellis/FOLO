@@ -2,6 +2,12 @@ import { supabase } from './supabase';
 
 /**
  * Link a transaction to a goal (add to goal_transactions)
+ *
+ * Direction is automatically determined:
+ * - SAVINGS goal + INCOME transaction = ADD (increase goal progress)
+ * - SAVINGS goal + EXPENSE transaction = SUBTRACT (decrease goal progress)
+ * - DEBT goal + INCOME transaction = SUBTRACT (reduce debt)
+ * - DEBT goal + EXPENSE transaction = ADD (only if manually marked as payment)
  */
 export async function linkTransactionToGoal(
   userId: string,
@@ -9,16 +15,19 @@ export async function linkTransactionToGoal(
   transactionId: string
 ) {
   try {
-    const [{ data: transaction, error: transactionError }, { data: goal, error: goalError }] = await Promise.all([
+    const [
+      { data: transaction, error: transactionError },
+      { data: goal, error: goalError },
+    ] = await Promise.all([
       supabase
         .from('transactions')
-        .select('id, amount, transaction_date')
+        .select('id, amount, transaction_date, category_type')
         .eq('id', transactionId)
         .eq('user_id', userId)
         .maybeSingle(),
       supabase
         .from('financial_goals')
-        .select('id')
+        .select('id, goal_type')
         .eq('id', goalId)
         .eq('user_id', userId)
         .maybeSingle(),
@@ -28,15 +37,34 @@ export async function linkTransactionToGoal(
     if (goalError) throw goalError;
     if (!transaction || !goal) throw new Error('The transaction or goal is no longer available.');
 
+    // Determine direction (positive or negative) based on goal type and transaction type
+    let amount = Math.abs(transaction.amount);
+
+    // For SAVINGS goals: income increases, expenses decrease
+    if (goal.goal_type === 'SAVINGS') {
+      if (transaction.category_type === 'INCOME') {
+        amount = Math.abs(transaction.amount); // positive
+      } else {
+        amount = -Math.abs(transaction.amount); // negative (subtract)
+      }
+    }
+    // For DEBT goals: income/payments decrease debt (reduce target), expenses increase it
+    else if (goal.goal_type === 'DEBT') {
+      if (transaction.category_type === 'INCOME') {
+        amount = -Math.abs(transaction.amount); // negative (payment reduces debt)
+      } else {
+        amount = Math.abs(transaction.amount); // positive (expense increases debt)
+      }
+    }
+
     const { data, error } = await supabase
       .from('goal_transactions')
       .insert({
         user_id: userId,
         goal_id: goalId,
         transaction_id: transactionId,
-        // Read these from the persisted transaction instead of trusting a
-        // stale UI payload. `amount` remains for historical/manual entries.
-        amount: Math.abs(transaction.amount),
+        // Store signed amount: positive = add to goal, negative = subtract
+        amount: amount,
         transaction_date: transaction.transaction_date,
       })
       .select()
