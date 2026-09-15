@@ -427,23 +427,29 @@ function OverviewScreen({
                       </div>
                     );
                   })
-              : BUDGET_GROUPS.filter((group) => group.type !== 'INCOME').map((group) => {
-                  // Fallback to transaction calculations
+              : [
+                  { category_type: 'BILLS', name: 'Bills' },
+                  { category_type: 'EXPENSES', name: 'Expenses' },
+                  { category_type: 'SAVINGS', name: 'Savings' },
+                  { category_type: 'DEBT', name: 'Debt' },
+                ].map((group) => {
+                  // Show actual from transactions, budgeted = 0 (from database)
                   const actualMinor = Math.abs(
                     displayTransactions
-                      .filter((t) => t.categoryType === group.type)
+                      .filter((t) => t.categoryType === group.category_type)
                       .reduce((sum, t) => sum + t.amountMinor, 0)
                   );
-                  const isOver = actualMinor > group.budgetMinor;
-                  const percent = group.budgetMinor > 0 ? Math.round((actualMinor / group.budgetMinor) * 100) : 0;
+                  const budgetMinor = 0; // Database shows ₵0 until user sets budgets
+                  const isOver = actualMinor > budgetMinor;
+                  const percent = 0; // No budget set yet
 
                   return (
-                    <div key={group.type}>
+                    <div key={group.category_type}>
                       <div className="mb-2 flex items-baseline justify-between gap-4">
                         <span className="text-sm font-medium text-[#0B0F17]">{group.name}</span>
                         <span className={`money text-xs font-medium ${isOver ? 'text-[#DC2626]' : 'text-[#475569]'}`}>
                           {formatMoney(actualMinor, currency)}{' '}
-                          <span className="text-[#64748b]">/ {formatMoney(group.budgetMinor, currency)}</span>
+                          <span className="text-[#64748b]">/ {formatMoney(budgetMinor, currency)}</span>
                         </span>
                       </div>
                       <Meter percent={percent} isOver={isOver} />
