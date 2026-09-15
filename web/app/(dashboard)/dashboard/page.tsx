@@ -295,6 +295,8 @@ function OverviewScreen({
   budgetTotals?: BudgetGroupTotal[];
   periodSummary?: PeriodSummary | null;
 }) {
+  const [showLeftToBudget, setShowLeftToBudget] = useState(false);
+
   if (!isBudgeted || transactions.length === 0) {
     return (
       <EmptyState
@@ -321,28 +323,51 @@ function OverviewScreen({
   const incomeMinor = spreadsheetSummary.actualByGroupMinor.INCOME;
   const spentMinor = spreadsheetSummary.actualByGroupMinor.BILLS + spreadsheetSummary.actualByGroupMinor.EXPENSES;
   const savedAndPaidMinor = spreadsheetSummary.actualByGroupMinor.SAVINGS + spreadsheetSummary.actualByGroupMinor.DEBT;
-  const netMinor = spreadsheetSummary.actualCashAvailableMinor;
+  // Use planned or actual cash available based on toggle (§4.4)
+  const netMinor = showLeftToBudget ? spreadsheetSummary.plannedCashAvailableMinor : spreadsheetSummary.actualCashAvailableMinor;
   const daysLeft = spreadsheetSummary.daysLeft;
 
   return (
     <section className="mx-auto w-full max-w-[1200px] px-4 py-4 sm:px-6 lg:px-8 lg:py-7">
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-[1.4fr_repeat(3,minmax(0,1fr))] lg:gap-4">
         <article className="rounded-2xl border border-[#E8EAED] bg-white p-5 sm:col-span-2 lg:col-span-1 lg:border-[#0B0F17] lg:bg-[#0B0F17]">
+          <div className="mb-4 flex items-center justify-between">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.09em] text-[#64748b] lg:text-[#94a3b8]">
+              {showLeftToBudget ? 'Left to budget' : 'Left to spend'}
+            </p>
+            <div className="flex gap-1 rounded-lg bg-[#F3F4F6] p-1 lg:bg-[#1F2937]">
+              <button
+                type="button"
+                onClick={() => setShowLeftToBudget(false)}
+                className={`px-2 py-1 text-xs font-medium rounded transition-colors ${!showLeftToBudget ? 'bg-white text-[#0B0F17] lg:bg-[#0B0F17] lg:text-white' : 'text-[#64748b] lg:text-[#94a3b8]'}`}
+              >
+                Actual
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowLeftToBudget(true)}
+                className={`px-2 py-1 text-xs font-medium rounded transition-colors ${showLeftToBudget ? 'bg-white text-[#0B0F17] lg:bg-[#0B0F17] lg:text-white' : 'text-[#64748b] lg:text-[#94a3b8]'}`}
+              >
+                Planned
+              </button>
+            </div>
+          </div>
           <div className="flex items-center justify-between">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.09em] text-[#64748b] lg:text-[#94a3b8]">Net this month</p>
+            <div>
+              <Money
+                amountMinor={netMinor}
+                currency={currency}
+                showPlus
+                className={`block text-[34px] font-semibold leading-none tracking-[-0.04em] ${netMinor >= 0 ? 'text-[#0B0F17] lg:text-white' : 'text-[#DC2626]'}`}
+              />
+              <p className="money mt-3 text-xs text-[#64748b] lg:text-[#94a3b8]">
+                {incomeMinor > 0 ? `Income: ${formatMoney(incomeMinor, currency)}` : 'No income recorded'}
+              </p>
+            </div>
             <span className="text-xs font-medium text-[#64748b] lg:text-[#94a3b8]">
               {daysLeft > 0 ? `${daysLeft} day${daysLeft === 1 ? '' : 's'} left` : 'Period ended'}
             </span>
           </div>
-          <Money
-            amountMinor={netMinor}
-            currency={currency}
-            showPlus
-            className={`mt-3 block text-[34px] font-semibold leading-none tracking-[-0.04em] ${netMinor >= 0 ? 'text-[#0B0F17] lg:text-white' : 'text-[#DC2626]'}`}
-          />
-          <p className="money mt-3 text-xs text-[#64748b] lg:text-[#94a3b8]">
-            {incomeMinor > 0 ? `Income: ${formatMoney(incomeMinor, currency)}` : 'No income recorded'}
-          </p>
         </article>
 
         {[
@@ -495,6 +520,36 @@ function OverviewScreen({
               ))}
             </div>
           </article>
+
+          {spreadsheetSummary.expenseByCategoryMinor.length > 0 && (
+            <article className="rounded-2xl border border-[#E8EAED] bg-white p-4 sm:p-5">
+              <div className="flex items-center justify-between">
+                <h2 className="text-sm font-semibold text-[#0B0F17]">Where the money went</h2>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('reports')}
+                  className="min-h-11 rounded-lg px-3 text-xs font-semibold text-[#047857] hover:bg-[#E7F7F0]"
+                >
+                  Full report
+                </button>
+              </div>
+              <div className="mt-3 space-y-3">
+                {spreadsheetSummary.expenseByCategoryMinor.slice(0, 5).map((expense) => {
+                  const totalExpense = spreadsheetSummary.expenseByCategoryMinor.reduce((sum, e) => sum + e.actualMinor, 0);
+                  const share = totalExpense > 0 ? Math.round((expense.actualMinor / totalExpense) * 100) : 0;
+                  return (
+                    <div key={expense.category}>
+                      <div className="mb-1 flex items-baseline justify-between gap-2">
+                        <span className="truncate text-xs font-medium text-[#0B0F17]">{expense.category}</span>
+                        <span className="money shrink-0 text-[11px] text-[#475569]">{share}%</span>
+                      </div>
+                      <Meter percent={share} />
+                    </div>
+                  );
+                })}
+              </div>
+            </article>
+          )}
         </div>
       </div>
 
