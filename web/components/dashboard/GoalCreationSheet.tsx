@@ -76,7 +76,7 @@ export function GoalCreationSheet({ isOpen, onClose, onCreateGoal, currency }: G
       />
 
       {/* Sheet */}
-      <div className="relative w-full animate-in slide-in-from-bottom duration-300 rounded-t-3xl border border-[#E8EAED] bg-white p-6 sm:p-8">
+      <div className="relative w-full animate-in slide-in-from-bottom duration-300 rounded-t-3xl border border-[#E8EAED] bg-white p-6 sm:p-8 max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
           <h2 className="text-xl font-semibold text-[#0B0F17]">Create Goal</h2>
