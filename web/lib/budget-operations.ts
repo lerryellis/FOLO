@@ -149,12 +149,18 @@ export async function getOrCreateBudgetItem(
       .from('categories')
       .select('id')
       .eq('category_type', categoryType)
-      .single();
+      .maybeSingle();
 
-    if (categoryError) throw categoryError;
-    if (!category) throw new Error(`Category ${categoryType} not found`);
+    if (categoryError) {
+      console.error('Error fetching category:', { categoryType, error: categoryError });
+      throw categoryError;
+    }
 
-    // Try to get existing budget item
+    if (!category) {
+      throw new Error(`Category ${categoryType} not found`);
+    }
+
+    // Try to get existing budget item (use maybeSingle to handle no rows)
     const { data: existing, error: fetchError } = await supabase
       .from('budget_items')
       .select('*')
@@ -162,9 +168,37 @@ export async function getOrCreateBudgetItem(
       .eq('user_id', userId)
       .eq('category_id', category.id)
       .is('subcategory_name', null)
-      .single();
+      .maybeSingle();
+
+    if (fetchError) {
+      console.error('Error fetching budget item:', {
+        budgetPeriodId,
+        userId,
+        categoryId: category.id,
+        error: fetchError,
+      });
+      throw fetchError;
+    }
 
     if (existing) {
+      console.log('Found existing budget item:', existing.id);
+      // Update the amount if it changed
+      if (existing.budgeted_amount !== budgetedAmount) {
+        const { data: updated, error: updateError } = await supabase
+          .from('budget_items')
+          .update({ budgeted_amount: budgetedAmount, updated_at: new Date().toISOString() })
+          .eq('id', existing.id)
+          .select()
+          .single();
+
+        if (updateError) {
+          console.error('Error updating budget item:', updateError);
+          throw updateError;
+        }
+
+        return updated || existing;
+      }
+
       return existing;
     }
 
@@ -180,10 +214,32 @@ export async function getOrCreateBudgetItem(
       .select()
       .single();
 
-    if (createError) throw createError;
+    if (createError) {
+      console.error('Error creating budget item:', {
+        budgetPeriodId,
+        userId,
+        categoryId: category.id,
+        budgetedAmount,
+        error: createError,
+      });
+      throw createError;
+    }
+
+    if (!created) {
+      throw new Error('Failed to create budget item: no data returned');
+    }
+
+    console.log('Created new budget item:', created.id);
     return created;
   } catch (error) {
-    console.error('Error managing budget item:', error);
+    console.error('Error managing budget item:', {
+      message: error instanceof Error ? error.message : String(error),
+      error: error,
+      userId,
+      budgetPeriodId,
+      categoryType,
+      budgetedAmount,
+    });
     throw error;
   }
 }

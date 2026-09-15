@@ -561,18 +561,34 @@ function BudgetScreen({
   }, [userId, budgetPeriodId]);
 
   const handleSaveBudgets = async (budgets: Record<string, number>) => {
-    if (!userId || !budgetPeriodId) return;
+    if (!userId || !budgetPeriodId) {
+      console.error('Cannot save budgets: missing userId or budgetPeriodId', { userId, budgetPeriodId });
+      return;
+    }
 
     try {
+      console.log('Saving budgets:', { budgets, userId, budgetPeriodId });
+
       for (const [categoryType, amount] of Object.entries(budgets)) {
+        console.log(`Saving budget for ${categoryType}:`, amount);
         await getOrCreateBudgetItem(userId, budgetPeriodId, categoryType, amount);
       }
+
+      console.log('Budgets saved, reloading totals...');
       // Reload budgets
       const totals = await getBudgetGroupTotals(userId, budgetPeriodId);
       setBudgetTotals(totals || []);
       onBudgetsChange?.();
+
+      console.log('✅ Budgets saved successfully!');
     } catch (error) {
-      console.error('Error saving budgets:', error);
+      console.error('Error saving budgets:', {
+        message: error instanceof Error ? error.message : String(error),
+        error: error,
+        budgets,
+        userId,
+        budgetPeriodId,
+      });
     }
   };
 
