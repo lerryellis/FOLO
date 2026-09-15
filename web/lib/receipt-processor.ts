@@ -1,9 +1,17 @@
 /**
  * Receipt OCR Processing
- * Uses Claude Vision API to extract expense data from receipt images
+ * Uses Tesseract.js (client-side, free) with smart heuristics for data extraction
  */
 
-import Anthropic from '@anthropic-ai/sdk';
+// Lazy load Tesseract to avoid bundle bloat
+let Tesseract: any = null;
+
+async function getTesseract() {
+  if (!Tesseract) {
+    Tesseract = (await import('tesseract.js')).default;
+  }
+  return Tesseract;
+}
 
 export interface ExtractedReceiptData {
   amount: number; // in decimal (e.g., 25.50)
@@ -19,88 +27,182 @@ export interface ExtractedReceiptData {
   rawText: string; // Raw OCR text for reference
 }
 
-export async function processReceiptImage(imageBase64: string): Promise<ExtractedReceiptData> {
-  const client = new Anthropic();
+/**
+ * Extract amount from text using regex patterns
+ * Looks for currency symbols and numbers
+ */
+function extractAmount(text: string): number | null {
+  // Common currency patterns: GHS, ₵, $, €, etc.
+  const patterns = [
+    /[\$€₵]\s*(\d+(?:[.,]\d{2})?)/gi, // Currency symbol prefix
+    /(\d+(?:[.,]\d{2})?)\s*(?:GHS|cedis|₵)/gi, // Currency suffix
+    /total[:\s]+[\$€₵]?\s*(\d+(?:[.,]\d{2})?)/gi, // After "total" keyword
+    /amount[:\s]+[\$€₵]?\s*(\d+(?:[.,]\d{2})?)/gi, // After "amount" keyword
+  ];
 
-  const prompt = `You are a receipt OCR processor. Extract the following information from this receipt image:
+  let maxAmount = 0;
+  let foundAmount: number | null = null;
 
-1. Total amount (find the final total, not subtotals)
-2. Merchant/Store name
-3. Transaction date
-4. Best guess for expense category based on merchant (e.g., "Food", "Transport", "Health", "Retail")
-5. List any individual items if visible
-6. Confidence level (high/medium/low) based on receipt clarity
+  for (const pattern of patterns) {
+    let match;
+    while ((match = pattern.exec(text)) !== null) {
+      const numStr = match[1].replace(',', '.');
+      const amount = parseFloat(numStr);
 
-Format your response as JSON with this structure:
-{
-  "amount": <number>,
-  "merchantName": "<string>",
-  "date": "<YYYY-MM-DD>",
-  "category": "<string>",
-  "description": "<string describing the transaction>",
-  "items": [
-    { "name": "<item name>", "amount": <number> }
-  ],
-  "confidence": "high|medium|low",
-  "rawText": "<full OCR text of receipt>"
+      // Look for the largest reasonable amount (likely total)
+      if (amount > 0 && amount < 100000 && amount > maxAmount) {
+        maxAmount = amount;
+        foundAmount = amount;
+      }
+    }
+  }
+
+  return foundAmount;
 }
 
-Important rules:
-- Amount should be the TOTAL (final amount charged), not subtotals
-- Extract only the date from the receipt (not current date)
-- Category should be one of: Food, Transport, Health, Entertainment, Shopping, Utilities, Other
-- If date is not visible, use today's date: ${new Date().toISOString().split('T')[0]}
-- Be conservative with confidence: only "high" if text is very clear
-- rawText should include everything visible on the receipt`;
+/**
+ * Extract date from text using various date patterns
+ */
+function extractDate(text: string): string {
+  const today = new Date().toISOString().split('T')[0];
 
+  // Date patterns: DD/MM/YYYY, MM/DD/YYYY, YYYY-MM-DD, etc.
+  const patterns = [
+    /(\d{4})-(\d{2})-(\d{2})/, // YYYY-MM-DD
+    /(\d{2})\/(\d{2})\/(\d{4})/, // DD/MM/YYYY or MM/DD/YYYY
+    /(\d{2})-(\d{2})-(\d{4})/, // DD-MM-YYYY
+    /(\w+)\s+(\d{1,2})[,\s]+(\d{4})/, // "September 15, 2026"
+  ];
+
+  for (const pattern of patterns) {
+    const match = text.match(pattern);
+    if (match) {
+      try {
+        // Try to parse and return ISO date
+        let date: Date;
+
+        if (pattern.source.includes('YYYY-MM-DD')) {
+          date = new Date(`${match[1]}-${match[2]}-${match[3]}`);
+        } else if (pattern.source.includes('DD/MM/YYYY')) {
+          // Try DD/MM/YYYY first
+          const day = parseInt(match[1]);
+          const month = parseInt(match[2]);
+          const year = parseInt(match[3]);
+          date = new Date(year, month - 1, day);
+        } else if (pattern.source.includes('word')) {
+          // Month name format
+          date = new Date(`${match[1]} ${match[2]}, ${match[3]}`);
+        } else {
+          continue;
+        }
+
+        if (!isNaN(date.getTime())) {
+          return date.toISOString().split('T')[0];
+        }
+      } catch (e) {
+        continue;
+      }
+    }
+  }
+
+  return today;
+}
+
+/**
+ * Guess merchant name from receipt text
+ */
+function extractMerchant(text: string): string {
+  const lines = text.split('\n').filter(l => l.trim().length > 0);
+
+  // Usually first few non-empty lines contain merchant info
+  // Avoid lines that are clearly amounts or dates
+  const amountPattern = /[\$€₵]|total|amount|paid/i;
+
+  for (const line of lines.slice(0, 5)) {
+    const cleaned = line.trim();
+    if (cleaned.length > 2 && !amountPattern.test(cleaned) && cleaned.length < 50) {
+      return cleaned;
+    }
+  }
+
+  return 'Receipt';
+}
+
+/**
+ * Guess category from receipt text
+ */
+function guessCategory(text: string): string {
+  const textLower = text.toLowerCase();
+
+  const categories = {
+    Food: ['food', 'restaurant', 'cafe', 'grocery', 'market', 'mcdonald', 'pizza', 'burger', 'sandwich', 'drink'],
+    Transport: ['fuel', 'gas', 'petrol', 'taxi', 'uber', 'parking', 'bus', 'transport', 'diesel'],
+    Health: ['pharmacy', 'health', 'doctor', 'clinic', 'hospital', 'medicine', 'drug'],
+    Entertainment: ['cinema', 'movie', 'bar', 'club', 'game', 'theatre', 'entertainment', 'ticket'],
+    Shopping: ['shop', 'store', 'mall', 'retail', 'market', 'walmart', 'amazon'],
+    Utilities: ['electric', 'water', 'internet', 'phone', 'utility', 'enel', 'vivo', 'claro'],
+  };
+
+  for (const [category, keywords] of Object.entries(categories)) {
+    for (const keyword of keywords) {
+      if (textLower.includes(keyword)) {
+        return category;
+      }
+    }
+  }
+
+  return 'Other';
+}
+
+/**
+ * Process receipt image using Tesseract.js OCR
+ */
+export async function processReceiptImage(imageBase64: string): Promise<ExtractedReceiptData> {
   try {
-    const response = await client.messages.create({
-      model: 'claude-3-5-sonnet-20241022',
-      max_tokens: 1024,
-      messages: [
-        {
-          role: 'user',
-          content: [
-            {
-              type: 'image',
-              source: {
-                type: 'base64',
-                media_type: 'image/jpeg',
-                data: imageBase64,
-              },
-            },
-            {
-              type: 'text',
-              text: prompt,
-            },
-          ],
-        },
-      ],
-    });
+    const Tess = await getTesseract();
 
-    // Extract JSON from response
-    const responseText = response.content[0].type === 'text' ? response.content[0].text : '';
+    // Run OCR
+    const result = await Tess.recognize(
+      `data:image/jpeg;base64,${imageBase64}`,
+      'eng',
+      {
+        logger: (m: any) => console.log('OCR Progress:', Math.round(m.progress * 100) + '%'),
+      }
+    );
 
-    // Try to parse JSON from the response
-    const jsonMatch = responseText.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) {
-      throw new Error('Failed to extract JSON from Claude response');
+    const rawText = result.data.text;
+
+    if (!rawText || rawText.trim().length === 0) {
+      throw new Error('Could not read text from receipt image');
     }
 
-    const extracted = JSON.parse(jsonMatch[0]) as ExtractedReceiptData;
+    // Extract data using heuristics
+    const amount = extractAmount(rawText);
+    const merchantName = extractMerchant(rawText);
+    const date = extractDate(rawText);
+    const category = guessCategory(rawText);
 
-    // Validate extracted data
-    if (!extracted.amount || extracted.amount <= 0) {
-      throw new Error('Invalid amount extracted from receipt');
+    if (!amount) {
+      throw new Error('Could not find amount/total on receipt');
     }
 
-    if (!extracted.merchantName) {
-      throw new Error('Could not identify merchant name');
-    }
+    // Assess confidence based on text quality
+    const textLength = rawText.trim().length;
+    const confidence: 'high' | 'medium' | 'low' =
+      textLength > 100 ? 'high' :
+      textLength > 50 ? 'medium' :
+      'low';
 
-    if (!extracted.date) {
-      throw new Error('Could not extract date from receipt');
-    }
+    const extracted: ExtractedReceiptData = {
+      amount,
+      merchantName,
+      date,
+      category,
+      description: `${merchantName} - ${category}`,
+      confidence,
+      rawText,
+      items: undefined, // Tesseract doesn't parse item lines well
+    };
 
     return extracted;
   } catch (error) {

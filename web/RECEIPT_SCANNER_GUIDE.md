@@ -2,7 +2,9 @@
 
 ## Overview
 
-The Receipt Scanner automatically extracts expense data from receipt images using Claude Vision API. This allows users to quickly add transactions by scanning a receipt instead of manually entering all details.
+The Receipt Scanner automatically extracts expense data from receipt images using **Tesseract.js** (free, open-source OCR). This allows users to quickly add transactions by scanning a receipt instead of manually entering all details.
+
+**Key advantage:** No API keys required - everything runs client-side in the browser!
 
 ## How It Works
 
@@ -11,13 +13,13 @@ The Receipt Scanner automatically extracts expense data from receipt images usin
 - Choose to take a photo with camera or upload an image
 
 ### 2. **OCR Processing**
-- Claude Vision API analyzes the receipt image
+- Tesseract.js analyzes the receipt image (runs in browser)
 - Extracts:
-  - **Total amount** (final charge, not subtotals)
-  - **Merchant name** (store/restaurant)
-  - **Transaction date** (from receipt)
-  - **Likely category** (Food, Transport, Health, etc.)
-  - **Individual items** (if visible)
+  - **Total amount** (uses regex patterns for currency detection)
+  - **Merchant name** (from receipt header lines)
+  - **Transaction date** (parses various date formats)
+  - **Likely category** (guessed from keywords: Food, Transport, Health, etc.)
+  - **Confidence level** (based on text quality)
 
 ### 3. **Confirmation & Review**
 - User sees extracted values in an editable form
@@ -35,19 +37,34 @@ The Receipt Scanner automatically extracts expense data from receipt images usin
 ## Components
 
 ### `lib/receipt-processor.ts`
-**Purpose**: Handles OCR processing with Claude Vision
+**Purpose**: Handles OCR processing with Tesseract.js (client-side)
 
 **Key Functions**:
-- `processReceiptImage(imageBase64)` - Sends image to Claude for analysis
+- `processReceiptImage(imageBase64)` - Runs OCR in browser using Tesseract.js
   - Input: Base64-encoded image
   - Output: ExtractedReceiptData object
-  - Includes confidence level assessment
+  - All processing happens client-side (no API calls!)
+
+- `extractAmount(text)` - Smart regex patterns to find total amount
+  - Looks for currency symbols (₵, $, €, GHS, cedis)
+  - Finds largest reasonable amount (likely total)
+  - Avoids subtotals and tax lines
+
+- `extractDate(text)` - Parses various date formats
+  - Supports: DD/MM/YYYY, YYYY-MM-DD, "September 15, 2026", etc.
+  - Defaults to today if date not found
+
+- `extractMerchant(text)` - Gets store/restaurant name
+  - Looks at first few non-amount lines
+  - Returns merchant name or "Receipt" if unclear
+
+- `guessCategory(text)` - Suggests expense category
+  - Searches for keywords: food, restaurant, fuel, pharmacy, etc.
+  - Maps to: Food, Transport, Health, Entertainment, Shopping, Utilities, Other
 
 - `guessCategoryType(merchantName, category)` - Determines if transaction is BILLS or EXPENSES
   - Checks for utility keywords (electric, water, internet, etc.)
   - Defaults to EXPENSES for other merchants
-
-- `dataUriToBase64(dataUri)` - Converts image data URI to base64
 
 **Return Data Structure**:
 ```typescript
@@ -231,12 +248,14 @@ Potential improvements:
 - Merchant-based guessing isn't perfect
 - Receipts from unknown stores default to EXPENSES
 
-## API Requirements
+## Requirements
 
-- Anthropic API key set in environment
-- Internet connection for Claude Vision API
+- **NO API Keys Needed!** Everything runs in the browser
 - Image file size < 5MB recommended
 - Supported formats: JPEG, PNG, GIF, WEBP
+- Tesseract.js downloads language models on first use (~30MB)
+  - Downloaded to browser cache
+  - Subsequent scans are much faster
 
 ## Security & Privacy
 
