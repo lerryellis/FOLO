@@ -576,18 +576,6 @@ function BudgetScreen({
     }
   };
 
-  if (!showSampleData) {
-    return (
-      <section className="mx-auto w-full max-w-4xl px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
-        <div className="mb-8">
-          <h2 className="text-2xl font-semibold text-[#0B0F17]">Master Your Budget</h2>
-          <p className="mt-2 text-sm text-[#64748b]">Learn how to create powerful budgets and take control of your money</p>
-        </div>
-        <BudgetTips />
-      </section>
-    );
-  }
-
   return (
     <section className="relative mx-auto w-full max-w-4xl px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
       {/* Floating Info Button */}
