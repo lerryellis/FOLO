@@ -1381,10 +1381,10 @@ function AddScreen({
         />
       </label>
 
-      {/* Goal Linking */}
-      {goals.length > 0 && (
+      {/* Goal Linking - Only for SAVINGS and DEBT */}
+      {(selectedGroup === 'SAVINGS' || selectedGroup === 'DEBT') && goals.length > 0 && (
         <label className="mt-3 block">
-          <span className="mb-1.5 block text-[10px] font-semibold uppercase tracking-[0.08em] text-[#64748b]">Link to Goal (optional)</span>
+          <span className="mb-1.5 block text-[10px] font-semibold uppercase tracking-[0.08em] text-[#64748b]">Link to {selectedGroup === 'SAVINGS' ? 'Savings' : 'Debt'} Goal (optional)</span>
           <select
             value={selectedGoalId}
             onChange={(event) => setSelectedGoalId(event.target.value)}
@@ -1392,14 +1392,20 @@ function AddScreen({
           >
             <option value="">— No goal —</option>
             {goals
-              .filter((goal) => goal.percent < 100) // Only show active goals
+              .filter((goal) => {
+                // Only show active goals matching the transaction type
+                if (goal.percent >= 100) return false; // Skip completed goals
+                if (selectedGroup === 'SAVINGS') return goal.type === 'SAVINGS';
+                if (selectedGroup === 'DEBT') return goal.type === 'DEBT';
+                return false;
+              })
               .map((goal) => (
                 <option key={goal.id} value={goal.id}>
                   {goal.name} ({goal.percent}%)
                 </option>
               ))}
           </select>
-          <p className="mt-1 text-xs text-[#64748b]">💡 This transaction will add to your goal progress</p>
+          <p className="mt-1 text-xs text-[#64748b]">💡 This transaction will {selectedGroup === 'SAVINGS' ? 'add to' : 'reduce'} your goal progress</p>
         </label>
       )}
 
