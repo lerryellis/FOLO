@@ -237,6 +237,32 @@ export async function upsertUserProfile(
 }
 
 /**
+ * Delete all transactions for a specific month
+ */
+export async function deleteTransactionsByMonth(userId: string, date: Date) {
+  try {
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const startDate = new Date(year, month, 1).toISOString().split('T')[0];
+    const endDate = new Date(year, month + 1, 0).toISOString().split('T')[0];
+
+    const { error } = await supabase
+      .from('transactions')
+      .delete()
+      .eq('user_id', userId)
+      .gte('transaction_date', startDate)
+      .lte('transaction_date', endDate);
+
+    if (error) throw error;
+
+    return { success: true, message: `All transactions for ${new Intl.DateTimeFormat('en', { month: 'long', year: 'numeric' }).format(date)} deleted.` };
+  } catch (error) {
+    console.error('Error deleting transactions by month:', error);
+    throw error;
+  }
+}
+
+/**
  * Map currency code to symbol
  */
 function getCurrencySymbol(code: string): string {

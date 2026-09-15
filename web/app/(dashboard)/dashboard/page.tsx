@@ -41,6 +41,7 @@ import {
   fetchTransactions,
   updateTransaction as updateTransactionInSupabase,
   deleteTransaction as deleteTransactionFromSupabase,
+  deleteTransactionsByMonth,
   upsertUserProfile,
 } from '@/lib/transaction-operations';
 import {
@@ -1149,6 +1150,7 @@ export default function DashboardPage() {
   const [isGoalCreationOpen, setIsGoalCreationOpen] = useState(false);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [goals, setGoals] = useState<typeof GOALS>([]);
+  const [showDeleteMonthConfirm, setShowDeleteMonthConfirm] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) router.push('/login');
@@ -1301,6 +1303,24 @@ export default function DashboardPage() {
     }
   }
 
+  async function handleDeleteMonthData() {
+    try {
+      setNotice('Deleting all transactions for this month...');
+      await deleteTransactionsByMonth(user!.id, period);
+
+      // Reload transactions
+      const dbTransactions = await fetchTransactions(user!.id, period);
+      setTransactions(dbTransactions);
+
+      setNotice(`✅ All transactions for ${formatPeriod(period)} deleted.`);
+      setShowDeleteMonthConfirm(false);
+    } catch (error) {
+      console.error('Failed to delete month data:', error);
+      setNotice('❌ Failed to delete month data. Please try again.');
+      setShowDeleteMonthConfirm(false);
+    }
+  }
+
   async function handleSignOut() {
     const result = await signOut();
     if (!result.error) router.push('/login');
@@ -1404,6 +1424,15 @@ export default function DashboardPage() {
                   className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-[#475569] hover:bg-[#F6F7F9]"
                 >
                   <ChevronRight className="h-5 w-5" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowDeleteMonthConfirm(true)}
+                  aria-label="Delete all transactions for this month"
+                  className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-[#475569] hover:bg-[#FEF2F2] hover:text-[#DC2626] transition-colors"
+                  title="Delete all transactions for this month"
+                >
+                  <Trash2 className="h-5 w-5" />
                 </button>
               </div>
 
@@ -1536,6 +1565,32 @@ export default function DashboardPage() {
         }}
         currency={currency}
       />
+
+      {/* Delete Month Confirmation */}
+      {showDeleteMonthConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="rounded-2xl border border-[#E8EAED] bg-white p-6 max-w-sm mx-4">
+            <h3 className="text-lg font-semibold text-[#0B0F17]">Delete All Transactions?</h3>
+            <p className="mt-2 text-sm text-[#64748b]">
+              This will permanently delete all transactions recorded in <strong>{formatPeriod(period)}</strong>. This action cannot be undone.
+            </p>
+            <div className="mt-6 flex gap-3">
+              <button
+                onClick={() => setShowDeleteMonthConfirm(false)}
+                className="flex-1 rounded-xl border border-[#E8EAED] py-2 font-semibold text-[#0B0F17] hover:bg-[#F6F7F9]"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleDeleteMonthData}
+                className="flex-1 rounded-xl bg-[#ef4444] py-2 font-semibold text-white hover:bg-[#dc2626]"
+              >
+                Delete All
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
