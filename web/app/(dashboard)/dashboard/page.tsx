@@ -57,6 +57,7 @@ import {
   updateBudgetAmount,
   getOrCreateBudgetItem,
   getPeriodSummary,
+  getOrCreateBudgetPeriod,
   type BudgetGroupTotal,
   type PeriodSummary,
 } from '@/lib/budget-operations';
@@ -275,6 +276,7 @@ function OverviewScreen({
   userId,
   budgetPeriodId,
   budgetTotals = [],
+  periodSummary,
 }: {
   currency: CurrencyCode;
   transactions: Transaction[];
@@ -288,6 +290,7 @@ function OverviewScreen({
   userId?: string;
   budgetPeriodId?: string;
   budgetTotals?: BudgetGroupTotal[];
+  periodSummary?: PeriodSummary | null;
 }) {
   if (!isBudgeted || transactions.length === 0) {
     return (
@@ -305,24 +308,44 @@ function OverviewScreen({
   const recent = displayTransactions.slice(0, 3);
   const previewGoals = (goals.length > 0 ? goals : GOALS).filter((goal) => goal.percent < 100).slice(0, 3);
 
-  // Calculate actual values from transactions
-  const incomeMinor = displayTransactions
-    .filter((t) => t.categoryType === 'INCOME')
-    .reduce((sum, t) => sum + t.amountMinor, 0);
+  // Use database summary if available, otherwise calculate from transactions
+  let incomeMinor: number;
+  let spentMinor: number;
+  let savedAndPaidMinor: number;
+  let netMinor: number;
+  let daysLeft: number = 0;
 
-  const spentMinor = Math.abs(
-    displayTransactions
-      .filter((t) => t.categoryType === 'BILLS' || t.categoryType === 'EXPENSES')
-      .reduce((sum, t) => sum + t.amountMinor, 0)
-  );
+  if (periodSummary) {
+    // Use database values (in decimal, convert to minor units)
+    incomeMinor = Math.round((periodSummary.income_actual || 0) * 100);
+    const billsMinor = Math.round((periodSummary.bills_actual || 0) * 100);
+    const expensesMinor = Math.round((periodSummary.expenses_actual || 0) * 100);
+    spentMinor = billsMinor + expensesMinor;
+    const savingsMinor = Math.round((periodSummary.savings_actual || 0) * 100);
+    const debtMinor = Math.round((periodSummary.debt_actual || 0) * 100);
+    savedAndPaidMinor = savingsMinor + debtMinor;
+    netMinor = Math.round((periodSummary.left_to_spend || 0) * 100);
+    daysLeft = periodSummary.days_left || 0;
+  } else {
+    // Fallback to transaction calculations
+    incomeMinor = displayTransactions
+      .filter((t) => t.categoryType === 'INCOME')
+      .reduce((sum, t) => sum + t.amountMinor, 0);
 
-  const savedAndPaidMinor = Math.abs(
-    displayTransactions
-      .filter((t) => t.categoryType === 'SAVINGS' || t.categoryType === 'DEBT')
-      .reduce((sum, t) => sum + t.amountMinor, 0)
-  );
+    spentMinor = Math.abs(
+      displayTransactions
+        .filter((t) => t.categoryType === 'BILLS' || t.categoryType === 'EXPENSES')
+        .reduce((sum, t) => sum + t.amountMinor, 0)
+    );
 
-  const netMinor = incomeMinor - spentMinor - savedAndPaidMinor;
+    savedAndPaidMinor = Math.abs(
+      displayTransactions
+        .filter((t) => t.categoryType === 'SAVINGS' || t.categoryType === 'DEBT')
+        .reduce((sum, t) => sum + t.amountMinor, 0)
+    );
+
+    netMinor = incomeMinor - spentMinor - savedAndPaidMinor;
+  }
 
   return (
     <section className="mx-auto w-full max-w-[1200px] px-4 py-4 sm:px-6 lg:px-8 lg:py-7">
@@ -330,7 +353,9 @@ function OverviewScreen({
         <article className="rounded-2xl border border-[#E8EAED] bg-white p-5 sm:col-span-2 lg:col-span-1 lg:border-[#0B0F17] lg:bg-[#0B0F17]">
           <div className="flex items-center justify-between">
             <p className="text-[10px] font-semibold uppercase tracking-[0.09em] text-[#64748b] lg:text-[#94a3b8]">Net this month</p>
-            <span className="text-xs font-medium text-[#64748b] lg:text-[#94a3b8]">{new Date().getDate()} days in</span>
+            <span className="text-xs font-medium text-[#64748b] lg:text-[#94a3b8]">
+              {daysLeft > 0 ? `${daysLeft} day${daysLeft === 1 ? '' : 's'} left` : 'Period ended'}
+            </span>
           </div>
           <Money
             amountMinor={netMinor}
@@ -378,29 +403,52 @@ function OverviewScreen({
             </button>
           </div>
           <div className="mt-4 space-y-4">
-            {BUDGET_GROUPS.filter((group) => group.type !== 'INCOME').map((group) => {
-              // Calculate actual from transactions
-              const actualMinor = Math.abs(
-                displayTransactions
-                  .filter((t) => t.categoryType === group.type)
-                  .reduce((sum, t) => sum + t.amountMinor, 0)
-              );
-              const isOver = actualMinor > group.budgetMinor;
-              const percent = group.budgetMinor > 0 ? Math.round((actualMinor / group.budgetMinor) * 100) : 0;
+            {budgetTotals && budgetTotals.length > 0
+              ? budgetTotals
+                  .filter((group) => group.category_type !== 'INCOME')
+                  .map((group) => {
+                    const actualMinor = Math.round((group.actual || 0) * 100);
+                    const budgetMinor = Math.round((group.budgeted || 0) * 100);
+                    const isOver = actualMinor > budgetMinor;
+                    const percent = budgetMinor > 0 ? Math.round((actualMinor / budgetMinor) * 100) : 0;
+                    const categoryName = group.category_type === 'BILLS' ? 'Bills' : group.category_type === 'EXPENSES' ? 'Expenses' : group.category_type === 'SAVINGS' ? 'Savings' : 'Debt';
 
-              return (
-                <div key={group.type}>
-                  <div className="mb-2 flex items-baseline justify-between gap-4">
-                    <span className="text-sm font-medium text-[#0B0F17]">{group.name}</span>
-                    <span className={`money text-xs font-medium ${isOver ? 'text-[#DC2626]' : 'text-[#475569]'}`}>
-                      {formatMoney(actualMinor, currency)}{' '}
-                      <span className="text-[#64748b]">/ {formatMoney(group.budgetMinor, currency)}</span>
-                    </span>
-                  </div>
-                  <Meter percent={percent} isOver={isOver} />
-                </div>
-              );
-            })}
+                    return (
+                      <div key={group.category_type}>
+                        <div className="mb-2 flex items-baseline justify-between gap-4">
+                          <span className="text-sm font-medium text-[#0B0F17]">{categoryName}</span>
+                          <span className={`money text-xs font-medium ${isOver ? 'text-[#DC2626]' : 'text-[#475569]'}`}>
+                            {formatMoney(actualMinor, currency)}{' '}
+                            <span className="text-[#64748b]">/ {formatMoney(budgetMinor, currency)}</span>
+                          </span>
+                        </div>
+                        <Meter percent={percent} isOver={isOver} />
+                      </div>
+                    );
+                  })
+              : BUDGET_GROUPS.filter((group) => group.type !== 'INCOME').map((group) => {
+                  // Fallback to transaction calculations
+                  const actualMinor = Math.abs(
+                    displayTransactions
+                      .filter((t) => t.categoryType === group.type)
+                      .reduce((sum, t) => sum + t.amountMinor, 0)
+                  );
+                  const isOver = actualMinor > group.budgetMinor;
+                  const percent = group.budgetMinor > 0 ? Math.round((actualMinor / group.budgetMinor) * 100) : 0;
+
+                  return (
+                    <div key={group.type}>
+                      <div className="mb-2 flex items-baseline justify-between gap-4">
+                        <span className="text-sm font-medium text-[#0B0F17]">{group.name}</span>
+                        <span className={`money text-xs font-medium ${isOver ? 'text-[#DC2626]' : 'text-[#475569]'}`}>
+                          {formatMoney(actualMinor, currency)}{' '}
+                          <span className="text-[#64748b]">/ {formatMoney(group.budgetMinor, currency)}</span>
+                        </span>
+                      </div>
+                      <Meter percent={percent} isOver={isOver} />
+                    </div>
+                  );
+                })}
           </div>
         </article>
 
@@ -1272,6 +1320,9 @@ export default function DashboardPage() {
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [goals, setGoals] = useState<typeof GOALS>([]);
   const [showDeleteMonthConfirm, setShowDeleteMonthConfirm] = useState(false);
+  const [budgetPeriodId, setBudgetPeriodId] = useState<string>('');
+  const [budgetTotals, setBudgetTotals] = useState<BudgetGroupTotal[]>([]);
+  const [periodSummary, setPeriodSummary] = useState<PeriodSummary | null>(null);
 
   useEffect(() => {
     if (!loading && !user) router.push('/login');
@@ -1330,6 +1381,16 @@ export default function DashboardPage() {
         // Load goals from database
         const dbGoals = await fetchGoals(user.id);
         setGoals(dbGoals);
+
+        // Load budget period and totals
+        const periodId = await getOrCreateBudgetPeriod(user.id, period);
+        setBudgetPeriodId(periodId);
+
+        const totals = await getBudgetGroupTotals(user.id, periodId);
+        setBudgetTotals(totals || []);
+
+        const summary = await getPeriodSummary(user.id, periodId);
+        setPeriodSummary(summary || null);
       } catch (error) {
         if (isMissingSupabaseRelation(error)) {
           setNotice('Database setup is incomplete. Apply supabase_schema.sql, then reload FOLO.');
@@ -1588,10 +1649,18 @@ export default function DashboardPage() {
               onReturnToSample={returnToSamplePeriod}
               onTransactionClick={handleTransactionClick}
               goals={goals}
+              userId={user.id}
+              budgetPeriodId={budgetPeriodId}
+              periodSummary={periodSummary}
             />
           ) : null}
           {activeTab === 'budget' ? (
-            <BudgetScreen currency={currency} showSampleData={showSampleData} />
+            <BudgetScreen
+              currency={currency}
+              showSampleData={showSampleData}
+              userId={user.id}
+              budgetPeriodId={budgetPeriodId}
+            />
           ) : null}
           {activeTab === 'activity' ? (
             <ActivityScreen

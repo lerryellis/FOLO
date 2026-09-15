@@ -1,5 +1,52 @@
 import { supabase } from './supabase';
 
+/**
+ * Get or create a budget period for the given date
+ */
+export async function getOrCreateBudgetPeriod(userId: string, date: Date): Promise<string> {
+  try {
+    // Parse date to YYYY-MM format
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const period = `${year}-${month}`;
+
+    // Calculate start and end dates for the month
+    const startDate = new Date(year, date.getMonth(), 1);
+    const endDate = new Date(year, date.getMonth() + 1, 0);
+
+    // Check if period already exists
+    const { data: existing, error: fetchError } = await supabase
+      .from('budget_periods')
+      .select('id')
+      .eq('user_id', userId)
+      .eq('period', period)
+      .single();
+
+    if (existing) {
+      return existing.id;
+    }
+
+    // Create new period
+    const { data: created, error: createError } = await supabase
+      .from('budget_periods')
+      .insert({
+        user_id: userId,
+        period,
+        start_date: startDate.toISOString().split('T')[0],
+        end_date: endDate.toISOString().split('T')[0],
+        starting_balance: 0,
+      })
+      .select('id')
+      .single();
+
+    if (createError) throw createError;
+    return created.id;
+  } catch (error) {
+    console.error('Error managing budget period:', error);
+    throw error;
+  }
+}
+
 export interface BudgetItem {
   id: string;
   budget_period_id: string;
