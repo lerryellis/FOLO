@@ -1,4 +1,5 @@
 import type { Transaction, CurrencyCode } from './folo-data';
+import type { BudgetGroupTotal } from './budget-operations';
 
 export interface SpendingByCategory {
   name: string;
@@ -66,11 +67,10 @@ export function calculateSpendingByCategory(transactions: Transaction[]): Spendi
 /**
  * Calculate budget variance (actual vs budgeted by category type)
  */
-export function calculateBudgetVariance(transactions: Transaction[]): PlanVariance[] {
+export function calculateBudgetVariance(transactions: Transaction[], budgetGroups?: BudgetGroupTotal[]): PlanVariance[] {
   const categoryTypes = ['BILLS', 'EXPENSES', 'SAVINGS', 'DEBT'];
-  const variance = new Map<string, number>();
 
-  // Group by category type
+  // Group actuals by category type
   const byType = new Map<string, number>();
   categoryTypes.forEach((type) => {
     byType.set(type, 0);
@@ -83,13 +83,21 @@ export function calculateBudgetVariance(transactions: Transaction[]): PlanVarian
     }
   });
 
-  // Map hardcoded budgets for now (in real app, these come from budget_items)
+  // Map budgets from database or fallback to zero
   const budgets: Record<string, number> = {
-    BILLS: 315000,
-    EXPENSES: 260000,
-    SAVINGS: 150000,
-    DEBT: 95000,
+    BILLS: 0,
+    EXPENSES: 0,
+    SAVINGS: 0,
+    DEBT: 0,
   };
+
+  if (budgetGroups && budgetGroups.length > 0) {
+    budgetGroups.forEach((group) => {
+      if (group.category_type in budgets) {
+        budgets[group.category_type] = Math.round(Number(group.budgeted || 0) * 100);
+      }
+    });
+  }
 
   const typeLabels: Record<string, string> = {
     BILLS: 'Bills',

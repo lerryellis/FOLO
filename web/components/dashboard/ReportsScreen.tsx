@@ -23,10 +23,13 @@ import {
 } from '@/lib/reports-calculations';
 import { FileBarChart } from 'lucide-react';
 
+import type { BudgetGroupTotal } from '@/lib/budget-operations';
+
 interface ReportsScreenProps {
   currency: CurrencyCode;
   showSampleData?: boolean;
   transactions?: Transaction[];
+  budgetGroups?: BudgetGroupTotal[];
 }
 
 function EmptyState({ icon: Icon, title, description }: { icon: any; title: string; description: string }) {
@@ -76,7 +79,7 @@ function PanelHeading({ title, subtitle, trailing }: { title: string; subtitle: 
   );
 }
 
-export function ReportsScreen({ currency, showSampleData = false, transactions = [] }: ReportsScreenProps) {
+export function ReportsScreen({ currency, showSampleData = false, transactions = [], budgetGroups = [] }: ReportsScreenProps) {
   const currencySymbol = getCurrency(currency).symbol;
 
   // Show empty state if no transactions
@@ -92,7 +95,7 @@ export function ReportsScreen({ currency, showSampleData = false, transactions =
 
   // Calculate report data from transactions
   const spendingByCategory = calculateSpendingByCategory(transactions);
-  const budgetVariance = calculateBudgetVariance(transactions);
+  const budgetVariance = calculateBudgetVariance(transactions, budgetGroups);
   const netPosition = calculateNetPosition(transactions);
   const summary = calculatePeriodSummary(transactions);
 
