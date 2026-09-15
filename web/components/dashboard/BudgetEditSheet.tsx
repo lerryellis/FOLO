@@ -124,21 +124,62 @@ function BudgetEditForm({
         </div>
 
         {/* Summary */}
-        <div className="mt-6 rounded-xl bg-[#F6F7F9] p-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.06em] text-[#64748b]">
-            Total Monthly Budget
-          </p>
-          <p className="mt-2 text-2xl font-semibold text-[#0B0F17]">
-            {currencySymbol}
-            <span className="money">
-              {(
-                Object.values(editBudgets).reduce((sum, val) => sum + (parseFloat(val) || 0), 0)
-              ).toLocaleString('en', {
-                minimumFractionDigits: 2,
-                maximumFractionDigits: 2,
-              })}
-            </span>
-          </p>
+        <div className="mt-6 space-y-3">
+          <div className="rounded-xl bg-[#F6F7F9] p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.06em] text-[#64748b]">
+              Total Income Expected
+            </p>
+            <p className="mt-2 text-2xl font-semibold text-[#10B981]">
+              {currencySymbol}
+              <span className="money">
+                {(parseFloat(editBudgets.INCOME) || 0).toLocaleString('en', {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </span>
+            </p>
+          </div>
+
+          <div className="rounded-xl bg-[#FEF0F0] p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.06em] text-[#64748b]">
+              Total Outflow (Bills + Expenses + Savings + Debt)
+            </p>
+            <p className="mt-2 text-2xl font-semibold text-[#ef4444]">
+              {currencySymbol}
+              <span className="money">
+                {(
+                  (parseFloat(editBudgets.BILLS) || 0) +
+                  (parseFloat(editBudgets.EXPENSES) || 0) +
+                  (parseFloat(editBudgets.SAVINGS) || 0) +
+                  (parseFloat(editBudgets.DEBT) || 0)
+                ).toLocaleString('en', {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </span>
+            </p>
+          </div>
+
+          <div className="rounded-xl bg-[#F0FDF9] p-4">
+            <p className="text-xs font-semibold uppercase tracking-[0.06em] text-[#64748b]">
+              Left to Budget
+            </p>
+            <p className="mt-2 text-2xl font-semibold text-[#0B0F17]">
+              {currencySymbol}
+              <span className="money">
+                {(
+                  (parseFloat(editBudgets.INCOME) || 0) -
+                  ((parseFloat(editBudgets.BILLS) || 0) +
+                    (parseFloat(editBudgets.EXPENSES) || 0) +
+                    (parseFloat(editBudgets.SAVINGS) || 0) +
+                    (parseFloat(editBudgets.DEBT) || 0))
+                ).toLocaleString('en', {
+                  minimumFractionDigits: 2,
+                  maximumFractionDigits: 2,
+                })}
+              </span>
+            </p>
+          </div>
         </div>
 
         {/* Save Button */}
