@@ -1,34 +1,10 @@
 import { supabase } from './supabase';
 
-const DEFAULT_CATEGORIES = [
-  { category_type: 'INCOME', name: 'Income' },
-  { category_type: 'BILLS', name: 'Bills' },
-  { category_type: 'EXPENSES', name: 'Expenses' },
-  { category_type: 'SAVINGS', name: 'Savings' },
-  { category_type: 'DEBT', name: 'Debt' },
-] as const;
-
-/** Ensure every user owns the five top-level categories used by FOLO budgets. */
-async function ensureDefaultCategories(userId: string) {
-  const { error } = await supabase
-    .from('categories')
-    .upsert(
-      DEFAULT_CATEGORIES.map((category) => ({ ...category, user_id: userId })),
-      { onConflict: 'user_id,category_type,name', ignoreDuplicates: true }
-    );
-
-  if (error) throw error;
-}
-
 /**
  * Get or create a budget period for the given date
  */
 export async function getOrCreateBudgetPeriod(userId: string, date: Date): Promise<string> {
   try {
-    // Categories are tenant-owned. Provisioning them before either path means
-    // a user with an existing period can always edit its group budgets.
-    await ensureDefaultCategories(userId);
-
     // Calculate start and end dates for the month
     const year = date.getFullYear();
     const monthIndex = date.getMonth();
@@ -121,10 +97,24 @@ export async function getOrCreateBudgetPeriod(userId: string, date: Date): Promi
 
     return created.id;
   } catch (error) {
-    console.error('Error managing budget period:', {
+    // Properly serialize error for logging
+    const errorInfo: any = {
+      type: error instanceof Error ? 'Error' : typeof error,
       message: error instanceof Error ? error.message : String(error),
-      error: error,
-    });
+    };
+
+    // Try to extract Supabase-specific error details
+    if (error && typeof error === 'object') {
+      const err = error as any;
+      if (err.details) errorInfo.details = err.details;
+      if (err.hint) errorInfo.hint = err.hint;
+      if (err.code) errorInfo.code = err.code;
+      if (err.status) errorInfo.status = err.status;
+      if (err.statusText) errorInfo.statusText = err.statusText;
+    }
+
+    console.error('Error managing budget period:', errorInfo);
+    console.error('Full error object:', error);
     throw error;
   }
 }
