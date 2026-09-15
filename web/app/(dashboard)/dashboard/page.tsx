@@ -58,6 +58,7 @@ import {
   getOrCreateBudgetItem,
   getPeriodSummary,
   getOrCreateBudgetPeriod,
+  copyBudgetsFromPreviousPeriod,
   type BudgetGroupTotal,
   type PeriodSummary,
 } from '@/lib/budget-operations';
@@ -1437,7 +1438,22 @@ export default function DashboardPage() {
         const periodId = await getOrCreateBudgetPeriod(user.id, period);
         setBudgetPeriodId(periodId);
 
-        const totals = await getBudgetGroupTotals(user.id, periodId);
+        let totals = await getBudgetGroupTotals(user.id, periodId);
+
+        // If new period has no budgets, copy from previous period
+        if (!totals || totals.length === 0) {
+          const previousMonth = new Date(period.getFullYear(), period.getMonth() - 1, 1);
+          try {
+            const previousPeriodId = await getOrCreateBudgetPeriod(user.id, previousMonth);
+            await copyBudgetsFromPreviousPeriod(user.id, periodId, previousPeriodId);
+            // Reload totals after copying
+            totals = await getBudgetGroupTotals(user.id, periodId);
+          } catch (error) {
+            console.error('Error copying budgets from previous period:', error);
+            // Continue without copied budgets - user can set them manually
+          }
+        }
+
         setBudgetTotals(totals || []);
 
         const summary = await getPeriodSummary(user.id, periodId);
