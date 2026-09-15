@@ -1260,9 +1260,20 @@ function AddScreen({
   function saveTransaction() {
     if (amountMinor <= 0) return;
 
+    // Build transaction name with details for special categories
+    let transactionName = note.trim() || selectedCategory;
+
+    if (selectedCategory === 'Insurance') {
+      transactionName = selectedInsuranceType + (note.trim() ? ` - ${note.trim()}` : '');
+    } else if (selectedCategory === 'Utilities') {
+      transactionName = selectedUtilityType + (note.trim() ? ` - ${note.trim()}` : '');
+    } else if (selectedCategory === 'Credit Card') {
+      transactionName = selectedCreditCardType + (note.trim() ? ` - ${note.trim()}` : '');
+    }
+
     onSave({
       id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : `transaction-${Date.now()}`,
-      name: (selectedCategory === 'Insurance' ? `${selectedInsuranceType} - ${note.trim()}` : selectedCategory === 'Utilities' ? `${selectedUtilityType} - ${note.trim()}` : selectedCategory === 'Credit Card' ? `${selectedCreditCardType} - ${note.trim()}` : note.trim()) || selectedCategory,
+      name: transactionName,
       category: selectedCategory,
       categoryType: selectedGroup,
       amountMinor: selectedGroup === 'INCOME' ? amountMinor : -amountMinor,
