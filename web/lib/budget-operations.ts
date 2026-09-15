@@ -143,105 +143,61 @@ export async function getOrCreateBudgetItem(
   categoryType: string,
   budgetedAmount: number = 0
 ) {
-  try {
-    // Get category ID from type
-    const { data: category, error: categoryError } = await supabase
-      .from('categories')
-      .select('id')
-      .eq('category_type', categoryType)
-      .maybeSingle();
+  // A group budget edits the first existing top-level item for that group.  A
+  // limit avoids treating historical duplicate rows as an error and, crucially,
+  // prevents creating another item when one already exists.
+  const { data: category, error: categoryError } = await supabase
+    .from('categories')
+    .select('id')
+    .eq('category_type', categoryType)
+    .order('id', { ascending: true })
+    .limit(1)
+    .maybeSingle();
 
-    if (categoryError) {
-      console.error('Error fetching category:', { categoryType, error: categoryError });
-      throw categoryError;
-    }
+  if (categoryError) throw categoryError;
+  if (!category) throw new Error(`Category ${categoryType} not found`);
 
-    if (!category) {
-      throw new Error(`Category ${categoryType} not found`);
-    }
+  const { data: existing, error: fetchError } = await supabase
+    .from('budget_items')
+    .select('*')
+    .eq('budget_period_id', budgetPeriodId)
+    .eq('user_id', userId)
+    .eq('category_id', category.id)
+    .is('subcategory_name', null)
+    .order('created_at', { ascending: true })
+    .limit(1)
+    .maybeSingle();
 
-    // Try to get existing budget item (use maybeSingle to handle no rows)
-    const { data: existing, error: fetchError } = await supabase
+  if (fetchError) throw fetchError;
+
+  if (existing) {
+    const { data: updated, error: updateError } = await supabase
       .from('budget_items')
-      .select('*')
-      .eq('budget_period_id', budgetPeriodId)
+      .update({ budgeted_amount: budgetedAmount, updated_at: new Date().toISOString() })
+      .eq('id', existing.id)
       .eq('user_id', userId)
-      .eq('category_id', category.id)
-      .is('subcategory_name', null)
-      .maybeSingle();
-
-    if (fetchError) {
-      console.error('Error fetching budget item:', {
-        budgetPeriodId,
-        userId,
-        categoryId: category.id,
-        error: fetchError,
-      });
-      throw fetchError;
-    }
-
-    if (existing) {
-      console.log('Found existing budget item:', existing.id);
-      // Update the amount if it changed
-      if (existing.budgeted_amount !== budgetedAmount) {
-        const { data: updated, error: updateError } = await supabase
-          .from('budget_items')
-          .update({ budgeted_amount: budgetedAmount, updated_at: new Date().toISOString() })
-          .eq('id', existing.id)
-          .select()
-          .single();
-
-        if (updateError) {
-          console.error('Error updating budget item:', updateError);
-          throw updateError;
-        }
-
-        return updated || existing;
-      }
-
-      return existing;
-    }
-
-    // Create new budget item
-    const { data: created, error: createError } = await supabase
-      .from('budget_items')
-      .insert({
-        budget_period_id: budgetPeriodId,
-        user_id: userId,
-        category_id: category.id,
-        budgeted_amount: budgetedAmount,
-      })
       .select()
       .single();
 
-    if (createError) {
-      console.error('Error creating budget item:', {
-        budgetPeriodId,
-        userId,
-        categoryId: category.id,
-        budgetedAmount,
-        error: createError,
-      });
-      throw createError;
-    }
-
-    if (!created) {
-      throw new Error('Failed to create budget item: no data returned');
-    }
-
-    console.log('Created new budget item:', created.id);
-    return created;
-  } catch (error) {
-    console.error('Error managing budget item:', {
-      message: error instanceof Error ? error.message : String(error),
-      error: error,
-      userId,
-      budgetPeriodId,
-      categoryType,
-      budgetedAmount,
-    });
-    throw error;
+    if (updateError) throw updateError;
+    return updated;
   }
+
+  const { data: created, error: createError } = await supabase
+    .from('budget_items')
+    .insert({
+      budget_period_id: budgetPeriodId,
+      user_id: userId,
+      category_id: category.id,
+      subcategory_name: null,
+      budgeted_amount: budgetedAmount,
+    })
+    .select()
+    .single();
+
+  if (createError) throw createError;
+  if (!created) throw new Error('Failed to create budget item: no data returned');
+  return created;
 }
 
 /**
@@ -254,7 +210,7 @@ export async function getBudgetItems(userId: string, budgetPeriodId: string) {
       .select(
         `
         *,
-        categories(id, code, name, category_type)
+        categories(id, name, category_type)
         `
       )
       .eq('user_id', userId)
@@ -262,7 +218,12 @@ export async function getBudgetItems(userId: string, budgetPeriodId: string) {
       .order('categories(category_type)');
 
     if (error) throw error;
-    return data || [];
+    return (data || []) as Array<{
+      id: string;
+      subcategory_name: string | null;
+      budgeted_amount: number;
+      categories: { id: string; name: string; category_type: string } | null;
+    }>;
   } catch (error) {
     console.error('Error fetching budget items:', error);
     throw error;

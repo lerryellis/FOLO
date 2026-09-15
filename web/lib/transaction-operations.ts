@@ -1,6 +1,30 @@
 import { supabase } from './supabase';
 import type { Transaction } from './folo-data';
 
+type TransactionRow = {
+  id: string;
+  amount: number;
+  category_name: string;
+  category_type: Transaction['categoryType'];
+  notes: string | null;
+  transaction_date: string;
+};
+
+function toTransaction(row: TransactionRow): Transaction {
+  return {
+    id: row.id,
+    name: row.notes || row.category_name,
+    category: row.category_name,
+    categoryType: row.category_type,
+    amountMinor: row.category_type === 'INCOME'
+      ? Math.round(row.amount * 100)
+      : -Math.round(row.amount * 100),
+    date: row.transaction_date,
+    note: row.notes || undefined,
+    pending: false,
+  };
+}
+
 /**
  * Get or create the current budget period for a user
  */
@@ -72,7 +96,7 @@ export async function saveTransaction(userId: string, transaction: Transaction) 
       .single();
 
     if (error) throw error;
-    return data;
+    return toTransaction(data as TransactionRow);
   } catch (error) {
     console.error('Error saving transaction:', error);
     throw error;
@@ -99,18 +123,7 @@ export async function fetchTransactions(userId: string, date: Date) {
   if (error) throw error;
 
   // Convert database format to app format
-  return (data ?? []).map((row: any): Transaction => ({
-    id: row.id,
-    name: row.notes || row.category_name,
-    category: row.category_name,
-    categoryType: row.category_type,
-    amountMinor: row.category_type === 'INCOME'
-      ? Math.round(row.amount * 100)
-      : -Math.round(row.amount * 100),
-    date: row.transaction_date,
-    note: row.notes || undefined,
-    pending: false,
-  }));
+  return (data ?? []).map((row) => toTransaction(row as TransactionRow));
 }
 
 /**
@@ -118,7 +131,7 @@ export async function fetchTransactions(userId: string, date: Date) {
  */
 export async function updateTransaction(userId: string, transactionId: string, updates: Partial<Transaction>) {
   try {
-    const updateData: Record<string, any> = {};
+    const updateData: Record<string, string | number | null> = {};
 
     if (updates.amountMinor !== undefined) {
       updateData.amount = Math.abs(updates.amountMinor) / 100;

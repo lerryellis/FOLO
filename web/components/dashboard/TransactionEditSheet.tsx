@@ -2,8 +2,8 @@
 
 import { useState } from 'react';
 import { X, Trash2 } from 'lucide-react';
-import { type Transaction, CATEGORY_MAP, formatMoney, getCurrency, parseAmountToMinor, INSURANCE_TYPES, UTILITY_TYPES, CREDIT_CARD_TYPES } from '@/lib/folo-data';
-import type { CurrencyCode, CategoryType } from '@/lib/folo-data';
+import { getCurrency, parseAmountToMinor, type Transaction } from '@/lib/folo-data';
+import type { CurrencyCode } from '@/lib/folo-data';
 
 interface TransactionEditSheetProps {
   transaction: Transaction | null;
@@ -22,17 +22,34 @@ export function TransactionEditSheet({
   onDelete,
   currency,
 }: TransactionEditSheetProps) {
-  const [editData, setEditData] = useState<Transaction | null>(transaction);
+  if (!isOpen || !transaction) return null;
+
+  return (
+    <TransactionEditForm
+      key={transaction.id}
+      transaction={transaction}
+      onClose={onClose}
+      onDelete={onDelete}
+      onUpdate={onUpdate}
+      currency={currency}
+    />
+  );
+}
+
+function TransactionEditForm({
+  transaction,
+  onClose,
+  onUpdate,
+  onDelete,
+  currency,
+}: Omit<TransactionEditSheetProps, 'isOpen'> & { transaction: Transaction }) {
+  const [editData, setEditData] = useState<Transaction>(transaction);
   const [amount, setAmount] = useState('');
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   const currencySymbol = getCurrency(currency).symbol;
 
-  if (!editData || !transaction) return null;
-
   const handleUpdateTransaction = () => {
-    if (!editData) return;
-
     const updatedTransaction = { ...editData };
 
     // Only update amount if user entered a new value
@@ -66,15 +83,13 @@ export function TransactionEditSheet({
     }
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-end">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
 
       {/* Sheet */}
-      <div className="relative w-full animate-in slide-in-from-bottom duration-300 rounded-t-3xl border border-[#E8EAED] bg-white p-6 sm:p-8 max-h-[90vh] overflow-y-auto">
+      <div className="relative max-h-[calc(100dvh-2rem)] w-full max-w-lg animate-in fade-in zoom-in-95 duration-200 overflow-y-auto rounded-2xl border border-[#E8EAED] bg-white p-5 shadow-2xl sm:p-8">
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
           <h2 className="text-xl font-semibold text-[#0B0F17]">Edit Transaction</h2>
@@ -139,7 +154,7 @@ export function TransactionEditSheet({
             <input
               type="text"
               value={editData.name}
-              onChange={(e) => setEditData({ ...editData, name: e.target.value })}
+              onChange={(e) => setEditData({ ...editData, name: e.target.value, note: e.target.value })}
               className="min-h-12 w-full rounded-xl border border-[#E8EAED] bg-white px-3 text-sm font-medium text-[#0B0F17] outline-none placeholder:text-[#94a3b8] focus:border-[#10B981]"
               placeholder="Add a note"
             />

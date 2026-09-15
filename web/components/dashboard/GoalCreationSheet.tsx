@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { X, Plus } from 'lucide-react';
-import { type Goal, formatMoney, getCurrency, parseAmountToMinor } from '@/lib/folo-data';
+import { type Goal, getCurrency, parseAmountToMinor } from '@/lib/folo-data';
 import type { CurrencyCode } from '@/lib/folo-data';
 
 interface GoalCreationSheetProps {
@@ -68,7 +68,7 @@ export function GoalCreationSheet({ isOpen, onClose, onCreateGoal, currency }: G
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-end">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div
         className="absolute inset-0 bg-black/40"
@@ -76,7 +76,7 @@ export function GoalCreationSheet({ isOpen, onClose, onCreateGoal, currency }: G
       />
 
       {/* Sheet */}
-      <div className="relative w-full animate-in slide-in-from-bottom duration-300 rounded-t-3xl border border-[#E8EAED] bg-white p-6 sm:p-8 max-h-[90vh] overflow-y-auto">
+      <div className="relative max-h-[calc(100dvh-2rem)] w-full max-w-lg animate-in fade-in zoom-in-95 duration-200 overflow-y-auto rounded-2xl border border-[#E8EAED] bg-white p-5 shadow-2xl sm:p-8">
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
           <h2 className="text-xl font-semibold text-[#0B0F17]">Create Goal</h2>

@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { X } from 'lucide-react';
-import { type CurrencyCode, getCurrency, formatMoney } from '@/lib/folo-data';
+import { type CurrencyCode, getCurrency } from '@/lib/folo-data';
 
 interface BudgetEditSheetProps {
   isOpen: boolean;
@@ -16,6 +16,7 @@ interface BudgetEditSheetProps {
     SAVINGS?: number;
     DEBT?: number;
   };
+  budgetLabels?: Partial<Record<'INCOME' | 'BILLS' | 'EXPENSES' | 'SAVINGS' | 'DEBT', string>>;
 }
 
 export function BudgetEditSheet({
@@ -24,7 +25,24 @@ export function BudgetEditSheet({
   onSave,
   currency,
   budgets = {},
+  budgetLabels = {},
 }: BudgetEditSheetProps) {
+  if (!isOpen) return null;
+
+  const formKey = ['INCOME', 'BILLS', 'EXPENSES', 'SAVINGS', 'DEBT']
+    .map((category) => `${category}:${budgets[category as keyof typeof budgets] ?? 0}`)
+    .join('|');
+
+  return <BudgetEditForm key={formKey} onClose={onClose} onSave={onSave} currency={currency} budgets={budgets} budgetLabels={budgetLabels} />;
+}
+
+function BudgetEditForm({
+  onClose,
+  onSave,
+  currency,
+  budgets = {},
+  budgetLabels = {},
+}: Omit<BudgetEditSheetProps, 'isOpen'>) {
   const [editBudgets, setEditBudgets] = useState<Record<string, string>>({
     INCOME: (budgets.INCOME ? budgets.INCOME / 100 : 0).toFixed(2),
     BILLS: (budgets.BILLS ? budgets.BILLS / 100 : 0).toFixed(2),
@@ -57,15 +75,13 @@ export function BudgetEditSheet({
     onClose();
   };
 
-  if (!isOpen) return null;
-
   return (
-    <div className="fixed inset-0 z-50 flex items-end">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
       <div className="absolute inset-0 bg-black/40" onClick={onClose} />
 
       {/* Sheet */}
-      <div className="relative w-full animate-in slide-in-from-bottom duration-300 rounded-t-3xl border border-[#E8EAED] bg-white p-6 sm:p-8 max-h-[90vh] overflow-y-auto">
+      <div className="relative max-h-[calc(100dvh-2rem)] w-full max-w-lg animate-in fade-in zoom-in-95 duration-200 overflow-y-auto rounded-2xl border border-[#E8EAED] bg-white p-5 shadow-2xl sm:p-8">
         {/* Header */}
         <div className="mb-6 flex items-center justify-between">
           <h2 className="text-xl font-semibold text-[#0B0F17]">Edit Monthly Budgets</h2>
@@ -82,7 +98,7 @@ export function BudgetEditSheet({
           {(['INCOME', 'BILLS', 'EXPENSES', 'SAVINGS', 'DEBT'] as const).map((category) => (
             <label key={category} className="block">
               <span className="mb-2 block text-sm font-semibold text-[#0B0F17]">
-                {categoryLabels[category]}
+                {budgetLabels[category] || categoryLabels[category]}
               </span>
               <div className="relative">
                 <span className="absolute left-3 top-3 text-lg font-semibold text-[#475569]">

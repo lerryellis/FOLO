@@ -1,6 +1,8 @@
 import { supabase } from './supabase';
 import type { Goal } from './folo-data';
 
+type GoalChanges = Pick<Goal, 'name' | 'type' | 'targetMinor'>;
+
 /**
  * Create a new financial goal
  */
@@ -98,6 +100,49 @@ export async function updateGoalProgress(goalId: string, newProgressMinor: numbe
     console.error('Error updating goal progress:', error);
     throw error;
   }
+}
+
+/** Update the editable fields for a goal owned by the current user. */
+export async function updateGoal(userId: string, goalId: string, changes: GoalChanges) {
+  const { data: currentGoal, error: currentGoalError } = await supabase
+    .from('financial_goals')
+    .select('current_progress')
+    .eq('id', goalId)
+    .eq('user_id', userId)
+    .single();
+
+  if (currentGoalError) throw currentGoalError;
+
+  const progressMinor = Math.round(currentGoal.current_progress * 100);
+  if (changes.targetMinor < progressMinor) {
+    throw new Error('Target amount cannot be less than the current progress.');
+  }
+
+  const { data, error } = await supabase
+    .from('financial_goals')
+    .update({
+      name: changes.name,
+      goal_type: changes.type,
+      target_amount: changes.targetMinor / 100,
+      is_completed: changes.targetMinor <= progressMinor,
+    })
+    .eq('id', goalId)
+    .eq('user_id', userId)
+    .select()
+    .single();
+
+  if (error) throw error;
+
+  return {
+    id: data.id,
+    name: data.name,
+    type: data.goal_type as Goal['type'],
+    targetMinor: Math.round(data.target_amount * 100),
+    progressMinor: Math.round(data.current_progress * 100),
+    percent: Math.min(100, Math.round((data.current_progress / data.target_amount) * 100)),
+    icon: getDefaultIcon(data.goal_type),
+    detail: `Target · ${new Date(data.goal_date || new Date()).toLocaleDateString('en-US', { year: '2-digit', month: 'short' })}`,
+  } satisfies Goal;
 }
 
 /**

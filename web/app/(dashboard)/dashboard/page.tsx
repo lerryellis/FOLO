@@ -35,6 +35,7 @@ import { BudgetChart } from '@/components/dashboard/BudgetChart';
 import { BudgetTips } from '@/components/dashboard/BudgetTips';
 import { BudgetEditSheet } from '@/components/dashboard/BudgetEditSheet';
 import { GoalCreationSheet } from '@/components/dashboard/GoalCreationSheet';
+import { GoalEditSheet } from '@/components/dashboard/GoalEditSheet';
 import { TransactionEditSheet } from '@/components/dashboard/TransactionEditSheet';
 import { useAuth } from '@/lib/hooks/useAuth';
 import {
@@ -47,15 +48,18 @@ import {
 } from '@/lib/transaction-operations';
 import {
   createGoal as createGoalInSupabase,
+  deleteGoal as deleteGoalFromSupabase,
   fetchGoals,
+  updateGoal as updateGoalInSupabase,
 } from '@/lib/goal-operations';
 import { describeSupabaseError, isMissingSupabaseRelation } from '@/lib/supabase-error';
+import { calculateSpreadsheetBudgetSummary } from '@/lib/spreadsheet-budget-logic';
 import { resetAllUserData } from '@/lib/reset-user-data';
 import { linkTransactionToGoal, updateGoalProgressFromTransactions } from '@/lib/goal-transaction-operations';
 import {
   getBudgetGroupTotals,
+  getBudgetItems,
   updateBudgetAmount,
-  getOrCreateBudgetItem,
   getPeriodSummary,
   getOrCreateBudgetPeriod,
   copyBudgetsFromPreviousPeriod,
@@ -64,14 +68,12 @@ import {
 } from '@/lib/budget-operations';
 import {
   BUDGET_EDUCATION,
-  BUDGET_GROUPS,
   CATEGORY_MAP,
   CREDIT_CARD_TYPES,
   INSURANCE_TYPES,
   UTILITY_TYPES,
   detectCurrencyFromLocale,
   CURRENCIES,
-  EXPENSE_ITEMS,
   GOALS,
   INITIAL_TRANSACTIONS,
   type CategoryType,
@@ -309,44 +311,18 @@ function OverviewScreen({
   const recent = displayTransactions.slice(0, 3);
   const previewGoals = (goals.length > 0 ? goals : GOALS).filter((goal) => goal.percent < 100).slice(0, 3);
 
-  // Use database summary if available, otherwise calculate from transactions
-  let incomeMinor: number;
-  let spentMinor: number;
-  let savedAndPaidMinor: number;
-  let netMinor: number;
-  let daysLeft: number = 0;
-
-  if (periodSummary) {
-    // Use database values (in decimal, convert to minor units)
-    incomeMinor = Math.round((periodSummary.income_actual || 0) * 100);
-    const billsMinor = Math.round((periodSummary.bills_actual || 0) * 100);
-    const expensesMinor = Math.round((periodSummary.expenses_actual || 0) * 100);
-    spentMinor = billsMinor + expensesMinor;
-    const savingsMinor = Math.round((periodSummary.savings_actual || 0) * 100);
-    const debtMinor = Math.round((periodSummary.debt_actual || 0) * 100);
-    savedAndPaidMinor = savingsMinor + debtMinor;
-    netMinor = Math.round((periodSummary.left_to_spend || 0) * 100);
-    daysLeft = periodSummary.days_left || 0;
-  } else {
-    // Fallback to transaction calculations
-    incomeMinor = displayTransactions
-      .filter((t) => t.categoryType === 'INCOME')
-      .reduce((sum, t) => sum + t.amountMinor, 0);
-
-    spentMinor = Math.abs(
-      displayTransactions
-        .filter((t) => t.categoryType === 'BILLS' || t.categoryType === 'EXPENSES')
-        .reduce((sum, t) => sum + t.amountMinor, 0)
-    );
-
-    savedAndPaidMinor = Math.abs(
-      displayTransactions
-        .filter((t) => t.categoryType === 'SAVINGS' || t.categoryType === 'DEBT')
-        .reduce((sum, t) => sum + t.amountMinor, 0)
-    );
-
-    netMinor = incomeMinor - spentMinor - savedAndPaidMinor;
-  }
+  const spreadsheetSummary = calculateSpreadsheetBudgetSummary({
+    transactions: displayTransactions,
+    budgetGroups: budgetTotals,
+    periodStart: new Date(period.getFullYear(), period.getMonth(), 1),
+    periodEnd: new Date(period.getFullYear(), period.getMonth() + 1, 0),
+    startingBalanceMinor: Math.round((periodSummary?.starting_balance || 0) * 100),
+  });
+  const incomeMinor = spreadsheetSummary.actualByGroupMinor.INCOME;
+  const spentMinor = spreadsheetSummary.actualByGroupMinor.BILLS + spreadsheetSummary.actualByGroupMinor.EXPENSES;
+  const savedAndPaidMinor = spreadsheetSummary.actualByGroupMinor.SAVINGS + spreadsheetSummary.actualByGroupMinor.DEBT;
+  const netMinor = spreadsheetSummary.actualCashAvailableMinor;
+  const daysLeft = spreadsheetSummary.daysLeft;
 
   return (
     <section className="mx-auto w-full max-w-[1200px] px-4 py-4 sm:px-6 lg:px-8 lg:py-7">
@@ -540,16 +516,21 @@ function BudgetScreen({
   userId,
   budgetPeriodId,
   onBudgetsChange,
+  onNotice,
 }: {
   currency: CurrencyCode;
   showSampleData?: boolean;
   userId?: string;
   budgetPeriodId?: string;
   onBudgetsChange?: () => void;
+  onNotice?: (message: string) => void;
 }) {
   const [showBudgetInfo, setShowBudgetInfo] = useState(false);
   const [showBudgetEdit, setShowBudgetEdit] = useState(false);
   const [budgetTotals, setBudgetTotals] = useState<BudgetGroupTotal[]>([]);
+  const [budgetItemIds, setBudgetItemIds] = useState<Record<string, string>>({});
+  const [budgetAmounts, setBudgetAmounts] = useState<Record<string, number>>({});
+  const [budgetLabels, setBudgetLabels] = useState<Record<string, string>>({});
   const [budgetLoading, setBudgetLoading] = useState(false);
   const [selectedEditCategory, setSelectedEditCategory] = useState<string | null>(null);
 
@@ -560,8 +541,27 @@ function BudgetScreen({
     const loadBudgets = async () => {
       try {
         setBudgetLoading(true);
-        const totals = await getBudgetGroupTotals(userId, budgetPeriodId);
+        const [totals, items] = await Promise.all([
+          getBudgetGroupTotals(userId, budgetPeriodId),
+          getBudgetItems(userId, budgetPeriodId),
+        ]);
         setBudgetTotals(totals || []);
+        const loadedBudgetItems = items.reduce<{
+          amounts: Record<string, number>;
+          ids: Record<string, string>;
+          labels: Record<string, string>;
+        }>((result, item) => {
+            if (item.subcategory_name === null && item.categories?.category_type && !result.ids[item.categories.category_type]) {
+              const categoryType = item.categories.category_type;
+              result.ids[categoryType] = item.id;
+              result.amounts[categoryType] = Math.round(Number(item.budgeted_amount) * 100);
+              result.labels[categoryType] = item.categories.name;
+            }
+            return result;
+          }, { ids: {}, amounts: {}, labels: {} });
+        setBudgetItemIds(loadedBudgetItems.ids);
+        setBudgetAmounts(loadedBudgetItems.amounts);
+        setBudgetLabels(loadedBudgetItems.labels);
       } catch (error) {
         console.error('Error loading budgets:', error);
       } finally {
@@ -579,28 +579,23 @@ function BudgetScreen({
     }
 
     try {
-      console.log('Saving budgets:', { budgets, userId, budgetPeriodId });
-
       for (const [categoryType, amount] of Object.entries(budgets)) {
-        console.log(`Saving budget for ${categoryType}:`, amount);
-        await getOrCreateBudgetItem(userId, budgetPeriodId, categoryType, amount);
+        const budgetItemId = budgetItemIds[categoryType];
+        if (!budgetItemId) {
+          throw new Error(`No existing ${categoryType.toLowerCase()} budget item exists for this period.`);
+        }
+        await updateBudgetAmount(budgetItemId, userId, amount);
       }
 
-      console.log('Budgets saved, reloading totals...');
       // Reload budgets
       const totals = await getBudgetGroupTotals(userId, budgetPeriodId);
       setBudgetTotals(totals || []);
       onBudgetsChange?.();
-
-      console.log('✅ Budgets saved successfully!');
+      onNotice?.('Budgets updated successfully.');
     } catch (error) {
-      console.error('Error saving budgets:', {
-        message: error instanceof Error ? error.message : String(error),
-        error: error,
-        budgets,
-        userId,
-        budgetPeriodId,
-      });
+      const errorDetails = describeSupabaseError(error);
+      console.error('Error saving budgets:', errorDetails);
+      onNotice?.(`Could not save budgets: ${errorDetails.message}`);
     }
   };
 
@@ -695,7 +690,7 @@ function BudgetScreen({
       </div>
 
 
-      <BudgetChart currency={currency} />
+      <BudgetChart currency={currency} groups={budgetTotals} />
 
       <div className="mt-5 space-y-3">
         {budgetTotals && budgetTotals.length > 0
@@ -741,59 +736,12 @@ function BudgetScreen({
                 </article>
               );
             })
-          : BUDGET_GROUPS.map((group) => {
-              const isOver = group.actualMinor > group.budgetMinor;
-              const variance = group.actualMinor - group.budgetMinor;
-              return (
-                <article
-                  key={group.type}
-                  onClick={() => setSelectedEditCategory(group.type)}
-                  className="cursor-pointer rounded-2xl border border-[#E8EAED] bg-white p-4 sm:p-5 transition-all hover:border-[#10B981] hover:shadow-md"
-                >
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <h3 className="text-sm font-semibold text-[#0B0F17]">{group.name}</h3>
-                      <p className={`money mt-1 text-[11px] font-medium ${isOver ? 'text-[#DC2626]' : 'text-[#475569]'}`}>
-                        {variance > 0
-                          ? `${formatMoney(variance, currency, { showPlus: true })} over plan`
-                          : variance < 0
-                            ? `${formatMoney(variance, currency)} under plan`
-                            : '0 on plan'}
-                      </p>
-                    </div>
-                    <span className={`money text-xs font-semibold ${isOver ? 'text-[#DC2626]' : 'text-[#0B0F17]'}`}>
-                      {formatMoney(group.actualMinor, currency)}{' '}
-                      <span className="font-normal text-[#64748b]">/ {formatMoney(group.budgetMinor, currency)}</span>
-                    </span>
-                  </div>
-                  <div className="mt-3">
-                    <Meter percent={group.percent} isOver={isOver} />
-                  </div>
-
-                  {group.type === 'EXPENSES' ? (
-                    <div className="mt-5 border-t border-[#F0F2F4] pt-4">
-                      <p className="mb-3 text-[10px] font-semibold uppercase tracking-[0.08em] text-[#64748b]">Expense categories</p>
-                      <div className="space-y-4">
-                        {EXPENSE_ITEMS.map((item) => {
-                          const itemOver = item.actualMinor > item.budgetMinor;
-                          return (
-                            <div key={item.name}>
-                              <div className="mb-2 flex items-baseline justify-between gap-3">
-                                <span className="text-xs font-medium text-[#475569]">{item.name}</span>
-                                <span className={`money text-[11px] ${itemOver ? 'font-semibold text-[#DC2626]' : 'text-[#475569]'}`}>
-                                  {formatMoney(item.actualMinor, currency)} / {formatMoney(item.budgetMinor, currency)}
-                                </span>
-                              </div>
-                              <Meter percent={item.percent} isOver={itemOver} />
-                            </div>
-                          );
-                        })}
-                      </div>
-                    </div>
-                  ) : null}
-                </article>
-              );
-            })}
+          : (
+              <div className="rounded-2xl border border-dashed border-[#E8EAED] bg-white px-5 py-10 text-center">
+                <p className="text-sm font-semibold text-[#0B0F17]">No budget data for this period</p>
+                <p className="mt-1 text-xs text-[#64748b]">Create budget items before comparing planned and actual amounts.</p>
+              </div>
+            )}
       </div>
 
       {/* Budget Edit Sheet */}
@@ -805,23 +753,8 @@ function BudgetScreen({
         }}
         onSave={handleSaveBudgets}
         currency={currency}
-        budgets={{
-          INCOME: budgetTotals.find((t) => t.category_type === 'INCOME')?.budgeted
-            ? Math.round(budgetTotals.find((t) => t.category_type === 'INCOME')!.budgeted * 100)
-            : 0,
-          BILLS: budgetTotals.find((t) => t.category_type === 'BILLS')?.budgeted
-            ? Math.round(budgetTotals.find((t) => t.category_type === 'BILLS')!.budgeted * 100)
-            : 0,
-          EXPENSES: budgetTotals.find((t) => t.category_type === 'EXPENSES')?.budgeted
-            ? Math.round(budgetTotals.find((t) => t.category_type === 'EXPENSES')!.budgeted * 100)
-            : 0,
-          SAVINGS: budgetTotals.find((t) => t.category_type === 'SAVINGS')?.budgeted
-            ? Math.round(budgetTotals.find((t) => t.category_type === 'SAVINGS')!.budgeted * 100)
-            : 0,
-          DEBT: budgetTotals.find((t) => t.category_type === 'DEBT')?.budgeted
-            ? Math.round(budgetTotals.find((t) => t.category_type === 'DEBT')!.budgeted * 100)
-            : 0,
-        }}
+        budgets={budgetAmounts}
+        budgetLabels={budgetLabels}
       />
     </section>
   );
@@ -950,12 +883,16 @@ function GoalCard({
   currency,
   isSelected = false,
   onSelect = () => {},
+  onEdit = () => {},
+  onDelete = () => {},
   onAddToSavings = () => {}
 }: {
   goal: Goal;
   currency: CurrencyCode;
   isSelected?: boolean;
   onSelect?: () => void;
+  onEdit?: (goal: Goal) => void;
+  onDelete?: (goal: Goal) => void;
   onAddToSavings?: (goal: Goal) => void;
 }) {
   const isComplete = goal.percent >= 100;
@@ -986,14 +923,14 @@ function GoalCard({
         {isSelected ? (
           <div className="flex shrink-0 gap-1.5">
             <button 
-              onClick={(e) => { e.stopPropagation(); alert('Edit coming soon'); }}
+              onClick={(e) => { e.stopPropagation(); onEdit(goal); }}
               className="flex items-center gap-1.5 rounded-lg bg-[#10B981] px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-[#059669] transition-colors"
             >
               <Edit2 className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Edit</span>
             </button>
             <button 
-              onClick={(e) => { e.stopPropagation(); alert('Delete coming soon'); }}
+              onClick={(e) => { e.stopPropagation(); onDelete(goal); }}
               className="flex items-center gap-1.5 rounded-lg bg-[#ef4444] px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-[#dc2626] transition-colors"
             >
               <Trash2 className="h-3.5 w-3.5" />
@@ -1043,6 +980,8 @@ function GoalsScreen({
   selectedGoalId = null,
   onSelectGoal = () => {},
   onCreateGoalClick = () => {},
+  onEditGoal = () => {},
+  onDeleteGoal = () => {},
   goals = []
 }: {
   currency: CurrencyCode;
@@ -1050,6 +989,8 @@ function GoalsScreen({
   selectedGoalId?: string | null;
   onSelectGoal?: (goalId: string) => void;
   onCreateGoalClick?: () => void;
+  onEditGoal?: (goal: Goal) => void;
+  onDeleteGoal?: (goal: Goal) => void;
   goals?: typeof GOALS;
 }) {
   // Show empty state if no goals
@@ -1147,6 +1088,8 @@ function GoalsScreen({
               currency={currency}
               isSelected={selectedGoalId === goal.id}
               onSelect={() => onSelectGoal(goal.id)}
+              onEdit={onEditGoal}
+              onDelete={onDeleteGoal}
             />
           ))}
         </div>
@@ -1162,6 +1105,8 @@ function GoalsScreen({
               currency={currency}
               isSelected={selectedGoalId === goal.id}
               onSelect={() => onSelectGoal(goal.id)}
+              onEdit={onEditGoal}
+              onDelete={onDeleteGoal}
             />
           ))}
         </div>
@@ -1456,6 +1401,7 @@ export default function DashboardPage() {
   const [selectedGoalId, setSelectedGoalId] = useState<string | null>(null);
   const [showSampleData, setShowSampleData] = useState(false);
   const [isGoalCreationOpen, setIsGoalCreationOpen] = useState(false);
+  const [editingGoal, setEditingGoal] = useState<Goal | null>(null);
   const [editingTransaction, setEditingTransaction] = useState<Transaction | null>(null);
   const [goals, setGoals] = useState<typeof GOALS>([]);
   const [showDeleteMonthConfirm, setShowDeleteMonthConfirm] = useState(false);
@@ -1582,11 +1528,11 @@ export default function DashboardPage() {
   async function saveTransaction(transaction: Transaction, goalId?: string) {
     try {
       // Save to Supabase first
-      await saveTransactionToSupabase(user!.id, transaction);
+      const savedTransaction = await saveTransactionToSupabase(user!.id, transaction);
 
       // Link to goal if selected
       if (goalId) {
-        await linkTransactionToGoal(user!.id, goalId, transaction.id, transaction.amountMinor);
+        await linkTransactionToGoal(user!.id, goalId, savedTransaction.id, savedTransaction.amountMinor);
 
         // Reload goals to update progress
         const updatedGoals = await fetchGoals(user!.id);
@@ -1594,7 +1540,7 @@ export default function DashboardPage() {
       }
 
       // Update local state
-      setTransactions((current) => [transaction, ...current]);
+      setTransactions((current) => [savedTransaction, ...current]);
       setNotice(goalId ? 'Transaction saved and linked to goal!' : 'Transaction saved successfully.');
       setActiveTab('activity');
     } catch (error) {
@@ -1636,6 +1582,33 @@ export default function DashboardPage() {
     } catch (error) {
       console.error('Failed to delete transaction:', error);
       setNotice('Failed to delete transaction. Please try again.');
+    }
+  }
+
+  async function handleUpdateGoal(goalId: string, changes: Pick<Goal, 'name' | 'type' | 'targetMinor'>) {
+    try {
+      const updatedGoal = await updateGoalInSupabase(user!.id, goalId, changes);
+      setGoals((current) => current.map((goal) => (goal.id === goalId ? updatedGoal : goal)));
+      setEditingGoal(null);
+      setNotice('Goal updated successfully.');
+    } catch (error) {
+      console.error('Failed to update goal:', error);
+      setNotice('Failed to update goal. Please try again.');
+    }
+  }
+
+  async function handleDeleteGoal(goal: Goal) {
+    if (!window.confirm(`Delete “${goal.name}”? This cannot be undone.`)) return;
+
+    try {
+      await deleteGoalFromSupabase(user!.id, goal.id);
+      setGoals((current) => current.filter((item) => item.id !== goal.id));
+      setSelectedGoalId((current) => (current === goal.id ? null : current));
+      setEditingGoal(null);
+      setNotice('Goal deleted successfully.');
+    } catch (error) {
+      console.error('Failed to delete goal:', error);
+      setNotice('Failed to delete goal. Please try again.');
     }
   }
 
@@ -1825,6 +1798,7 @@ export default function DashboardPage() {
               goals={goals}
               userId={user.id}
               budgetPeriodId={budgetPeriodId}
+              budgetTotals={budgetTotals}
               periodSummary={periodSummary}
             />
           ) : null}
@@ -1834,6 +1808,7 @@ export default function DashboardPage() {
               showSampleData={showSampleData}
               userId={user.id}
               budgetPeriodId={budgetPeriodId}
+              onNotice={setNotice}
             />
           ) : null}
           {activeTab === 'activity' ? (
@@ -1846,7 +1821,7 @@ export default function DashboardPage() {
               onTransactionClick={handleTransactionClick}
             />
           ) : null}
-          {activeTab === 'goals' ? <GoalsScreen currency={currency} showSampleData={showSampleData} selectedGoalId={selectedGoalId} onSelectGoal={setSelectedGoalId} onCreateGoalClick={() => setIsGoalCreationOpen(true)} goals={goals} /> : null}
+          {activeTab === 'goals' ? <GoalsScreen currency={currency} showSampleData={showSampleData} selectedGoalId={selectedGoalId} onSelectGoal={setSelectedGoalId} onCreateGoalClick={() => setIsGoalCreationOpen(true)} onEditGoal={setEditingGoal} onDeleteGoal={handleDeleteGoal} goals={goals} /> : null}
           {activeTab === 'reports' ? (
             transactions.length > 0 ? <ReportsScreen currency={currency} showSampleData={showSampleData} transactions={transactions} /> : <PeriodEmpty period={period} onReturn={returnToSamplePeriod} />
           ) : null}
@@ -1927,6 +1902,15 @@ export default function DashboardPage() {
             setNotice('Failed to create goal. Please try again.');
           }
         }}
+        currency={currency}
+      />
+
+      <GoalEditSheet
+        goal={editingGoal}
+        isOpen={!!editingGoal}
+        onClose={() => setEditingGoal(null)}
+        onUpdate={handleUpdateGoal}
+        onDelete={handleDeleteGoal}
         currency={currency}
       />
 
