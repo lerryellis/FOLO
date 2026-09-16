@@ -191,45 +191,7 @@ export function GoalCreationSheet({ isOpen, onClose, onCreateGoal, currency }: G
             </button>
           ))}
         </div>
-
-        {/* Monthly Payment (Optional) */}
-        <label className="mt-6 block">
-          <span className="mb-2 block text-sm font-semibold text-[#0B0F17]">
-            Monthly Payment <span className="text-xs text-[#64748b] font-normal">(optional)</span>
-          </span>
-          <input
-            type="text"
-            value={monthlyPayment}
-            onChange={(e) => {
-              setMonthlyPayment(e.target.value);
-              setErrors((prev) => ({ ...prev, monthly_payment: '' }));
-            }}
-            placeholder={`e.g., 100 to reduce goal by ₵100/month`}
-            className="min-h-12 w-full rounded-xl border border-[#E8EAED] bg-white px-3 text-sm font-medium text-[#0B0F17] outline-none placeholder:text-[#94a3b8] focus:border-[#10B981]"
-          />
-          {errors.monthly_payment && <p className="mt-1 text-xs text-[#ef4444]">{errors.monthly_payment}</p>}
-          <p className="mt-1 text-xs text-[#64748b]">💡 Goal amount will automatically deflate by this amount each month</p>
-        </label>
-
-        {/* Payment Start Date (Optional) */}
-        {monthlyPayment.trim() && (
-          <label className="mt-4 block">
-            <span className="mb-2 block text-sm font-semibold text-[#0B0F17]">When do payments start?</span>
-            <input
-              type="date"
-              value={paymentStartDate}
-              onChange={(e) => {
-                setPaymentStartDate(e.target.value);
-                setErrors((prev) => ({ ...prev, payment_start_date: '' }));
-              }}
-              className="min-h-12 w-full rounded-xl border border-[#E8EAED] bg-white px-3 text-sm font-medium text-[#0B0F17] outline-none focus:border-[#10B981]"
-            />
-            {errors.payment_start_date && <p className="mt-1 text-xs text-[#ef4444]">{errors.payment_start_date}</p>}
-            <p className="mt-1 text-xs text-[#64748b]">📅 Goal will deflate from this date forward</p>
-          </label>
-        )}
-
-        {/* Create Button */}
+      {/* Create Button */}
         <button
           onClick={handleCreateGoal}
           className="mt-6 flex w-full items-center justify-center gap-2 min-h-12 rounded-xl bg-[#10B981] font-semibold text-white transition-colors hover:bg-[#059669] active:scale-[0.98]"
