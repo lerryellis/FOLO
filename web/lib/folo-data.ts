@@ -19,6 +19,8 @@ export interface Transaction {
   date: string;
   note?: string;
   pending?: boolean;
+  isRecurring?: boolean; // True if repeats monthly, false for one-time
+  recurringEndDate?: string; // When to stop recurring (YYYY-MM-DD), null = forever
 }
 
 export interface Goal {

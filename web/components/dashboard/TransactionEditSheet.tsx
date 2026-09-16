@@ -204,6 +204,42 @@ function TransactionEditForm({
               </p>
             </label>
           )}
+
+          {/* Recurring Transaction Toggle */}
+          <label className="flex items-center gap-3 rounded-xl border border-[#E8EAED] bg-white p-3">
+            <input
+              type="checkbox"
+              checked={editData.isRecurring || false}
+              onChange={(e) => setEditData({ ...editData, isRecurring: e.target.checked })}
+              className="h-5 w-5 rounded-md cursor-pointer accent-[#10B981]"
+            />
+            <div className="flex-1">
+              <span className="block text-sm font-semibold text-[#0B0F17]">
+                Repeat Monthly
+              </span>
+              <p className="text-xs text-[#64748b]">
+                {editData.isRecurring ? '📅 This will repeat every month' : '🔄 One-time transaction'}
+              </p>
+            </div>
+          </label>
+
+          {/* Recurring End Date (show only if recurring) */}
+          {editData.isRecurring && (
+            <label className="block">
+              <span className="mb-2 block text-sm font-semibold text-[#0B0F17]">
+                Stop Repeating On <span className="text-xs text-[#64748b] font-normal">(optional)</span>
+              </span>
+              <input
+                type="date"
+                value={editData.recurringEndDate || ''}
+                onChange={(e) => setEditData({ ...editData, recurringEndDate: e.target.value || undefined })}
+                className="min-h-12 w-full rounded-xl border border-[#E8EAED] bg-white px-3 text-sm font-medium text-[#0B0F17] outline-none focus:border-[#10B981]"
+              />
+              <p className="mt-2 text-xs text-[#64748b]">
+                Leave blank to repeat forever, or set an end date
+              </p>
+            </label>
+          )}
         </div>
 
         {/* Action Buttons */}
