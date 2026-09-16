@@ -989,20 +989,25 @@ function GoalCard({
     <article 
       className={`rounded-2xl border p-4 sm:p-5 transition-all cursor-pointer ${
         isSelected 
-          ? 'border-[#10B981] bg-[#F0FDF9] shadow-lg' 
-          : 'border-[#E8EAED] bg-white hover:border-[#10B981] hover:shadow-md'
+          ? 'border-[#86EFAC] bg-[#F0FDF9] shadow-lg' 
+          : 'border-[#E8EAED] bg-white hover:border-[#D1FAE5] hover:shadow-md'
       }`}
       onClick={onSelect}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
           <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${
-            isSelected ? 'bg-[#10B981] text-white' : 'bg-[#F1F5F3] text-[#10B981]'
+            isSelected ? 'bg-[#6EE7B7] text-[#047857]' : 'bg-[#D1FAE5] text-[#059669]'
           }`} aria-hidden="true">
             {getGoalIcon(goal.icon)}
           </div>
-          <div className="min-w-0">
-            <h3 className="truncate text-sm font-semibold text-[#0B0F17]">{goal.name}</h3>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-2">
+              <h3 className="truncate text-sm font-semibold text-[#0B0F17]">{goal.name}</h3>
+              <span className="shrink-0 text-[10px] font-medium text-[#64748b] bg-[#F3F4F6] px-2 py-0.5 rounded">
+                {goal.type === 'SAVINGS' ? '💰' : '💳'} {goal.type === 'SAVINGS' ? 'Save' : 'Debt'}
+              </span>
+            </div>
             <p className="mt-1 text-xs text-[#64748b]">{goal.detail}</p>
           </div>
         </div>
@@ -1010,14 +1015,14 @@ function GoalCard({
           <div className="flex shrink-0 gap-1.5">
             <button 
               onClick={(e) => { e.stopPropagation(); onEdit(goal); }}
-              className="flex items-center gap-1.5 rounded-lg bg-[#10B981] px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-[#059669] transition-colors"
+              className="flex items-center gap-1.5 rounded-lg bg-[#6EE7B7] text-[#047857] px-2.5 py-1.5 text-xs font-semibold hover:bg-[#86EFAC] transition-colors"
             >
               <Edit2 className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Edit</span>
             </button>
             <button 
               onClick={(e) => { e.stopPropagation(); onDelete(goal); }}
-              className="flex items-center gap-1.5 rounded-lg bg-[#ef4444] px-2.5 py-1.5 text-xs font-semibold text-white hover:bg-[#dc2626] transition-colors"
+              className="flex items-center gap-1.5 rounded-lg bg-[#FCA5A5] text-[#7F1D1D] px-2.5 py-1.5 text-xs font-semibold hover:bg-[#FECACA] transition-colors"
             >
               <Trash2 className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Delete</span>
@@ -1025,7 +1030,7 @@ function GoalCard({
           </div>
         ) : isComplete ? (
           <div className="flex shrink-0 flex-col items-end gap-1.5">
-            <span className="flex items-center gap-1.5 rounded-full bg-[#E7F7F0] px-2.5 py-1 text-[11px] font-semibold text-[#065F46]">
+            <span className="flex items-center gap-1.5 rounded-full bg-[#DBEAFE] px-2.5 py-1 text-[11px] font-semibold text-[#1E40AF]">
               <CheckCircle2 className="h-3.5 w-3.5" />
               {status}
             </span>
@@ -1035,26 +1040,37 @@ function GoalCard({
                   e.stopPropagation();
                   onAddToSavings(goal);
                 }}
-                className="rounded-lg bg-[#10B981] px-2.5 py-1 text-[10px] font-semibold text-white hover:bg-[#059669] transition-colors"
+                className="rounded-lg bg-[#6EE7B7] text-[#047857] px-2.5 py-1 text-[10px] font-semibold hover:bg-[#86EFAC] transition-colors"
               >
                 Add to Savings
               </button>
             )}
           </div>
         ) : (
-          <span className="money shrink-0 text-xs font-semibold text-[#475569]">{goal.percent}%</span>
+          <div className="shrink-0 text-right">
+            <div className="text-lg font-bold text-[#059669]">{goal.percent}%</div>
+            <div className="text-[10px] text-[#64748b]">{formatMoney(remaining, currency)} to go</div>
+          </div>
         )}
       </div>
       <div className="mt-4">
         <Meter percent={goal.percent} />
       </div>
-      <div className="mt-3 flex items-center justify-between gap-4 text-[11px]">
-        <span className="money font-medium text-[#475569]">
-          {formatMoney(goal.progressMinor, currency)} / {formatMoney(goal.targetMinor, currency)}
-        </span>
-        <span className={`money ${isComplete ? 'font-semibold text-[#065F46]' : 'text-[#64748b]'}`}>
-          {isComplete ? status : goal.monthlyPaymentMinor ? `${formatMoney(goal.remainingMinor || 0, currency)} after payments` : `${formatMoney(remaining, currency)} to go`}
-        </span>
+      <div className="mt-4 grid grid-cols-3 gap-3 text-center text-[10px]">
+        <div className="rounded-lg bg-[#F3F4F6] p-2">
+          <p className="text-[#64748b] font-medium">Progress</p>
+          <p className="mt-1 font-semibold text-[#0B0F17]">{formatMoney(goal.progressMinor, currency)}</p>
+        </div>
+        <div className="rounded-lg bg-[#F3F4F6] p-2">
+          <p className="text-[#64748b] font-medium">Target</p>
+          <p className="mt-1 font-semibold text-[#0B0F17]">{formatMoney(goal.targetMinor, currency)}</p>
+        </div>
+        <div className="rounded-lg bg-[#F3F4F6] p-2">
+          <p className="text-[#64748b] font-medium">Remaining</p>
+          <p className={`mt-1 font-semibold ${goal.percent >= 100 ? 'text-[#059669]' : 'text-[#0B0F17]'}`}>
+            {formatMoney(remaining, currency)}
+          </p>
+        </div>
       </div>
     </article>
   );
