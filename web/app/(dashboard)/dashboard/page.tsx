@@ -1085,6 +1085,7 @@ function GoalsScreen({
   onCreateGoalClick = () => {},
   onEditGoal = () => {},
   onDeleteGoal = () => {},
+  onAddToSavings = () => {},
   goals = []
 }: {
   currency: CurrencyCode;
@@ -1094,6 +1095,7 @@ function GoalsScreen({
   onCreateGoalClick?: () => void;
   onEditGoal?: (goal: Goal) => void;
   onDeleteGoal?: (goal: Goal) => void;
+  onAddToSavings?: (goal: Goal) => void;
   goals?: typeof GOALS;
 }) {
   // Show empty state if no goals
@@ -1185,14 +1187,15 @@ function GoalsScreen({
         <p className="mb-3 px-1 text-[10px] font-semibold uppercase tracking-[0.09em] text-[#64748b]">Savings</p>
         <div className="grid gap-3 md:grid-cols-2">
           {savingsGoals.map((goal) => (
-            <GoalCard 
-              key={goal.id} 
-              goal={goal} 
+            <GoalCard
+              key={goal.id}
+              goal={goal}
               currency={currency}
               isSelected={selectedGoalId === goal.id}
               onSelect={() => onSelectGoal(goal.id)}
               onEdit={onEditGoal}
               onDelete={onDeleteGoal}
+              onAddToSavings={onAddToSavings}
             />
           ))}
         </div>
@@ -1202,14 +1205,15 @@ function GoalsScreen({
         <p className="mb-3 px-1 text-[10px] font-semibold uppercase tracking-[0.09em] text-[#64748b]">Debt payoff</p>
         <div className="grid gap-3 md:grid-cols-2">
           {debtGoals.map((goal) => (
-            <GoalCard 
-              key={goal.id} 
-              goal={goal} 
+            <GoalCard
+              key={goal.id}
+              goal={goal}
               currency={currency}
               isSelected={selectedGoalId === goal.id}
               onSelect={() => onSelectGoal(goal.id)}
               onEdit={onEditGoal}
               onDelete={onDeleteGoal}
+              onAddToSavings={onAddToSavings}
             />
           ))}
         </div>
@@ -1756,6 +1760,45 @@ export default function DashboardPage() {
     }
   }
 
+  async function handleAddToSavings(goal: Goal) {
+    if (!user) return;
+
+    try {
+      // Create a SAVINGS transaction for the goal amount
+      const transaction: Transaction = {
+        id: crypto.randomUUID(),
+        name: `Savings from: ${goal.name}`,
+        category: 'General',
+        categoryType: 'SAVINGS',
+        amountMinor: goal.targetMinor,
+        date: new Date().toISOString().split('T')[0],
+        note: `Completed goal: ${goal.name}`,
+        pending: false,
+      };
+
+      // Save transaction to database
+      const savedTx = await saveTransactionToSupabase(user.id, transaction);
+
+      // Link transaction to goal
+      await linkTransactionToGoal(user.id, goal.id, savedTx.id);
+
+      // Update goal progress
+      await updateGoalProgressFromTransactions(user.id, goal.id);
+
+      // Refresh transactions and goals
+      const updatedTransactions = await fetchTransactions(user.id, new Date());
+      setTransactions(updatedTransactions);
+
+      const updatedGoals = await fetchGoals(user.id);
+      setGoals(updatedGoals);
+
+      setNotice(`✅ Added ${formatMoney(goal.targetMinor, currency)} to savings from “${goal.name}”`);
+    } catch (error) {
+      console.error('Failed to add to savings:', error);
+      setNotice('Failed to record savings. Please try again.');
+    }
+  }
+
   async function handleResetAllData() {
     try {
       setNotice('Clearing all data...');
@@ -1996,7 +2039,7 @@ export default function DashboardPage() {
               onTransactionClick={handleTransactionClick}
             />
           ) : null}
-          {activeTab === 'goals' ? <GoalsScreen currency={currency} showSampleData={showSampleData} selectedGoalId={selectedGoalId} onSelectGoal={setSelectedGoalId} onCreateGoalClick={() => setIsGoalCreationOpen(true)} onEditGoal={setEditingGoal} onDeleteGoal={handleDeleteGoal} goals={goals} /> : null}
+          {activeTab === 'goals' ? <GoalsScreen currency={currency} showSampleData={showSampleData} selectedGoalId={selectedGoalId} onSelectGoal={setSelectedGoalId} onCreateGoalClick={() => setIsGoalCreationOpen(true)} onEditGoal={setEditingGoal} onDeleteGoal={handleDeleteGoal} onAddToSavings={handleAddToSavings} goals={goals} /> : null}
           {activeTab === 'reports' ? (
             transactions.length > 0 ? <ReportsScreen currency={currency} showSampleData={showSampleData} transactions={transactions} budgetGroups={budgetTotals} /> : <PeriodEmpty period={period} onReturn={returnToSamplePeriod} />
           ) : null}
