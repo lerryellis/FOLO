@@ -14,7 +14,7 @@ import {
   XAxis,
   YAxis,
 } from 'recharts';
-import { TrendingUp, TrendingDown, Target, FileBarChart } from 'lucide-react';
+import { TrendingUp, TrendingDown, Target, FileBarChart, Grid3x3, List } from 'lucide-react';
 import type { CurrencyCode, Transaction } from '@/lib/folo-data';
 import { formatMoney, getCurrency } from '@/lib/folo-data';
 import {
@@ -203,50 +203,99 @@ export function ReportsScreen({ currency, showSampleData = false, transactions =
 
       {/* Spending Analysis Section */}
       <div className="mb-7 rounded-[14px] border border-[#E8EAED] bg-white p-4 sm:p-5">
-        <SectionHeader
-          title="Spending by Category"
-          subtitle="Where your money went this month"
-          helpTitle="Category Breakdown"
-          helpContent="Shows actual spending across all expense categories, sorted by amount. Bars are colored to show relative magnitude — darker shades indicate higher spending."
-        />
-        <div className="h-[330px] w-full" aria-label="Horizontal bar chart of spending by category">
-          <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={spendingByCategory} layout="vertical" margin={{ top: 0, right: 24, bottom: 0, left: 8 }}>
-              <CartesianGrid horizontal={false} stroke="#F0F2F4" />
-              <XAxis
-                type="number"
-                axisLine={false}
-                tickLine={false}
-                tick={{ fill: '#64748b', fontSize: 10 }}
-                tickFormatter={(value: number) => formatMoney(value, currency, { includeSymbol: false }).replace('.00', '')}
-              />
-              <YAxis
-                type="category"
-                dataKey="name"
-                width={104}
-                axisLine={false}
-                tickLine={false}
-                tick={{ fill: '#475569', fontSize: 11 }}
-              />
-              <Tooltip
-                cursor={{ fill: '#F6F7F9' }}
-                formatter={(value) => [formatMoney(Number(value), currency), 'Actual']}
-                contentStyle={{ border: '1px solid #E8EAED', borderRadius: 10, boxShadow: '0 8px 24px rgba(11,15,23,0.08)' }}
-                labelStyle={{ color: '#0B0F17', fontWeight: 600 }}
-              />
-              <Bar dataKey="amountMinor" radius={[0, 4, 4, 0]} maxBarSize={18}>
-                {spendingByCategory.map((entry) => (
-                  <Cell key={entry.name} fill={entry.fill} />
-                ))}
-              </Bar>
-            </BarChart>
-          </ResponsiveContainer>
+        <div className="mb-4 flex items-center justify-between gap-4">
+          <SectionHeader
+            title="Spending by Category"
+            subtitle="Where your money went this month"
+            helpTitle="Category Breakdown"
+            helpContent="Shows actual spending across all expense categories, sorted by amount. Bars are colored to show relative magnitude — darker shades indicate higher spending."
+          />
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setViewMode('chart')}
+              className={`flex h-10 w-10 items-center justify-center rounded-lg transition-colors ${
+                viewMode === 'chart'
+                  ? 'bg-[#0B0F17] text-white'
+                  : 'bg-[#F6F7F9] text-[#475569] hover:bg-[#E8EAED]'
+              }`}
+              aria-label="Chart view"
+              title="Circular chart view"
+            >
+              <Grid3x3 className="h-5 w-5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => setViewMode('list')}
+              className={`flex h-10 w-10 items-center justify-center rounded-lg transition-colors ${
+                viewMode === 'list'
+                  ? 'bg-[#0B0F17] text-white'
+                  : 'bg-[#F6F7F9] text-[#475569] hover:bg-[#E8EAED]'
+              }`}
+              aria-label="List view"
+              title="List/bar chart view"
+            >
+              <List className="h-5 w-5" />
+            </button>
+          </div>
         </div>
-        <p className="mt-4 text-xs text-[#64748b]">
-          💡 <strong>Insight:</strong> {spendingByCategory[0]?.name} is your largest expense category, accounting for {
-            ((spendingByCategory[0]?.amountMinor || 0) / totalExpenses * 100).toFixed(0)
-          }% of total spending.
-        </p>
+
+        {viewMode === 'chart' ? (
+          <div className="h-[400px] w-full" aria-label="Circular budget chart of spending by category">
+            <CircularBudgetChart
+              data={spendingByCategory.map((cat, idx) => ({
+                id: `cat-${idx}`,
+                label: cat.name,
+                color: cat.fill,
+                value: (cat.amountMinor / totalExpenses) * 100,
+                amount: cat.amountMinor,
+              }))}
+              totalAmount={totalExpenses}
+              currency={currency}
+            />
+          </div>
+        ) : (
+          <>
+            <div className="h-[330px] w-full" aria-label="Horizontal bar chart of spending by category">
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={spendingByCategory} layout="vertical" margin={{ top: 0, right: 24, bottom: 0, left: 8 }}>
+                  <CartesianGrid horizontal={false} stroke="#F0F2F4" />
+                  <XAxis
+                    type="number"
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#64748b', fontSize: 10 }}
+                    tickFormatter={(value: number) => formatMoney(value, currency, { includeSymbol: false }).replace('.00', '')}
+                  />
+                  <YAxis
+                    type="category"
+                    dataKey="name"
+                    width={104}
+                    axisLine={false}
+                    tickLine={false}
+                    tick={{ fill: '#475569', fontSize: 11 }}
+                  />
+                  <Tooltip
+                    cursor={{ fill: '#F6F7F9' }}
+                    formatter={(value) => [formatMoney(Number(value), currency), 'Actual']}
+                    contentStyle={{ border: '1px solid #E8EAED', borderRadius: 10, boxShadow: '0 8px 24px rgba(11,15,23,0.08)' }}
+                    labelStyle={{ color: '#0B0F17', fontWeight: 600 }}
+                  />
+                  <Bar dataKey="amountMinor" radius={[0, 4, 4, 0]} maxBarSize={18}>
+                    {spendingByCategory.map((entry) => (
+                      <Cell key={entry.name} fill={entry.fill} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
+            <p className="mt-4 text-xs text-[#64748b]">
+              💡 <strong>Insight:</strong> {spendingByCategory[0]?.name} is your largest expense category, accounting for {
+                ((spendingByCategory[0]?.amountMinor || 0) / totalExpenses * 100).toFixed(0)
+              }% of total spending.
+            </p>
+          </>
+        )}
       </div>
 
       {/* Budget Performance Section */}
