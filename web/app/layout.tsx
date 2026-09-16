@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { SessionProvider } from "@/components/providers/SessionProvider";
 import { Poppins, Source_Code_Pro } from "next/font/google";
 import "./globals.css";
 
@@ -43,7 +44,9 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
         <link rel="apple-touch-icon" href="/favicon.svg" />
         <meta name="theme-color" content="#10B981" />
       </head>
-      <body className="min-h-full flex flex-col">{children}</body>
+      <body className="min-h-full flex flex-col">
+        <SessionProvider>{children}</SessionProvider>
+      </body>
     </html>
   );
 }
