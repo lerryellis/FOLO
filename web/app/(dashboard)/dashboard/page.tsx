@@ -989,16 +989,14 @@ function GoalCard({
     <article 
       className={`rounded-2xl border p-4 sm:p-5 transition-all cursor-pointer ${
         isSelected 
-          ? 'border-[#86EFAC] bg-[#F0FDF9] shadow-lg' 
-          : 'border-[#E8EAED] bg-white hover:border-[#D1FAE5] hover:shadow-md'
+          ? 'border-[#E8EAED] bg-[#FAFBFC] shadow-lg' 
+          : 'border-[#E8EAED] bg-white hover:bg-[#F8F9FB] hover:shadow-sm'
       }`}
       onClick={onSelect}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
-          <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl ${
-            isSelected ? 'bg-[#6EE7B7] text-[#047857]' : 'bg-[#D1FAE5] text-[#059669]'
-          }`} aria-hidden="true">
+          <div className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-[#F0F2F4] text-[#64748b]`} aria-hidden="true">
             {getGoalIcon(goal.icon)}
           </div>
           <div className="min-w-0 flex-1">
@@ -1015,14 +1013,14 @@ function GoalCard({
           <div className="flex shrink-0 gap-1.5">
             <button 
               onClick={(e) => { e.stopPropagation(); onEdit(goal); }}
-              className="flex items-center gap-1.5 rounded-lg bg-[#6EE7B7] text-[#047857] px-2.5 py-1.5 text-xs font-semibold hover:bg-[#86EFAC] transition-colors"
+              className="flex items-center gap-1.5 rounded-lg bg-[#F0F2F4] text-[#64748b] px-2.5 py-1.5 text-xs font-semibold hover:bg-[#E2E8F0] transition-colors"
             >
               <Edit2 className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Edit</span>
             </button>
             <button 
               onClick={(e) => { e.stopPropagation(); onDelete(goal); }}
-              className="flex items-center gap-1.5 rounded-lg bg-[#FCA5A5] text-[#7F1D1D] px-2.5 py-1.5 text-xs font-semibold hover:bg-[#FECACA] transition-colors"
+              className="flex items-center gap-1.5 rounded-lg bg-[#FEE2E2] text-[#991B1B] px-2.5 py-1.5 text-xs font-semibold hover:bg-[#FECACA] transition-colors"
             >
               <Trash2 className="h-3.5 w-3.5" />
               <span className="hidden sm:inline">Delete</span>
@@ -1030,7 +1028,7 @@ function GoalCard({
           </div>
         ) : isComplete ? (
           <div className="flex shrink-0 flex-col items-end gap-1.5">
-            <span className="flex items-center gap-1.5 rounded-full bg-[#DBEAFE] px-2.5 py-1 text-[11px] font-semibold text-[#1E40AF]">
+            <span className="flex items-center gap-1.5 rounded-full bg-[#F3F4F6] px-2.5 py-1 text-[11px] font-semibold text-[#64748b]">
               <CheckCircle2 className="h-3.5 w-3.5" />
               {status}
             </span>
@@ -1040,7 +1038,7 @@ function GoalCard({
                   e.stopPropagation();
                   onAddToSavings(goal);
                 }}
-                className="rounded-lg bg-[#6EE7B7] text-[#047857] px-2.5 py-1 text-[10px] font-semibold hover:bg-[#86EFAC] transition-colors"
+                className="rounded-lg bg-[#F0F2F4] text-[#64748b] px-2.5 py-1 text-[10px] font-semibold hover:bg-[#E2E8F0] transition-colors"
               >
                 Add to Savings
               </button>
