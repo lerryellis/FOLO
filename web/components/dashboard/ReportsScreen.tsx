@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import {
   Bar,
   BarChart,
@@ -23,6 +24,7 @@ import {
   calculatePeriodSummary,
 } from '@/lib/reports-calculations';
 import { HelpTooltip } from './HelpTooltip';
+import { CircularBudgetChart } from './CircularBudgetChart';
 
 import type { BudgetGroupTotal } from '@/lib/budget-operations';
 
@@ -113,6 +115,7 @@ function SectionHeader({ title, subtitle, helpTitle, helpContent }: { title: str
 }
 
 export function ReportsScreen({ currency, showSampleData = false, transactions = [], budgetGroups = [] }: ReportsScreenProps) {
+  const [viewMode, setViewMode] = useState<'chart' | 'list'>('list');
   const currencySymbol = getCurrency(currency).symbol;
 
   // Show empty state if no transactions
