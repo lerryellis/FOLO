@@ -1697,12 +1697,18 @@ export default function DashboardPage() {
     }
   }
 
-  async function handleUpdateTransaction(updatedTransaction: Transaction) {
+  async function handleUpdateTransaction(updatedTransaction: Transaction, linkedGoalId?: string) {
     try {
       await updateTransactionInSupabase(user!.id, updatedTransaction.id, updatedTransaction);
       setTransactions((current) =>
         current.map((t) => (t.id === updatedTransaction.id ? updatedTransaction : t))
       );
+
+      // Link to goal if specified
+      if (linkedGoalId) {
+        await linkTransactionToGoal(user!.id, linkedGoalId, updatedTransaction.id);
+      }
+
       setEditingTransaction(null);
 
       // Reload goals in case amounts changed and affected progress
@@ -2104,6 +2110,14 @@ export default function DashboardPage() {
         onUpdate={handleUpdateTransaction}
         onDelete={handleDeleteTransaction}
         currency={currency}
+        availableGoals={goals.map((g) => ({
+          id: g.id,
+          name: g.name,
+          type: g.type,
+          targetMinor: g.targetMinor,
+          progressMinor: g.progressMinor,
+          percent: g.percent,
+        }))}
       />
 
       <GoalCreationSheet
