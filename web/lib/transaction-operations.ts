@@ -122,10 +122,19 @@ export async function saveTransaction(userId: string, transaction: Transaction) 
       .select()
       .single();
 
-    if (error) throw error;
+    if (error) {
+      const errorMsg = error instanceof Error ? error.message : (error as any)?.message || JSON.stringify(error);
+      throw new Error(`Failed to insert transaction: ${errorMsg}`);
+    }
+
+    if (!data) {
+      throw new Error('No data returned from transaction insert');
+    }
+
     return toTransaction(data as TransactionRow);
   } catch (error) {
-    console.error('Error saving transaction:', error);
+    const msg = error instanceof Error ? error.message : JSON.stringify(error);
+    console.error('Error saving transaction:', msg);
     throw error;
   }
 }

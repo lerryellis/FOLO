@@ -70,6 +70,8 @@ CREATE TABLE IF NOT EXISTS public.transactions (
     amount DECIMAL(12,2) NOT NULL,
     transaction_date DATE NOT NULL,
     notes TEXT,
+    is_recurring BOOLEAN DEFAULT FALSE,
+    recurring_end_date DATE,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
 );

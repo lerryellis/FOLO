@@ -1732,8 +1732,17 @@ export default function DashboardPage() {
       // If recurring and backdated, create instances for all intermediate months
       let backdatedCount = 0;
       if (transaction.isRecurring) {
-        const result = await createBackdatedRecurringInstances(user!.id, transaction);
-        backdatedCount = result.created;
+        try {
+          const result = await createBackdatedRecurringInstances(user!.id, transaction);
+          backdatedCount = result.created;
+        } catch (backdateError) {
+          console.warn('Warning: Failed to create backdated recurring instances:', backdateError);
+          // Don't fail the whole save, just warn the user
+          if (backdateError instanceof Error && backdateError.message) {
+            setNotice(`Transaction saved, but could not create previous months: ${backdateError.message}`);
+            return;
+          }
+        }
       }
 
       // Link to goal if selected
@@ -1759,8 +1768,9 @@ export default function DashboardPage() {
       setNotice(notice);
       setActiveTab('activity');
     } catch (error) {
-      console.error('Failed to save transaction:', error);
-      setNotice('Failed to save transaction. Please try again.');
+      const errorMsg = error instanceof Error ? error.message : JSON.stringify(error);
+      console.error('Failed to save transaction:', errorMsg, error);
+      setNotice(`Failed to save transaction: ${errorMsg || 'Unknown error'}. Please try again.`);
     }
   }
 
