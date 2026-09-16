@@ -1673,6 +1673,16 @@ export default function DashboardPage() {
     setPeriod(new Date(SAMPLE_YEAR, SAMPLE_MONTH, 1));
   }
 
+  async function refreshBudgetTotals() {
+    if (!user || !budgetPeriodId) return;
+    try {
+      const totals = await getBudgetGroupTotals(user.id, budgetPeriodId);
+      setBudgetTotals(totals || []);
+    } catch (error) {
+      console.error('Failed to refresh budget totals:', error);
+    }
+  }
+
   async function saveTransaction(transaction: Transaction, goalId?: string) {
     try {
       // Save to Supabase first
@@ -1689,6 +1699,10 @@ export default function DashboardPage() {
 
       // Update local state
       setTransactions((current) => [savedTransaction, ...current]);
+
+      // Refresh budget totals so category actuals stay up to date
+      await refreshBudgetTotals();
+
       setNotice(goalId ? 'Transaction saved and linked to goal!' : 'Transaction saved successfully.');
       setActiveTab('activity');
     } catch (error) {
@@ -1711,8 +1725,11 @@ export default function DashboardPage() {
 
       setEditingTransaction(null);
 
-      // Reload goals in case amounts changed and affected progress
-      const updatedGoals = await fetchGoals(user!.id);
+      // Reload goals and budget totals so progress and category actuals stay current
+      const [updatedGoals] = await Promise.all([
+        fetchGoals(user!.id),
+        refreshBudgetTotals(),
+      ]);
       setGoals(updatedGoals);
 
       setNotice('Transaction updated successfully.');
@@ -1728,8 +1745,11 @@ export default function DashboardPage() {
       setTransactions((current) => current.filter((t) => t.id !== transactionId));
       setEditingTransaction(null);
 
-      // Reload goals in case deleted transaction affected progress
-      const updatedGoals = await fetchGoals(user!.id);
+      // Reload goals and budget totals so progress and category actuals stay current
+      const [updatedGoals] = await Promise.all([
+        fetchGoals(user!.id),
+        refreshBudgetTotals(),
+      ]);
       setGoals(updatedGoals);
 
       setNotice('Transaction deleted successfully.');

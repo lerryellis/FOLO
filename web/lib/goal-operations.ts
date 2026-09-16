@@ -125,11 +125,12 @@ export async function fetchGoals(userId: string) {
       const monthlyPaymentMinor = row.monthly_payment_amount
         ? Math.round(row.monthly_payment_amount * 100)
         : undefined;
-      const remainingMinor = calculateRemainingAfterPayments(
-        targetMinor,
-        monthlyPaymentMinor,
-        row.payment_start_date
-      );
+      // Use actual accumulated payments (linked transactions) to compute remaining.
+      // Fall back to time-based estimate only when no transactions have been linked
+      // (i.e. progressMinor is 0 but a monthly_payment_amount is set).
+      const remainingMinor = progressMinor > 0
+        ? Math.max(0, targetMinor - progressMinor)
+        : calculateRemainingAfterPayments(targetMinor, monthlyPaymentMinor, row.payment_start_date);
 
       return {
         id: row.id,
