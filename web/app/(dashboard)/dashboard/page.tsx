@@ -67,6 +67,7 @@ import {
   type BudgetGroupTotal,
   type PeriodSummary,
 } from '@/lib/budget-operations';
+import { createBackdatedRecurringInstances } from '@/lib/recurring-transactions';
 import {
   BUDGET_EDUCATION,
   CATEGORY_MAP,
@@ -1728,6 +1729,13 @@ export default function DashboardPage() {
       // Save to Supabase first
       const savedTransaction = await saveTransactionToSupabase(user!.id, transaction);
 
+      // If recurring and backdated, create instances for all intermediate months
+      let backdatedCount = 0;
+      if (transaction.isRecurring) {
+        const result = await createBackdatedRecurringInstances(user!.id, transaction);
+        backdatedCount = result.created;
+      }
+
       // Link to goal if selected
       if (goalId) {
         await linkTransactionToGoal(user!.id, goalId, savedTransaction.id);
@@ -1743,7 +1751,12 @@ export default function DashboardPage() {
       // Refresh budget totals so category actuals stay up to date
       await refreshBudgetTotals();
 
-      setNotice(goalId ? 'Transaction saved and linked to goal!' : 'Transaction saved successfully.');
+      // Build notice message
+      let notice = goalId ? 'Transaction saved and linked to goal!' : 'Transaction saved successfully.';
+      if (backdatedCount > 0) {
+        notice += ` Also created ${backdatedCount} recurring instance${backdatedCount === 1 ? '' : 's'} for previous months.`;
+      }
+      setNotice(notice);
       setActiveTab('activity');
     } catch (error) {
       console.error('Failed to save transaction:', error);

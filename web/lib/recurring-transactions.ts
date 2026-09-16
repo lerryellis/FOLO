@@ -2,6 +2,88 @@ import type { Transaction } from './folo-data';
 import { saveTransaction } from './transaction-operations';
 
 /**
+ * Create all backdated recurring instances for a transaction
+ * Called immediately when a recurring transaction is created with a past date
+ */
+export async function createBackdatedRecurringInstances(
+  userId: string,
+  transaction: Transaction
+): Promise<{ created: number; failed: number }> {
+  let created = 0;
+  let failed = 0;
+
+  if (!transaction.isRecurring) {
+    return { created: 0, failed: 0 };
+  }
+
+  try {
+    const transactionDate = new Date(transaction.date);
+    const today = new Date();
+
+    // Check end date
+    const endDate = transaction.recurringEndDate ? new Date(transaction.recurringEndDate) : null;
+
+    // Get first day of transaction month and first day of current month
+    const startMonth = new Date(transactionDate.getFullYear(), transactionDate.getMonth(), 1);
+    const endMonth = new Date(today.getFullYear(), today.getMonth(), 1);
+
+    // If the transaction date is already in the current month or future, no backdating needed
+    if (startMonth >= endMonth) {
+      return { created: 0, failed: 0 };
+    }
+
+    // Create instances for each month from transaction month to current month
+    let currentMonth = new Date(startMonth);
+    while (currentMonth < endMonth) {
+      // Check if we've exceeded the end date
+      if (endDate && currentMonth > endDate) {
+        break;
+      }
+
+      // Create transaction for this month (on same day as original)
+      const instanceDate = new Date(
+        currentMonth.getFullYear(),
+        currentMonth.getMonth(),
+        transactionDate.getDate()
+      );
+
+      // Skip the original transaction date (already saved)
+      const isOriginalDate =
+        instanceDate.getFullYear() === transactionDate.getFullYear() &&
+        instanceDate.getMonth() === transactionDate.getMonth();
+
+      if (!isOriginalDate) {
+        try {
+          const instanceTransaction: Transaction = {
+            ...transaction,
+            id: crypto.randomUUID(),
+            date: instanceDate.toISOString().split('T')[0],
+            // Mark as not pending since these are auto-generated from a fresh save
+            pending: false,
+          };
+
+          await saveTransaction(userId, instanceTransaction);
+          created++;
+        } catch (error) {
+          failed++;
+          console.error(
+            `Failed to create backdated recurring instance for ${instanceDate.toISOString().split('T')[0]}:`,
+            error
+          );
+        }
+      }
+
+      // Move to next month
+      currentMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1);
+    }
+  } catch (error) {
+    console.error('Error creating backdated recurring instances:', error);
+  }
+
+  return { created, failed };
+}
+
+/**
  * Create next month's recurring transaction
  * Called monthly to duplicate recurring transactions
  */
