@@ -70,6 +70,13 @@ function TransactionEditForm({
 
   const currencySymbol = getCurrency(currency).symbol;
 
+  // Check if transaction is from a different month (warning for user)
+  const txDate = new Date(editData.date);
+  const today = new Date();
+  const isFromDifferentMonth =
+    txDate.getFullYear() !== today.getFullYear() ||
+    txDate.getMonth() !== today.getMonth();
+
   const handleUpdateTransaction = () => {
     const updatedTransaction = { ...editData };
 
@@ -167,7 +174,53 @@ function TransactionEditForm({
               onChange={(e) => setEditData({ ...editData, date: e.target.value })}
               className="min-h-12 w-full rounded-xl border border-[#E8EAED] bg-white px-3 text-sm font-medium text-[#0B0F17] outline-none focus:border-[#10B981]"
             />
+            <p className="mt-2 text-xs text-[#64748b]">
+              📅 You can select any date, including past dates (backdate) or future dates
+            </p>
+            {isFromDifferentMonth && (
+              <div className="mt-3 rounded-lg bg-[#FEF3C7] p-3 border border-[#FBBF24]">
+                <p className="text-xs font-medium text-[#92400E]">
+                  ⚠️ This transaction is from a different month ({txDate.toLocaleDateString('en', { month: 'short', year: 'numeric' })}).
+                  Make sure this is intentional for accurate budgeting.
+                </p>
+              </div>
+            )}
           </label>
+
+          {/* Quick Date Actions */}
+          <div className="grid grid-cols-3 gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                const today = new Date().toISOString().split('T')[0];
+                setEditData({ ...editData, date: today });
+              }}
+              className="rounded-lg bg-[#F0FDF9] px-3 py-2 text-xs font-semibold text-[#047857] hover:bg-[#D1FAE5] transition-colors"
+            >
+              Today
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+                setEditData({ ...editData, date: yesterday });
+              }}
+              className="rounded-lg bg-[#F0FDF9] px-3 py-2 text-xs font-semibold text-[#047857] hover:bg-[#D1FAE5] transition-colors"
+            >
+              Yesterday
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                const monthStart = new Date();
+                monthStart.setDate(1);
+                setEditData({ ...editData, date: monthStart.toISOString().split('T')[0] });
+              }}
+              className="rounded-lg bg-[#F0FDF9] px-3 py-2 text-xs font-semibold text-[#047857] hover:bg-[#D1FAE5] transition-colors"
+            >
+              Month Start
+            </button>
+          </div>
 
           {/* Edit Note */}
           <label className="block">
