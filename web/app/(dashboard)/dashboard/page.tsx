@@ -603,6 +603,7 @@ function BudgetScreen({
   budgetPeriodId,
   onBudgetsChange,
   onNotice,
+  transactions = [],
 }: {
   currency: CurrencyCode;
   showSampleData?: boolean;
@@ -610,6 +611,7 @@ function BudgetScreen({
   budgetPeriodId?: string;
   onBudgetsChange?: () => void;
   onNotice?: (message: string) => void;
+  transactions?: Transaction[];
 }) {
   const [showBudgetInfo, setShowBudgetInfo] = useState(false);
   const [showBudgetEdit, setShowBudgetEdit] = useState(false);
@@ -841,6 +843,7 @@ function BudgetScreen({
         currency={currency}
         budgets={budgetAmounts}
         budgetLabels={budgetLabels}
+        transactions={transactions ?? []}
       />
     </section>
   );
@@ -1980,6 +1983,7 @@ export default function DashboardPage() {
               userId={user.id}
               budgetPeriodId={budgetPeriodId}
               onNotice={setNotice}
+              transactions={transactions}
             />
           ) : null}
           {activeTab === 'activity' ? (

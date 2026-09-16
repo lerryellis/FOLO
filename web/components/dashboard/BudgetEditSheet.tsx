@@ -1,8 +1,9 @@
 'use client';
 
 import { useState } from 'react';
-import { X } from 'lucide-react';
-import { type CurrencyCode, getCurrency } from '@/lib/folo-data';
+import { X, Zap } from 'lucide-react';
+import { type CurrencyCode, getCurrency, type Transaction } from '@/lib/folo-data';
+import { autoPopulateBudgetsFromTransactions, findReferenceIncome } from '@/lib/budget-auto-populate';
 
 interface BudgetEditSheetProps {
   isOpen: boolean;
@@ -17,6 +18,7 @@ interface BudgetEditSheetProps {
     DEBT?: number;
   };
   budgetLabels?: Partial<Record<'INCOME' | 'BILLS' | 'EXPENSES' | 'SAVINGS' | 'DEBT', string>>;
+  transactions?: Transaction[];
 }
 
 export function BudgetEditSheet({
@@ -26,6 +28,7 @@ export function BudgetEditSheet({
   currency,
   budgets = {},
   budgetLabels = {},
+  transactions = [],
 }: BudgetEditSheetProps) {
   if (!isOpen) return null;
 
@@ -33,7 +36,7 @@ export function BudgetEditSheet({
     .map((category) => `${category}:${budgets[category as keyof typeof budgets] ?? 0}`)
     .join('|');
 
-  return <BudgetEditForm key={formKey} onClose={onClose} onSave={onSave} currency={currency} budgets={budgets} budgetLabels={budgetLabels} />;
+  return <BudgetEditForm key={formKey} onClose={onClose} onSave={onSave} currency={currency} budgets={budgets} budgetLabels={budgetLabels} transactions={transactions} />;
 }
 
 function BudgetEditForm({
@@ -42,6 +45,7 @@ function BudgetEditForm({
   currency,
   budgets = {},
   budgetLabels = {},
+  transactions = [],
 }: Omit<BudgetEditSheetProps, 'isOpen'>) {
   const [editBudgets, setEditBudgets] = useState<Record<string, string>>({
     INCOME: (budgets.INCOME ? budgets.INCOME / 100 : 0).toFixed(2),
@@ -51,7 +55,52 @@ function BudgetEditForm({
     DEBT: (budgets.DEBT ? budgets.DEBT / 100 : 0).toFixed(2),
   });
 
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+
   const currencySymbol = getCurrency(currency).symbol;
+
+  const handleAutoPopulate = () => {
+    if (transactions.length === 0) {
+      setError('Need transaction history to auto-populate budgets');
+      return;
+    }
+
+    setIsLoading(true);
+    setError('');
+
+    try {
+      const result = autoPopulateBudgetsFromTransactions(transactions);
+
+      if (result.suggestedBudgets.length === 0) {
+        setError('No transactions found to generate budget suggestions');
+        setIsLoading(false);
+        return;
+      }
+
+      const newBudgets: Record<string, string> = { ...editBudgets };
+
+      // Set income from reference or default to current
+      if (result.referenceIncome) {
+        newBudgets.INCOME = (result.referenceIncome.amount / 100).toFixed(2);
+      }
+
+      // Apply suggested budgets
+      for (const suggestion of result.suggestedBudgets) {
+        const key = suggestion.categoryType.toUpperCase();
+        if (key in newBudgets) {
+          newBudgets[key] = (suggestion.amount / 100).toFixed(2);
+        }
+      }
+
+      setEditBudgets(newBudgets);
+    } catch (err) {
+      const errMsg = err instanceof Error ? err.message : 'Failed to auto-populate budgets';
+      setError(errMsg);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   const categoryLabels: Record<string, string> = {
     INCOME: 'Monthly Income',
@@ -92,6 +141,27 @@ function BudgetEditForm({
             <X className="h-5 w-5 text-[#64748b]" />
           </button>
         </div>
+
+        {/* Auto-populate Button */}
+        {transactions.length > 0 && (
+          <div className="mb-5 flex gap-2">
+            <button
+              type="button"
+              onClick={handleAutoPopulate}
+              disabled={isLoading}
+              className="flex min-h-10 flex-1 items-center justify-center gap-2 rounded-lg bg-[#6EE7B7] px-4 text-sm font-semibold text-[#047857] transition-colors hover:bg-[#5EDEB0] disabled:opacity-50"
+            >
+              <Zap className="h-4 w-4" />
+              {isLoading ? 'Analyzing...' : 'Auto-populate from history'}
+            </button>
+          </div>
+        )}
+
+        {error && (
+          <div className="mb-4 rounded-lg bg-[#FEF2F2] p-3 text-sm text-[#991B1B]">
+            {error}
+          </div>
+        )}
 
         {/* Budget Input Fields */}
         <div className="space-y-5">
