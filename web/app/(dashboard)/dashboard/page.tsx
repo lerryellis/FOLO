@@ -1246,6 +1246,8 @@ function AddScreen({
   const [selectedDate, setSelectedDate] = useState(localDateValue);
   const [note, setNote] = useState('');
   const [selectedGoalId, setSelectedGoalId] = useState<string>('');
+  const [isRecurring, setIsRecurring] = useState(false);
+  const [recurringEndDate, setRecurringEndDate] = useState<string>('');
 
   // Update category when group changes
   useEffect(() => {
@@ -1301,6 +1303,8 @@ function AddScreen({
       date: selectedDate,
       note: note.trim() || undefined,
       pending: !isOnline,
+      isRecurring,
+      recurringEndDate: recurringEndDate || undefined,
     }, selectedGoalId || undefined);
   }
 
@@ -1438,6 +1442,42 @@ function AddScreen({
               ))}
           </select>
           <p className="mt-1 text-xs text-[#64748b]">💡 This transaction will {selectedGroup === 'SAVINGS' ? 'add to' : 'reduce'} your goal progress</p>
+        </label>
+      )}
+
+      {/* Recurring Transaction Toggle */}
+      <label className="mt-3 flex items-center gap-3 rounded-xl border border-[#E8EAED] bg-white p-3">
+        <input
+          type="checkbox"
+          checked={isRecurring}
+          onChange={(e) => setIsRecurring(e.target.checked)}
+          className="h-5 w-5 rounded-md cursor-pointer accent-[#10B981]"
+        />
+        <div className="flex-1">
+          <span className="block text-sm font-semibold text-[#0B0F17]">
+            Repeat Monthly
+          </span>
+          <p className="text-xs text-[#64748b]">
+            {isRecurring ? '📅 This will repeat every month' : '🔄 One-time transaction'}
+          </p>
+        </div>
+      </label>
+
+      {/* Recurring End Date (show only if recurring) */}
+      {isRecurring && (
+        <label className="mt-3 block">
+          <span className="mb-1.5 block text-[10px] font-semibold uppercase tracking-[0.08em] text-[#64748b]">
+            Stop Repeating On <span className="text-xs text-[#64748b] font-normal">(optional)</span>
+          </span>
+          <input
+            type="date"
+            value={recurringEndDate}
+            onChange={(e) => setRecurringEndDate(e.target.value)}
+            className="min-h-12 w-full rounded-xl border border-[#E8EAED] bg-white px-3 text-sm font-medium text-[#0B0F17] outline-none transition-colors focus:border-[#10B981]"
+          />
+          <p className="mt-1 text-xs text-[#64748b]">
+            Leave blank to repeat forever, or set an end date
+          </p>
         </label>
       )}
 

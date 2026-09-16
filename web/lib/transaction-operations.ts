@@ -8,6 +8,8 @@ type TransactionRow = {
   category_type: Transaction['categoryType'];
   notes: string | null;
   transaction_date: string;
+  is_recurring?: boolean;
+  recurring_end_date?: string | null;
 };
 
 async function synchroniseLinkedGoalProgress(userId: string, goalIds: string[]) {
@@ -31,7 +33,7 @@ async function synchroniseLinkedGoalProgress(userId: string, goalIds: string[]) 
   }
 }
 
-function toTransaction(row: TransactionRow): Transaction {
+function toTransaction(row: TransactionRow & { is_recurring?: boolean; recurring_end_date?: string | null }): Transaction {
   return {
     id: row.id,
     name: row.notes || row.category_name,
@@ -43,6 +45,8 @@ function toTransaction(row: TransactionRow): Transaction {
     date: row.transaction_date,
     note: row.notes || undefined,
     pending: false,
+    isRecurring: row.is_recurring || undefined,
+    recurringEndDate: row.recurring_end_date || undefined,
   };
 }
 
@@ -112,6 +116,8 @@ export async function saveTransaction(userId: string, transaction: Transaction) 
         amount: Math.abs(transaction.amountMinor) / 100, // Convert from minor units to decimal
         transaction_date: transaction.date,
         notes: transaction.note || null,
+        is_recurring: transaction.isRecurring || false,
+        recurring_end_date: transaction.recurringEndDate || null,
       })
       .select()
       .single();
@@ -152,7 +158,7 @@ export async function fetchTransactions(userId: string, date: Date) {
  */
 export async function updateTransaction(userId: string, transactionId: string, updates: Partial<Transaction>) {
   try {
-    const updateData: Record<string, string | number | null> = {};
+    const updateData: Record<string, string | number | boolean | null> = {};
 
     if (updates.amountMinor !== undefined) {
       updateData.amount = Math.abs(updates.amountMinor) / 100;
@@ -165,6 +171,12 @@ export async function updateTransaction(userId: string, transactionId: string, u
     }
     if (updates.category !== undefined) {
       updateData.category_name = updates.category;
+    }
+    if (updates.isRecurring !== undefined) {
+      updateData.is_recurring = updates.isRecurring;
+    }
+    if (updates.recurringEndDate !== undefined) {
+      updateData.recurring_end_date = updates.recurringEndDate || null;
     }
 
     // If backdating, we need to find the correct budget period first
