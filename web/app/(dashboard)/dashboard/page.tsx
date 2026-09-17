@@ -2086,8 +2086,46 @@ export default function DashboardPage() {
                   <Plus className="h-4 w-4" />
                   Add transaction
                 </button>
-                <div className="flex h-9 w-9 items-center justify-center rounded-full bg-[#0B0F17] text-xs font-semibold text-white lg:hidden">
-                  {userInitial}
+                <div className="relative lg:hidden">
+                  <button
+                    type="button"
+                    onClick={() => setShowProfileMenu(!showProfileMenu)}
+                    className="flex h-9 w-9 items-center justify-center rounded-full bg-[#0B0F17] text-xs font-semibold text-white hover:bg-[#1F2937] transition-colors"
+                    aria-label="User profile menu"
+                  >
+                    {userInitial}
+                  </button>
+
+                  {showProfileMenu && (
+                    <>
+                      <div className="fixed inset-0 z-40" onClick={() => setShowProfileMenu(false)} />
+                      <div className="absolute top-full right-0 mt-2 z-50 min-w-[200px] rounded-xl border border-[#E8EAED] bg-white shadow-lg">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowProfileMenu(false);
+                            setShowDeleteAllConfirm(true);
+                          }}
+                          className="flex w-full items-center gap-2 px-4 py-3 text-sm font-medium text-[#DC2626] hover:bg-[#FEF2F2] transition-colors"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          Delete All Data
+                        </button>
+                        <div className="border-t border-[#F0F2F4]" />
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setShowProfileMenu(false);
+                            handleSignOut();
+                          }}
+                          className="flex w-full items-center gap-2 px-4 py-3 text-sm font-medium text-[#475569] hover:bg-[#F6F7F9] transition-colors"
+                        >
+                          <LogOut className="h-4 w-4" />
+                          Sign Out
+                        </button>
+                      </div>
+                    </>
+                  )}
                 </div>
               </div>
             </div>
