@@ -1764,6 +1764,9 @@ export default function DashboardPage() {
       let notice = goalId ? 'Transaction saved and linked to goal!' : 'Transaction saved successfully.';
       if (backdatedCount > 0) {
         notice += ` Also created ${backdatedCount} recurring instance${backdatedCount === 1 ? '' : 's'} for previous months.`;
+        // Navigate to the transaction's month so user can see it immediately
+        const txMonth = new Date(transaction.date);
+        setPeriod(new Date(txMonth.getFullYear(), txMonth.getMonth(), 1));
       }
       setNotice(notice);
       setActiveTab('activity');
