@@ -41,6 +41,9 @@ CREATE TABLE IF NOT EXISTS public.budget_periods (
     notes TEXT,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
+    is_settled BOOLEAN DEFAULT FALSE,
+    settled_at TIMESTAMP WITH TIME ZONE,
+    settlement_goal_id UUID REFERENCES public.financial_goals(id) ON DELETE SET NULL,
     UNIQUE(user_id, start_date, end_date)
 );
 

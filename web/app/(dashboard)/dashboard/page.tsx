@@ -10,6 +10,7 @@ import {
   CalendarDays,
   Check,
   CheckCircle2,
+  Clock,
   ChevronLeft,
   ChevronRight,
   CreditCard,
@@ -31,6 +32,7 @@ import {
   WifiOff,
   X,
 } from 'lucide-react';
+import { MonthSettlementSheet } from '@/components/dashboard/MonthSettlementSheet';
 import { ReportsScreen } from '@/components/dashboard/ReportsScreen';
 import { BudgetChart } from '@/components/dashboard/BudgetChart';
 import { BudgetTips } from '@/components/dashboard/BudgetTips';
@@ -70,6 +72,7 @@ import {
 } from '@/lib/budget-operations';
 import { createBackdatedRecurringInstances } from '@/lib/recurring-transactions';
 import { exportDataToExcel } from '@/lib/export-data';
+import { isMonthSettled } from '@/lib/month-settlement';
 import {
   BUDGET_EDUCATION,
   CATEGORY_MAP,
@@ -859,6 +862,8 @@ function ActivityScreen({
   period,
   onReturnToSample,
   onTransactionClick = () => {},
+  onSettleMonth,
+  isMonthSettledState = false,
 }: {
   currency: CurrencyCode;
   transactions: Transaction[];
@@ -866,6 +871,8 @@ function ActivityScreen({
   period: Date;
   onReturnToSample: () => void;
   onTransactionClick?: (transaction: Transaction) => void;
+  onSettleMonth?: () => void;
+  isMonthSettledState?: boolean;
 }) {
   const [filter, setFilter] = useState<'ALL' | CategoryType>('ALL');
   const filteredTransactions = useMemo(
@@ -903,7 +910,32 @@ function ActivityScreen({
             content="All income and expense transactions for this month. Click any transaction to edit, backdate, or link it to a goal. Use the filter buttons to view by category."
           />
         </div>
-        <p className="text-xs font-medium text-[#475569]">{filteredTransactions.length} transactions</p>
+        <div className="flex items-center gap-2">
+          <p className="text-xs font-medium text-[#475569]">{filteredTransactions.length} transactions</p>
+          {onSettleMonth && (
+            <button
+              type="button"
+              onClick={onSettleMonth}
+              className={`flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs font-semibold text-white transition-colors ${
+                isMonthSettledState
+                  ? 'bg-[#94a3b8] cursor-default'
+                  : 'bg-[#10B981] hover:bg-[#059669]'
+              }`}
+            >
+              {isMonthSettledState ? (
+                <>
+                  <Check className="h-3.5 w-3.5" />
+                  Month Settled ✓
+                </>
+              ) : (
+                <>
+                  <Clock className="h-3.5 w-3.5" />
+                  Settle Month
+                </>
+              )}
+            </button>
+          )}
+        </div>
       </div>
 
       <div className="mb-5 flex gap-2 overflow-x-auto pb-1" aria-label="Transaction filters">
@@ -1623,6 +1655,8 @@ export default function DashboardPage() {
   const [budgetPeriodId, setBudgetPeriodId] = useState<string>('');
   const [budgetTotals, setBudgetTotals] = useState<BudgetGroupTotal[]>([]);
   const [periodSummary, setPeriodSummary] = useState<PeriodSummary | null>(null);
+  const [showSettlement, setShowSettlement] = useState(false);
+  const [isMonthSettledState, setIsMonthSettledState] = useState(false);
 
   useEffect(() => {
     if (!loading && !user) router.push('/login');
@@ -1706,6 +1740,9 @@ export default function DashboardPage() {
 
         const summary = await getPeriodSummary(user.id, periodId);
         setPeriodSummary(summary || null);
+
+        const settled = await isMonthSettled(user.id, periodId);
+        setIsMonthSettledState(settled);
       } catch (error) {
         if (isMissingSupabaseRelation(error)) {
           setNotice('Database setup is incomplete. Apply supabase_schema.sql, then reload FOLO.');
@@ -2236,6 +2273,8 @@ export default function DashboardPage() {
               period={period}
               onReturnToSample={returnToSamplePeriod}
               onTransactionClick={handleTransactionClick}
+              onSettleMonth={() => setShowSettlement(true)}
+              isMonthSettledState={isMonthSettledState}
             />
           ) : null}
           {activeTab === 'goals' ? <GoalsScreen currency={currency} showSampleData={showSampleData} selectedGoalId={selectedGoalId} onSelectGoal={setSelectedGoalId} onCreateGoalClick={() => setIsGoalCreationOpen(true)} onEditGoal={setEditingGoal} onDeleteGoal={handleDeleteGoal} onAddToSavings={handleAddToSavings} goals={goals} /> : null}
@@ -2295,6 +2334,37 @@ export default function DashboardPage() {
           <span>{notice}</span>
         </div>
       ) : null}
+
+      <MonthSettlementSheet
+        isOpen={showSettlement}
+        onClose={() => setShowSettlement(false)}
+        onSettled={async () => {
+          setIsMonthSettledState(true);
+          // Refresh goals, transactions, budget totals after settlement
+          if (user) {
+            try {
+              const [updatedGoals, updatedTransactions, updatedTotals] = await Promise.all([
+                fetchGoals(user.id),
+                fetchTransactions(user.id, period),
+                getBudgetGroupTotals(user.id, budgetPeriodId),
+              ]);
+              setGoals(updatedGoals);
+              setTransactions(updatedTransactions);
+              setBudgetTotals(updatedTotals || []);
+            } catch (err) {
+              console.error('Failed to refresh after settlement:', err);
+            }
+          }
+          setNotice('Month settled successfully!');
+        }}
+        transactions={transactions}
+        goals={goals}
+        period={period}
+        userId={user.id}
+        budgetPeriodId={budgetPeriodId}
+        currency={currency}
+        isAlreadySettled={isMonthSettledState}
+      />
 
       <TransactionEditSheet
         transaction={editingTransaction}
