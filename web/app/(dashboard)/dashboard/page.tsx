@@ -13,6 +13,7 @@ import {
   ChevronLeft,
   ChevronRight,
   CreditCard,
+  Download,
   Edit2,
   FileBarChart,
   Handshake,
@@ -68,6 +69,7 @@ import {
   type PeriodSummary,
 } from '@/lib/budget-operations';
 import { createBackdatedRecurringInstances } from '@/lib/recurring-transactions';
+import { exportDataToExcel } from '@/lib/export-data';
 import {
   BUDGET_EDUCATION,
   CATEGORY_MAP,
@@ -1934,6 +1936,27 @@ export default function DashboardPage() {
     if (!result.error) router.push('/login');
   }
 
+  function handleExportData() {
+    try {
+      const userName = user?.email?.split('@')[0] || 'User';
+      const exportDate = new Date().toLocaleString();
+
+      exportDataToExcel({
+        transactions,
+        goals,
+        budgetTotals,
+        userName,
+        exportDate,
+      });
+
+      setNotice('✅ Data exported successfully!');
+      setShowProfileMenu(false);
+    } catch (error) {
+      console.error('Failed to export data:', error);
+      setNotice('Failed to export data. Please try again.');
+    }
+  }
+
   if (loading) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#F6F7F9]">
@@ -2007,6 +2030,17 @@ export default function DashboardPage() {
               <>
                 <div className="absolute inset-0 z-40" onClick={() => setShowProfileMenu(false)} />
                 <div className="absolute bottom-full left-0 right-0 mb-2 z-50 w-full rounded-xl border border-[#E8EAED] bg-white shadow-lg">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleExportData();
+                    }}
+                    className="flex w-full items-center gap-2 px-4 py-3 text-sm font-medium text-[#047857] hover:bg-[#E7F7F0] transition-colors"
+                  >
+                    <Download className="h-4 w-4" />
+                    Export Data to Excel
+                  </button>
+                  <div className="border-t border-[#F0F2F4]" />
                   <button
                     type="button"
                     onClick={() => {
@@ -2100,6 +2134,17 @@ export default function DashboardPage() {
                     <>
                       <div className="fixed inset-0 z-40" onClick={() => setShowProfileMenu(false)} />
                       <div className="absolute top-full right-0 mt-2 z-50 min-w-[200px] rounded-xl border border-[#E8EAED] bg-white shadow-lg">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            handleExportData();
+                          }}
+                          className="flex w-full items-center gap-2 px-4 py-3 text-sm font-medium text-[#047857] hover:bg-[#E7F7F0] transition-colors"
+                        >
+                          <Download className="h-4 w-4" />
+                          Export Data to Excel
+                        </button>
+                        <div className="border-t border-[#F0F2F4]" />
                         <button
                           type="button"
                           onClick={() => {
