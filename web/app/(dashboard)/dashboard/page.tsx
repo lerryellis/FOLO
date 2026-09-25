@@ -893,9 +893,15 @@ function ActivityScreen({
   return (
     <section className="mx-auto w-full max-w-4xl px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
       <div className="mb-5 flex items-end justify-between gap-4">
-        <div>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.09em] text-[#64748b]">September 2026</p>
-          <h2 className="mt-1 text-xl font-semibold tracking-[-0.025em] text-[#0B0F17]">Activity</h2>
+        <div className="flex items-center gap-2">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.09em] text-[#64748b]">September 2026</p>
+            <h2 className="mt-1 text-xl font-semibold tracking-[-0.025em] text-[#0B0F17]">Activity</h2>
+          </div>
+          <HelpTooltip
+            title="Activity"
+            content="All income and expense transactions for this month. Click any transaction to edit, backdate, or link it to a goal. Use the filter buttons to view by category."
+          />
         </div>
         <p className="text-xs font-medium text-[#475569]">{filteredTransactions.length} transactions</p>
       </div>
@@ -1130,11 +1136,17 @@ function GoalsScreen({
   return (
     <section className="mx-auto w-full max-w-4xl px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
       <div className="mb-5 flex items-center justify-between">
-        <div>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.09em] text-[#64748b]">
-            {completeCount} of {goals.length} complete
-          </p>
-          <h2 className="mt-1 text-xl font-semibold tracking-[-0.025em] text-[#0B0F17]">Goals</h2>
+        <div className="flex items-center gap-2">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.09em] text-[#64748b]">
+              {completeCount} of {goals.length} complete
+            </p>
+            <h2 className="mt-1 text-xl font-semibold tracking-[-0.025em] text-[#0B0F17]">Goals</h2>
+          </div>
+          <HelpTooltip
+            title="Goals"
+            content="Set savings targets (build emergency fund, save for vacation) or debt payoff plans (pay off credit card, student loans). Link transactions to track progress. Click a goal to see details and edit."
+          />
         </div>
         <button
           onClick={onCreateGoalClick}
@@ -1400,7 +1412,13 @@ function AddScreen({
       </div>
 
       <label className="mt-4 block">
-        <span className="mb-1.5 block text-[10px] font-semibold uppercase tracking-[0.08em] text-[#64748b]">Date</span>
+        <div className="mb-1.5 flex items-center gap-1.5">
+          <span className="block text-[10px] font-semibold uppercase tracking-[0.08em] text-[#64748b]">Date</span>
+          <HelpTooltip
+            title="Backdate Transactions"
+            content="You can record transactions from any date - past, today, or future. Great for catching up on receipts you found later or planning ahead. The transaction will update the budget for that specific month."
+          />
+        </div>
         <input
           type="date"
           value={selectedDate}
@@ -1457,9 +1475,15 @@ function AddScreen({
           className="h-5 w-5 rounded-md cursor-pointer accent-[#10B981]"
         />
         <div className="flex-1">
-          <span className="block text-sm font-semibold text-[#0B0F17]">
-            Repeat Monthly
-          </span>
+          <div className="flex items-center gap-1.5">
+            <span className="block text-sm font-semibold text-[#0B0F17]">
+              Repeat Monthly
+            </span>
+            <HelpTooltip
+              title="Repeat Monthly"
+              content="For recurring expenses like salary, rent, or subscriptions. Each month, a new transaction is created automatically on the same date. Set an end date to stop it, or leave blank to repeat forever."
+            />
+          </div>
           <p className="text-xs text-[#64748b]">
             {isRecurring ? '📅 This will repeat every month' : '🔄 One-time transaction'}
           </p>

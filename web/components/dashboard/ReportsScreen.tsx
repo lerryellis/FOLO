@@ -159,9 +159,15 @@ export function ReportsScreen({ currency, showSampleData = false, transactions =
     <section className="mx-auto w-full max-w-[1200px] px-4 py-5 sm:px-6 lg:px-8 lg:py-7">
       {/* Header */}
       <div className="mb-7 flex items-end justify-between gap-4">
-        <div>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.09em] text-[#64748b]">September 2026</p>
-          <h2 className="mt-1 text-xl font-semibold tracking-[-0.025em] text-[#0B0F17]">Reports & Analytics</h2>
+        <div className="flex items-center gap-2">
+          <div>
+            <p className="text-[10px] font-semibold uppercase tracking-[0.09em] text-[#64748b]">September 2026</p>
+            <h2 className="mt-1 text-xl font-semibold tracking-[-0.025em] text-[#0B0F17]">Reports & Analytics</h2>
+          </div>
+          <HelpTooltip
+            title="Reports & Analytics"
+            content="Visual breakdown of your spending, income, savings, and budget performance this month. Hover over charts for details, toggle between chart and list views."
+          />
         </div>
         <p className="hidden text-xs text-[#64748b] sm:block">Your financial insights at a glance</p>
       </div>
