@@ -80,7 +80,7 @@ export default function SignupPage() {
         <div className="w-full max-w-md space-y-8 text-center">
           <div>
             <div className="flex items-center justify-center mb-4">
-              <Image src="/folo_logo.png" alt="FOLO" width={144} height={48} className="h-12 w-auto" priority />
+              <Image src="/folo_logo.jpg" alt="FOLO" width={144} height={48} className="h-12 w-auto" priority />
             </div>
             <h2 className="mt-4 text-xl font-semibold" style={{ color: '#0B0F17' }}>Check Your Email</h2>
           </div>
@@ -108,7 +108,7 @@ export default function SignupPage() {
         {/* Header */}
         <div className="text-center">
           <div className="flex items-center justify-center mb-4">
-            <Image src="/folo_logo.png" alt="FOLO" width={168} height={56} className="h-14 w-auto" priority />
+            <Image src="/folo_logo.jpg" alt="FOLO" width={168} height={56} className="h-14 w-auto" priority />
           </div>
           <h2 className="mt-4 text-xl font-semibold" style={{ color: '#0B0F17' }}>Create Account</h2>
           <p className="mt-2 text-sm" style={{ color: '#0B0F17', opacity: 0.6 }}>
