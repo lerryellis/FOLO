@@ -1051,6 +1051,11 @@ function GoalCard({
               </span>
             </div>
             <p className="mt-1 text-xs text-[#64748b]">{goal.detail}</p>
+            {goal.nextPaymentDate && (
+              <p className="mt-0.5 text-[10px] text-[#10B981] font-medium">
+                Next payment · {new Date(goal.nextPaymentDate + 'T00:00:00').toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: '2-digit' })}
+              </p>
+            )}
           </div>
         </div>
         {isSelected ? (
@@ -1155,11 +1160,16 @@ function GoalsScreen({
   const savingsGoals = goals.filter((goal) => goal.type === 'SAVINGS');
   const debtGoals = goals.filter((goal) => goal.type === 'DEBT');
 
-  // Calculate summary totals from all goals
-  const targetMinor = goals.reduce((sum, goal) => sum + goal.targetMinor, 0);
-  const progressMinor = goals.reduce((sum, goal) => sum + goal.progressMinor, 0);
-  const toGoMinor = Math.max(targetMinor - progressMinor, 0);
   const completeCount = goals.filter((goal) => goal.percent >= 100).length;
+
+  // Separate totals per section
+  const savingsTarget = savingsGoals.reduce((sum, g) => sum + g.targetMinor, 0);
+  const savingsProgress = savingsGoals.reduce((sum, g) => sum + g.progressMinor, 0);
+  const savingsToGo = Math.max(savingsTarget - savingsProgress, 0);
+
+  const debtTarget = debtGoals.reduce((sum, g) => sum + g.targetMinor, 0);
+  const debtProgress = debtGoals.reduce((sum, g) => sum + g.progressMinor, 0);
+  const debtToGo = Math.max(debtTarget - debtProgress, 0);
   const completedGoals = goals.filter((goal) => goal.percent >= 100);
   const yearToDateSavingsMinor = completedGoals
     .filter((goal) => goal.type === 'SAVINGS')
@@ -1213,25 +1223,24 @@ function GoalsScreen({
         </article>
       )}
 
-      <div className="grid grid-cols-3 rounded-2xl border border-[#E8EAED] bg-white p-4 sm:p-5">
-        {[
-          { label: 'Target', value: targetMinor },
-          { label: 'Saved / paid', value: progressMinor, accent: true },
-          { label: 'To go', value: toGoMinor },
-        ].map((item, index) => (
-          <div key={item.label} className={index === 0 ? '' : 'border-l border-[#F0F2F4] pl-3 sm:pl-5'}>
-            <p className="text-[9px] font-semibold uppercase tracking-[0.07em] text-[#64748b] sm:text-[10px]">{item.label}</p>
-            <Money
-              amountMinor={item.value}
-              currency={currency}
-              className={`mt-2 block text-sm font-semibold sm:text-lg ${item.accent ? 'text-[#047857]' : 'text-[#0B0F17]'}`}
-            />
-          </div>
-        ))}
-      </div>
-
       <div className="mt-6">
-        <p className="mb-3 px-1 text-[10px] font-semibold uppercase tracking-[0.09em] text-[#64748b]">Savings</p>
+        <div className="mb-3 flex items-center justify-between px-1">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.09em] text-[#64748b]">Savings</p>
+        </div>
+        {savingsGoals.length > 0 && (
+          <div className="mb-3 grid grid-cols-3 rounded-xl border border-[#E8EAED] bg-white p-3 sm:p-4">
+            {[
+              { label: 'Target', value: savingsTarget },
+              { label: 'Saved', value: savingsProgress, accent: true },
+              { label: 'To go', value: savingsToGo },
+            ].map((item, index) => (
+              <div key={item.label} className={index === 0 ? '' : 'border-l border-[#F0F2F4] pl-3'}>
+                <p className="text-[9px] font-semibold uppercase tracking-[0.07em] text-[#64748b]">{item.label}</p>
+                <Money amountMinor={item.value} currency={currency} className={`mt-1 block text-xs font-semibold sm:text-sm ${item.accent ? 'text-[#047857]' : 'text-[#0B0F17]'}`} />
+              </div>
+            ))}
+          </div>
+        )}
         <div className="grid gap-3 md:grid-cols-2">
           {savingsGoals.map((goal) => (
             <GoalCard
@@ -1249,7 +1258,23 @@ function GoalsScreen({
       </div>
 
       <div className="mt-6">
-        <p className="mb-3 px-1 text-[10px] font-semibold uppercase tracking-[0.09em] text-[#64748b]">Debt payoff</p>
+        <div className="mb-3 flex items-center justify-between px-1">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.09em] text-[#64748b]">Debt payoff</p>
+        </div>
+        {debtGoals.length > 0 && (
+          <div className="mb-3 grid grid-cols-3 rounded-xl border border-[#E8EAED] bg-white p-3 sm:p-4">
+            {[
+              { label: 'Target', value: debtTarget },
+              { label: 'Paid off', value: debtProgress, accent: true },
+              { label: 'Remaining', value: debtToGo },
+            ].map((item, index) => (
+              <div key={item.label} className={index === 0 ? '' : 'border-l border-[#F0F2F4] pl-3'}>
+                <p className="text-[9px] font-semibold uppercase tracking-[0.07em] text-[#64748b]">{item.label}</p>
+                <Money amountMinor={item.value} currency={currency} className={`mt-1 block text-xs font-semibold sm:text-sm ${item.accent ? 'text-[#ef4444]' : 'text-[#0B0F17]'}`} />
+              </div>
+            ))}
+          </div>
+        )}
         <div className="grid gap-3 md:grid-cols-2">
           {debtGoals.map((goal) => (
             <GoalCard

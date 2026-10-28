@@ -451,6 +451,52 @@ export function ReportsScreen({ currency, showSampleData = false, transactions =
           </p>
         </div>
       </article>
+
+      {/* Transaction Log */}
+      <article className="mt-7 rounded-[14px] border border-[#E8EAED] bg-white p-4 sm:p-5">
+        <SectionHeader
+          title="Transaction Log"
+          subtitle="When each transaction was recorded and when it is scheduled"
+          helpTitle="Transaction Log"
+          helpContent="'Recorded on' is when you added the transaction. 'Payment date' is when the money actually moves. These can differ for backdated or future-dated entries."
+        />
+        <div className="overflow-x-auto">
+          <table className="w-full text-xs">
+            <thead>
+              <tr className="border-b border-[#F0F2F4]">
+                <th className="pb-2 text-left font-semibold text-[#64748b]">Description</th>
+                <th className="pb-2 text-left font-semibold text-[#64748b]">Recorded on</th>
+                <th className="pb-2 text-left font-semibold text-[#64748b]">Payment date</th>
+                <th className="pb-2 text-right font-semibold text-[#64748b]">Amount</th>
+              </tr>
+            </thead>
+            <tbody>
+              {[...transactions]
+                .sort((a, b) => b.date.localeCompare(a.date))
+                .map((tx) => {
+                  const recordedOn = tx.createdAt
+                    ? new Date(tx.createdAt).toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: '2-digit' })
+                    : '—';
+                  const paymentDate = new Date(tx.date + 'T00:00:00').toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: '2-digit' });
+                  const isIncome = tx.amountMinor > 0;
+                  return (
+                    <tr key={tx.id} className="border-b border-[#F8F9FB] last:border-0">
+                      <td className="py-2.5 pr-3">
+                        <p className="font-medium text-[#0B0F17] truncate max-w-[140px]">{tx.name}</p>
+                        <p className="text-[10px] text-[#94a3b8]">{tx.category}</p>
+                      </td>
+                      <td className="py-2.5 pr-3 text-[#64748b]">{recordedOn}</td>
+                      <td className="py-2.5 pr-3 text-[#64748b]">{paymentDate}</td>
+                      <td className={`py-2.5 text-right font-semibold ${isIncome ? 'text-[#059669]' : 'text-[#0B0F17]'}`}>
+                        {formatMoney(tx.amountMinor, currency, { showPlus: isIncome })}
+                      </td>
+                    </tr>
+                  );
+                })}
+            </tbody>
+          </table>
+        </div>
+      </article>
     </section>
   );
 }

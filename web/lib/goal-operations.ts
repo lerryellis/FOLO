@@ -75,6 +75,7 @@ export async function createGoal(
         is_completed: false,
         monthly_payment_amount: goal.monthlyPaymentMinor ? goal.monthlyPaymentMinor / 100 : null,
         payment_start_date: goal.paymentStartDate || null,
+        goal_date: new Date().toISOString().split('T')[0],
       })
       .select()
       .single();
@@ -119,6 +120,25 @@ export async function fetchGoals(userId: string) {
 
     if (error) throw error;
 
+    // Fetch next upcoming transaction date per goal from goal_transactions
+    const today = new Date().toISOString().split('T')[0];
+    const goalIds = (data || []).map((r: any) => r.id);
+    let nextPaymentMap: Record<string, string> = {};
+    if (goalIds.length > 0) {
+      const { data: gtRows } = await supabase
+        .from('goal_transactions')
+        .select('goal_id, transaction_date')
+        .eq('user_id', userId)
+        .in('goal_id', goalIds)
+        .gte('transaction_date', today)
+        .order('transaction_date', { ascending: true });
+      for (const gt of gtRows || []) {
+        if (!nextPaymentMap[gt.goal_id]) {
+          nextPaymentMap[gt.goal_id] = gt.transaction_date;
+        }
+      }
+    }
+
     return (data || []).map((row: any): Goal => {
       const targetMinor = Math.round(row.target_amount * 100);
       const progressMinor = Math.round(row.current_progress * 100);
@@ -154,6 +174,7 @@ export async function fetchGoals(userId: string) {
               year: '2-digit',
               month: 'short',
             })}`,
+        nextPaymentDate: nextPaymentMap[row.id] || undefined,
       };
     });
   } catch (error) {

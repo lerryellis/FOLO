@@ -8,6 +8,7 @@ type TransactionRow = {
   category_type: Transaction['categoryType'];
   notes: string | null;
   transaction_date: string;
+  created_at?: string;
   is_recurring?: boolean;
   recurring_end_date?: string | null;
 };
@@ -43,6 +44,7 @@ function toTransaction(row: TransactionRow & { is_recurring?: boolean; recurring
       ? Math.round(row.amount * 100)
       : -Math.round(row.amount * 100),
     date: row.transaction_date,
+    createdAt: row.created_at || undefined,
     note: row.notes || undefined,
     pending: false,
     isRecurring: row.is_recurring || undefined,

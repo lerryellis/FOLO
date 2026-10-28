@@ -16,7 +16,8 @@ export interface Transaction {
   category: string;
   categoryType: CategoryType;
   amountMinor: number;
-  date: string;
+  date: string; // Payment / scheduled date (YYYY-MM-DD)
+  createdAt?: string; // When the record was created (ISO timestamp)
   note?: string;
   pending?: boolean;
   isRecurring?: boolean; // True if repeats monthly, false for one-time
@@ -35,6 +36,7 @@ export interface Goal {
   detail: string;
   monthlyPaymentMinor?: number; // Monthly payment amount in minor units
   paymentStartDate?: string; // When monthly payments start (YYYY-MM-DD)
+  nextPaymentDate?: string; // Next upcoming linked transaction date (YYYY-MM-DD)
 }
 
 export const CURRENCIES: CurrencyOption[] = [
